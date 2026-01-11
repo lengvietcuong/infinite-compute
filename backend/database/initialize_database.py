@@ -1,17 +1,27 @@
 import asyncio
 import csv
 import logging
+import random
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
+from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from database.database import engine, Base, AsyncSessionLocal
-from database.models import Product, News
+from database.models import (
+    Product, News, User, UserRole, Order, OrderItem, OrderStatus, 
+    Review, ChatSession, ChatMessage, ChatRole
+)
+from auth import get_password_hash
+from faker import Faker
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+fake = Faker()
 
 
 async def create_tables():
@@ -45,8 +55,8 @@ async def load_gpus_from_csv(session: AsyncSession, csv_path: Path):
                 tdp=row['tdp'],
                 memory_bandwidth=row['memory_bandwidth'],
                 description=row['description'],
-                price=float(row['price_usd']),
-                stock_quantity=10,
+                price=Decimal(row['price_usd']),
+                stock_quantity=random.randint(5, 50),  # Random stock between 5-50
                 image_url=row.get('image_url')
             )
             products.append(product)
@@ -54,6 +64,7 @@ async def load_gpus_from_csv(session: AsyncSession, csv_path: Path):
     session.add_all(products)
     await session.commit()
     logger.info(f"Loaded {len(products)} GPU products from CSV")
+    return products
 
 
 async def load_news_from_csv(session: AsyncSession, csv_path: Path):
@@ -87,6 +98,337 @@ async def load_news_from_csv(session: AsyncSession, csv_path: Path):
     session.add_all(news_articles)
     await session.commit()
     logger.info(f"Loaded {len(news_articles)} news articles from CSV")
+    return news_articles
+
+
+async def create_test_users(session: AsyncSession):
+    """Create test users with different roles"""
+    users = [
+        User(
+            email="customer@gmail.com",
+            password_hash=get_password_hash("test"),
+            full_name="Test Customer",
+            role=UserRole.CUSTOMER
+        ),
+        User(
+            email="staff@gmail.com",
+            password_hash=get_password_hash("test"),
+            full_name="Test Staff",
+            role=UserRole.STAFF
+        ),
+        User(
+            email="admin@gmail.com",
+            password_hash=get_password_hash("test"),
+            full_name="Test Admin",
+            role=UserRole.ADMIN
+        )
+    ]
+    
+    # Create additional random customers (20-30)
+    num_customers = random.randint(20, 30)
+    for i in range(num_customers):
+        users.append(User(
+            email=fake.unique.email(),
+            password_hash=get_password_hash("test123"),
+            full_name=fake.name(),
+            role=UserRole.CUSTOMER
+        ))
+    
+    session.add_all(users)
+    await session.commit()
+    
+    # Refresh to get IDs
+    for user in users:
+        await session.refresh(user)
+    
+    logger.info(f"Created {len(users)} users")
+    return users
+
+
+async def create_orders(session: AsyncSession, users, products):
+    """Create realistic order history"""
+    orders = []
+    order_items = []
+    
+    # Get customer users only
+    customers = [u for u in users if u.role == UserRole.CUSTOMER]
+    
+    # Create 50-100 orders spread over the last 6 months
+    num_orders = random.randint(50, 100)
+    
+    for _ in range(num_orders):
+        # Random date in the last 180 days
+        days_ago = random.randint(0, 180)
+        order_date = datetime.utcnow() - timedelta(days=days_ago)
+        
+        # 70% authenticated, 30% guest
+        is_guest = random.random() < 0.3
+        
+        if is_guest:
+            user_id = None
+            guest_email = fake.email()
+        else:
+            user = random.choice(customers)
+            user_id = user.id
+            guest_email = None
+        
+        # Select 1-3 random products
+        num_items = random.randint(1, 3)
+        selected_products = random.sample(products, min(num_items, len(products)))
+        
+        # Calculate total (with discount for authenticated users)
+        total_amount = Decimal(0)
+        items_for_order = []
+        
+        for product in selected_products:
+            quantity = random.randint(1, 2)
+            price = product.price
+            
+            # Apply 10% discount for authenticated users
+            if not is_guest:
+                price = price * Decimal('0.9')
+            
+            total_amount += price * quantity
+            items_for_order.append({
+                'product_id': product.id,
+                'quantity': quantity,
+                'price': price
+            })
+        
+        # Determine order status based on age
+        if days_ago > 30:
+            status = random.choices(
+                [OrderStatus.DELIVERED, OrderStatus.CANCELLED],
+                weights=[0.95, 0.05]
+            )[0]
+        elif days_ago > 7:
+            status = random.choices(
+                [OrderStatus.DELIVERED, OrderStatus.SHIPPED, OrderStatus.CANCELLED],
+                weights=[0.85, 0.13, 0.02]
+            )[0]
+        else:
+            status = random.choices(
+                [OrderStatus.PAID, OrderStatus.SHIPPED, OrderStatus.DELIVERED],
+                weights=[0.4, 0.5, 0.1]
+            )[0]
+        
+        order = Order(
+            user_id=user_id,
+            guest_email=guest_email,
+            status=status,
+            total_amount=total_amount,
+            shipping_address=fake.address().replace('\n', ', '),
+            tracking_number=f"INF{fake.hexify(text='^^^^^^^^^^^^', upper=True)}",
+            created_at=order_date,
+            updated_at=order_date
+        )
+        
+        session.add(order)
+        await session.flush()
+        
+        # Create order items
+        for item_data in items_for_order:
+            order_item = OrderItem(
+                order_id=order.id,
+                product_id=item_data['product_id'],
+                quantity=item_data['quantity'],
+                price_at_purchase=item_data['price']
+            )
+            order_items.append(order_item)
+        
+        orders.append(order)
+    
+    session.add_all(order_items)
+    await session.commit()
+    
+    logger.info(f"Created {len(orders)} orders with {len(order_items)} order items")
+    return orders
+
+
+async def create_reviews(session: AsyncSession, users, products, orders):
+    """Create reviews for shipped/delivered orders"""
+    reviews = []
+    customers = [u for u in users if u.role == UserRole.CUSTOMER]
+    
+    # Get all shipped/delivered orders
+    result = await session.execute(
+        select(Order).where(Order.status.in_([OrderStatus.SHIPPED, OrderStatus.DELIVERED]))
+    )
+    eligible_orders = result.scalars().all()
+    
+    # 60% of eligible orders get reviews
+    orders_to_review = random.sample(
+        eligible_orders, 
+        int(len(eligible_orders) * 0.6)
+    )
+    
+    reviewed_combinations = set()
+    
+    for order in orders_to_review:
+        if not order.user_id:
+            continue
+        
+        # Get order items
+        result = await session.execute(
+            select(OrderItem).where(OrderItem.order_id == order.id)
+        )
+        items = result.scalars().all()
+        
+        for item in items:
+            if not item.product_id:
+                continue
+            
+            # Check if user already reviewed this product
+            combo = (order.user_id, item.product_id)
+            if combo in reviewed_combinations:
+                continue
+            
+            # 70% chance to review each product
+            if random.random() < 0.7:
+                # Weighted ratings (more likely to be positive)
+                rating = random.choices(
+                    [1, 2, 3, 4, 5],
+                    weights=[0.02, 0.03, 0.10, 0.35, 0.50]
+                )[0]
+                
+                # 80% chance to include a comment
+                comment = None
+                if random.random() < 0.8:
+                    if rating >= 4:
+                        comment = random.choice([
+                            "Excellent GPU! Highly recommend.",
+                            "Works perfectly for my needs. Great performance!",
+                            "Amazing card, runs all my games flawlessly.",
+                            "Very satisfied with this purchase. Fast shipping too!",
+                            "Best GPU I've owned. Worth every penny.",
+                            "Incredible performance for AI workloads!",
+                            "Ray tracing looks amazing. No regrets!",
+                            "Perfect for 4K gaming. Very happy!",
+                            "Silent and powerful. Great build quality.",
+                            "Exceeded my expectations. Highly recommended!"
+                        ])
+                    elif rating == 3:
+                        comment = random.choice([
+                            "Good GPU but a bit pricey.",
+                            "Does the job, nothing special.",
+                            "Decent performance, expected more.",
+                            "It's okay for the price.",
+                            "Works as advertised."
+                        ])
+                    else:
+                        comment = random.choice([
+                            "Had some issues with temperatures.",
+                            "Not as fast as I hoped.",
+                            "Disappointed with the performance.",
+                            "Overpriced for what it offers.",
+                            "Had driver issues initially."
+                        ])
+                
+                # Review date is 1-30 days after order
+                review_date = order.created_at + timedelta(days=random.randint(1, 30))
+                
+                review = Review(
+                    user_id=order.user_id,
+                    product_id=item.product_id,
+                    rating=rating,
+                    comment=comment,
+                    created_at=review_date,
+                    updated_at=review_date
+                )
+                reviews.append(review)
+                reviewed_combinations.add(combo)
+    
+    session.add_all(reviews)
+    await session.commit()
+    
+    logger.info(f"Created {len(reviews)} reviews")
+    return reviews
+
+
+async def create_chat_sessions(session: AsyncSession, users):
+    """Create chat sessions and messages for customers"""
+    chat_sessions = []
+    chat_messages = []
+    
+    customers = [u for u in users if u.role == UserRole.CUSTOMER]
+    
+    # 40% of customers have chat history
+    customers_with_chats = random.sample(
+        customers,
+        int(len(customers) * 0.4)
+    )
+    
+    for customer in customers_with_chats:
+        # 1-3 chat sessions per customer
+        num_sessions = random.randint(1, 3)
+        
+        for _ in range(num_sessions):
+            session_date = datetime.utcnow() - timedelta(days=random.randint(0, 180))
+            
+            chat_session = ChatSession(
+                user_id=customer.id,
+                title=random.choice([
+                    "GPU Recommendation",
+                    "Technical Support",
+                    "Product Comparison",
+                    "Purchase Inquiry",
+                    "Performance Questions",
+                    "Compatibility Check",
+                    "Upgrade Advice"
+                ]),
+                created_at=session_date,
+                updated_at=session_date
+            )
+            
+            session.add(chat_session)
+            await session.flush()
+            
+            # 2-8 messages per session
+            num_messages = random.randint(2, 8)
+            
+            for i in range(num_messages):
+                role = ChatRole.USER if i % 2 == 0 else ChatRole.ASSISTANT
+                
+                if role == ChatRole.USER:
+                    content = random.choice([
+                        "What GPU would you recommend for 4K gaming?",
+                        "Can this card handle AI workloads?",
+                        "What's the difference between these two models?",
+                        "Is this GPU good for video editing?",
+                        "Do I need to upgrade my power supply?",
+                        "Will this fit in my case?",
+                        "What's the best value GPU right now?",
+                        "Can I run DLSS on this card?"
+                    ])
+                else:
+                    content = random.choice([
+                        "Based on your requirements, I'd recommend the RTX 5080 for excellent 4K performance.",
+                        "Yes, this GPU has excellent tensor cores for AI workloads.",
+                        "The main difference is in CUDA core count and memory bandwidth.",
+                        "This card is excellent for video editing with hardware encoding.",
+                        "For this GPU, a 750W power supply is recommended.",
+                        "This is a dual-slot card, it should fit in most standard cases.",
+                        "The RTX 5070 offers the best price-to-performance ratio currently.",
+                        "Yes, all RTX 50 series cards support DLSS 4 with frame generation."
+                    ])
+                
+                message_date = session_date + timedelta(minutes=i * 2)
+                
+                chat_message = ChatMessage(
+                    session_id=chat_session.id,
+                    role=role,
+                    content=content,
+                    created_at=message_date
+                )
+                chat_messages.append(chat_message)
+            
+            chat_sessions.append(chat_session)
+    
+    session.add_all(chat_messages)
+    await session.commit()
+    
+    logger.info(f"Created {len(chat_sessions)} chat sessions with {len(chat_messages)} messages")
+    return chat_sessions
 
 
 async def initialize_database():
@@ -101,12 +443,22 @@ async def initialize_database():
     # Create tables
     await create_tables()
     
-    # Load data from CSV files
+    # Load data from CSV files and create comprehensive test data
     async with AsyncSessionLocal() as session:
-        await load_gpus_from_csv(session, gpus_csv_path)
-        await load_news_from_csv(session, news_csv_path)
+        products = await load_gpus_from_csv(session, gpus_csv_path)
+        news = await load_news_from_csv(session, news_csv_path)
+        users = await create_test_users(session)
+        orders = await create_orders(session, users, products)
+        reviews = await create_reviews(session, users, products, orders)
+        chat_sessions = await create_chat_sessions(session, users)
     
     logger.info("Database initialization completed successfully!")
+    logger.info("\n" + "="*60)
+    logger.info("TEST ACCOUNTS:")
+    logger.info("  Customer: customer@gmail.com / test")
+    logger.info("  Staff:    staff@gmail.com / test")
+    logger.info("  Admin:    admin@gmail.com / test")
+    logger.info("="*60)
 
 
 if __name__ == "__main__":

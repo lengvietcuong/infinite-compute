@@ -11,8 +11,10 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is not set")
 
-# Convert postgres:// to postgresql+asyncpg:// if needed
-if DATABASE_URL.startswith("postgres://"):
+# Convert postgres:// or postgresql:// to postgresql+asyncpg:// if needed
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+elif DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
 elif not DATABASE_URL.startswith("postgresql+asyncpg://"):
     DATABASE_URL = f"postgresql+asyncpg://{DATABASE_URL}"
