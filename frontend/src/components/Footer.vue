@@ -202,6 +202,10 @@
   font-family: var(--font-sans);
 }
 
+.footer-brand {
+  width: fit-content;
+}
+
 .brand-text {
   font-family: var(--font-mono);
 }

@@ -41,6 +41,13 @@ const toggleTheme = () => {
   }
 };
 
+const collapseMenu = () => {
+  const navbarToggler = document.querySelector('.navbar-toggler');
+  if (navbarToggler && isMenuExpanded.value) {
+    navbarToggler.click();
+  }
+};
+
 onMounted(() => {
   window.addEventListener("scroll", handleScroll, { passive: true });
 
@@ -87,7 +94,7 @@ onUnmounted(() => {
           InfiniteCompute
         </router-link>
         <div class="nav-links d-none d-lg-flex gap-4 align-items-center">
-          <a class="nav-link text-foreground" href="#">Products</a>
+          <router-link class="nav-link text-foreground" to="/products">Products</router-link>
           <router-link class="nav-link text-foreground" to="/news"
             >News</router-link
           >
@@ -109,17 +116,17 @@ onUnmounted(() => {
         <div v-else class="menu-icon x-icon" aria-label="Close"></div>
       </button>
       <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-        <ul class="navbar-nav gap-2 align-items-center">
+        <ul class="navbar-nav gap-3 align-items-center">
           <li class="nav-item d-lg-none mt-3">
-            <a class="nav-link text-foreground" href="#">Products</a>
+            <router-link class="nav-link text-foreground" to="/products" @click="collapseMenu">Products</router-link>
           </li>
           <li class="nav-item d-lg-none">
-            <router-link class="nav-link text-foreground" to="/news"
+            <router-link class="nav-link text-foreground" to="/news" @click="collapseMenu"
               >News</router-link
             >
           </li>
           <li class="nav-item d-lg-none mb-3">
-            <a class="nav-link text-foreground" href="#">About</a>
+            <a class="nav-link text-foreground" href="#" @click="collapseMenu">About</a>
           </li>
           <li class="nav-item d-none d-lg-block">
             <div class="search-wrapper">

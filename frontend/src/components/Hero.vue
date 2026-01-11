@@ -119,7 +119,9 @@ onUnmounted(() => {
           <div
             class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start fade-in-up delay-300"
           >
-            <a href="#" class="btn btn-lg btn-primary"> Browse Products </a>
+            <router-link to="/products" class="btn btn-lg btn-primary">
+              Browse Products
+            </router-link>
             <a href="#" class="btn btn-lg btn-outline"> Contact Sales </a>
           </div>
         </div>
