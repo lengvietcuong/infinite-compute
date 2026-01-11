@@ -397,9 +397,10 @@ const formatPrice = (price) => {
 
 .filters-row {
   display: grid;
-  grid-template-columns: 1fr 180px;
+  grid-template-columns: 300px 180px;
   gap: 1rem;
   align-items: center;
+  justify-content: center;
   max-width: 800px;
   margin: 0 auto 3rem auto;
 }

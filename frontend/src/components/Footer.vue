@@ -200,6 +200,7 @@
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  border-top: 1px solid var(--border);
 }
 
 .footer-brand {

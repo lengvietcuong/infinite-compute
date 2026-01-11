@@ -42,7 +42,7 @@ const toggleTheme = () => {
 };
 
 const collapseMenu = () => {
-  const navbarToggler = document.querySelector('.navbar-toggler');
+  const navbarToggler = document.querySelector(".navbar-toggler");
   if (navbarToggler && isMenuExpanded.value) {
     navbarToggler.click();
   }
@@ -94,7 +94,9 @@ onUnmounted(() => {
           InfiniteCompute
         </router-link>
         <div class="nav-links d-none d-lg-flex gap-4 align-items-center">
-          <router-link class="nav-link text-foreground" to="/products">Products</router-link>
+          <router-link class="nav-link text-foreground" to="/products"
+            >Products</router-link
+          >
           <router-link class="nav-link text-foreground" to="/news"
             >News</router-link
           >
@@ -118,15 +120,25 @@ onUnmounted(() => {
       <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
         <ul class="navbar-nav gap-3 align-items-center">
           <li class="nav-item d-lg-none mt-3">
-            <router-link class="nav-link text-foreground" to="/products" @click="collapseMenu">Products</router-link>
+            <router-link
+              class="nav-link text-foreground"
+              to="/products"
+              @click="collapseMenu"
+              >Products</router-link
+            >
           </li>
           <li class="nav-item d-lg-none">
-            <router-link class="nav-link text-foreground" to="/news" @click="collapseMenu"
+            <router-link
+              class="nav-link text-foreground"
+              to="/news"
+              @click="collapseMenu"
               >News</router-link
             >
           </li>
           <li class="nav-item d-lg-none mb-3">
-            <a class="nav-link text-foreground" href="#" @click="collapseMenu">About</a>
+            <a class="nav-link text-foreground" href="#" @click="collapseMenu"
+              >About</a
+            >
           </li>
           <li class="nav-item d-none d-lg-block">
             <div class="search-wrapper">
@@ -153,10 +165,14 @@ onUnmounted(() => {
             </div>
           </li>
           <li class="nav-item">
-            <a class="btn btn-sm btn-outline" href="#">Login</a>
+            <router-link class="btn btn-sm btn-outline" to="/sign-in"
+              >Login</router-link
+            >
           </li>
           <li class="nav-item mb-3 mb-lg-0">
-            <a class="btn btn-sm btn-primary" href="#">Sign Up</a>
+            <router-link class="btn btn-sm btn-primary" to="/sign-up"
+              >Sign Up</router-link
+            >
           </li>
           <li class="nav-item">
             <button
@@ -220,8 +236,8 @@ onUnmounted(() => {
   transition: transform 0.3s ease-in-out, background-color 0.3s ease,
     backdrop-filter 0.3s ease;
   transform: translateY(0);
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
 }
 
 .navbar-scrolled,

@@ -225,15 +225,17 @@ const prevPage = () => {
     <div v-else class="news-grid fade-in-up delay-200">
       <article v-for="item in news" :key="item.id" class="news-card glass-card">
         <div class="card-image">
-          <img
-            :src="item.image_url || '/images/default-news.webp'"
-            :alt="item.title"
-            loading="lazy"
-            @error="
-              $event.target.src =
-                'https://placehold.co/600x400/1a1a1a/FFF?text=News'
-            "
-          />
+          <router-link :to="{ name: 'NewsDetails', params: { id: item.id } }">
+            <img
+              :src="item.image_url || '/images/default-news.webp'"
+              :alt="item.title"
+              loading="lazy"
+              @error="
+                $event.target.src =
+                  'https://placehold.co/600x400/1a1a1a/FFF?text=News'
+              "
+            />
+          </router-link>
         </div>
         <div class="card-content">
           <div class="card-meta">
@@ -276,13 +278,40 @@ const prevPage = () => {
               {{ item.category }}
             </span>
           </div>
-          <h3 class="card-title">{{ item.title }}</h3>
+          <h3 class="card-title">
+            <router-link :to="{ name: 'NewsDetails', params: { id: item.id } }">
+              {{ item.title }}
+            </router-link>
+          </h3>
           <p class="card-excerpt">
             {{
               item.summary ||
               (item.content ? item.content.substring(0, 120) + "..." : "")
             }}
           </p>
+          <div class="mt-auto pt-3">
+            <router-link
+              :to="{ name: 'NewsDetails', params: { id: item.id } }"
+              class="read-more-link"
+            >
+              Read More
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="ms-1"
+              >
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </router-link>
+          </div>
         </div>
       </article>
     </div>
@@ -601,6 +630,16 @@ const prevPage = () => {
   color: var(--foreground);
 }
 
+.card-title a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.card-title a:hover {
+  color: var(--primary);
+}
+
 .card-excerpt {
   font-size: 0.9rem;
   color: var(--muted-foreground);
@@ -611,6 +650,21 @@ const prevPage = () => {
   line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.read-more-link {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.read-more-link:hover {
+  text-decoration: underline;
+  opacity: 0.8;
 }
 
 /* Dark mode specific adjustments for inputs */
