@@ -38,8 +38,8 @@ function handleMouseLeave() {
 const spotlightStyle = computed(() => {
   return {
     backgroundColor: props.color,
-    maskImage: `radial-gradient(${props.radius}px circle at ${mouseX.value}px ${mouseY.value}px, ${props.gradientColor}, transparent 80%)`,
-    WebkitMaskImage: `radial-gradient(${props.radius}px circle at ${mouseX.value}px ${mouseY.value}px, ${props.gradientColor}, transparent 80%)`,
+    maskImage: `radial-gradient(${props.radius}px circle at ${mouseX.value}px ${mouseY.value}px, ${props.gradientColor}, transparent 85%)`,
+    WebkitMaskImage: `radial-gradient(${props.radius}px circle at ${mouseX.value}px ${mouseY.value}px, ${props.gradientColor}, transparent 85%)`,
   };
 });
 </script>

@@ -100,6 +100,7 @@
 
 html {
   background-color: var(--background);
+  min-height: 100%;
 }
 
 body {
@@ -110,6 +111,7 @@ body {
   color: var(--foreground);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
 
 body.light-mode {
@@ -132,6 +134,10 @@ body.light-mode {
   --border: oklch(0.92 0.004 286.32);
   --input: oklch(0.92 0.004 286.32);
   --ring: oklch(0.852 0.199 91.936);
+}
+
+html:has(body.light-mode) {
+  background-color: oklch(1 0 0);
 }
 
 .container {
@@ -652,9 +658,9 @@ body.light-mode .bg-grid {
   gap: 0.5rem;
   text-decoration: none;
 }
-.navbar-brand:hover {
-  color: var(--foreground);
-}
+.navbar-brand:link,
+.navbar-brand:visited,
+.navbar-brand:hover,
 .navbar-brand:active {
   color: var(--foreground) !important;
 }

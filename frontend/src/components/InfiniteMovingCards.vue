@@ -1,7 +1,5 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import CardSpotlight from "./CardSpotlight.vue";
-import GlowingEffect from "./GlowingEffect.vue";
 
 const props = defineProps({
   items: {
@@ -67,21 +65,8 @@ function addAnimation() {
     >
       <!-- Render Original Items -->
       <li v-for="(item, idx) in items" :key="item.name + idx" class="card-item">
-        <CardSpotlight
-          class="custom-card"
-          color="color-mix(in srgb, var(--primary), transparent 85%)"
-        >
-          <GlowingEffect
-            :spread="40"
-            :glow="true"
-            :disabled="false"
-            :proximity="64"
-            :inactiveZone="0.01"
-            :borderWidth="1"
-            variant="primary"
-          />
+        <div class="custom-card">
           <blockquote>
-            <div class="card-overlay" aria-hidden="true"></div>
             <span class="quote-text"> "{{ item.quote }}" </span>
             <div class="author-info">
               <div class="profile-image-container">
@@ -97,7 +82,7 @@ function addAnimation() {
               </span>
             </div>
           </blockquote>
-        </CardSpotlight>
+        </div>
       </li>
 
       <!-- Render Duplicated Items for Loop -->
@@ -106,21 +91,8 @@ function addAnimation() {
         :key="item.name + idx + '-dup'"
         class="card-item"
       >
-        <CardSpotlight
-          class="custom-card"
-          color="color-mix(in srgb, var(--primary), transparent 85%)"
-        >
-          <GlowingEffect
-            :spread="40"
-            :glow="true"
-            :disabled="false"
-            :proximity="64"
-            :inactiveZone="0.01"
-            :borderWidth="1"
-            variant="primary"
-          />
+        <div class="custom-card">
           <blockquote>
-            <div class="card-overlay" aria-hidden="true"></div>
             <span class="quote-text"> "{{ item.quote }}" </span>
             <div class="author-info">
               <div class="profile-image-container">
@@ -136,7 +108,7 @@ function addAnimation() {
               </span>
             </div>
           </blockquote>
-        </CardSpotlight>
+        </div>
       </li>
     </ul>
   </div>
@@ -189,24 +161,10 @@ function addAnimation() {
 
 blockquote {
   position: relative;
-  z-index: 10;
   margin: 0;
 }
 
-.card-overlay {
-  user-select: none;
-  pointer-events: none;
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  z-index: -1;
-}
-
 .quote-text {
-  position: relative;
-  z-index: 20;
   display: block;
   font-size: 0.875rem; /* text-sm */
   line-height: 1.6;
@@ -216,8 +174,6 @@ blockquote {
 }
 
 .author-info {
-  position: relative;
-  z-index: 20;
   margin-top: 1.5rem; /* mt-6 */
   display: flex;
   flex-direction: row;

@@ -49,7 +49,7 @@ psql infinitecompute < database/database.sql
 Then load initial data:
 
 ```bash
-python database/initialize_database.py
+python -m database.initialize_database
 ```
 
 ## Running the Application

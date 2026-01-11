@@ -67,7 +67,7 @@ onUnmounted(() => {
   >
     <div class="container">
       <div class="d-flex align-items-center gap-3">
-        <a class="navbar-brand" href="#">
+        <router-link class="navbar-brand" to="/">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="32"
@@ -85,10 +85,12 @@ onUnmounted(() => {
             />
           </svg>
           InfiniteCompute
-        </a>
+        </router-link>
         <div class="nav-links d-none d-lg-flex gap-4 align-items-center">
           <a class="nav-link text-foreground" href="#">Products</a>
-          <a class="nav-link text-foreground" href="#">News</a>
+          <router-link class="nav-link text-foreground" to="/news"
+            >News</router-link
+          >
           <a class="nav-link text-foreground" href="#">About</a>
         </div>
       </div>
@@ -112,7 +114,9 @@ onUnmounted(() => {
             <a class="nav-link text-foreground" href="#">Products</a>
           </li>
           <li class="nav-item d-lg-none">
-            <a class="nav-link text-foreground" href="#">News</a>
+            <router-link class="nav-link text-foreground" to="/news"
+              >News</router-link
+            >
           </li>
           <li class="nav-item d-lg-none mb-3">
             <a class="nav-link text-foreground" href="#">About</a>
@@ -262,7 +266,7 @@ body.light-mode .navbar-expanded {
   min-width: 0;
   border-radius: var(--radius);
   border: 1px solid var(--input);
-  background: transparent;
+  background: var(--background);
   padding: 0.25rem 0.75rem 0.25rem 2.25rem;
   font-size: 0.875rem;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);

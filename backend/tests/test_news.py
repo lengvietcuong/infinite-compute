@@ -12,11 +12,17 @@ class TestNews:
         response = await client.get("/news")
         assert response.status_code == 200
         data = response.json()
-        assert isinstance(data, list)
-        assert len(data) > 0
+        assert isinstance(data, dict)
+        assert "items" in data
+        assert "total" in data
+        assert "page" in data
+        assert "page_size" in data
+        assert "total_pages" in data
+        assert isinstance(data["items"], list)
+        assert len(data["items"]) > 0
         
         # Check news structure
-        article = data[0]
+        article = data["items"][0]
         assert "id" in article
         assert "title" in article
         assert "content" in article
@@ -26,14 +32,35 @@ class TestNews:
         response = await client.get("/news?category=AI Hardware")
         assert response.status_code == 200
         data = response.json()
-        for article in data:
+        for article in data["items"]:
             assert article["category"] == "AI Hardware"
+    
+    async def test_pagination_metadata(self, client: AsyncClient):
+        """Test pagination metadata is correct"""
+        response = await client.get("/news?limit=5")
+        assert response.status_code == 200
+        data = response.json()
+        
+        assert data["page"] == 1
+        assert data["page_size"] == 5
+        assert data["total"] > 0
+        assert data["total_pages"] > 0
+        
+        # Verify total_pages calculation
+        expected_pages = (data["total"] + 4) // 5  # ceil(total / 5)
+        assert data["total_pages"] == expected_pages
+        
+        # Test second page
+        response = await client.get("/news?skip=5&limit=5")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["page"] == 2
     
     async def test_get_news_by_id(self, client: AsyncClient):
         """Test getting specific news article"""
         # Get first news ID
         response = await client.get("/news?limit=1")
-        news_id = response.json()[0]["id"]
+        news_id = response.json()["items"][0]["id"]
         
         response = await client.get(f"/news/{news_id}")
         assert response.status_code == 200
@@ -139,7 +166,7 @@ class TestNews:
         """Test deleting news as staff (should fail)"""
         # Get a news ID
         response = await client.get("/news?limit=1")
-        news_id = response.json()[0]["id"]
+        news_id = response.json()["items"][0]["id"]
         
         response = await client.delete(
             f"/news/{news_id}",

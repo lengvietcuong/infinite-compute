@@ -126,6 +126,14 @@ class NewsResponse(NewsBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class PaginatedNewsResponse(BaseModel):
+    items: List[NewsResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
 # ==================== Order Schemas ====================
 class OrderItemCreate(BaseModel):
     product_id: int
