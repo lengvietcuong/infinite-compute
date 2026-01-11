@@ -38,7 +38,6 @@ class User(Base):
     orders = relationship("Order", back_populates="user")
     reviews = relationship("Review", back_populates="user", cascade="all, delete-orphan")
     chat_sessions = relationship("ChatSession", back_populates="user", cascade="all, delete-orphan")
-    news_articles = relationship("News", back_populates="author")
 
 
 class Product(Base):
@@ -79,12 +78,10 @@ class News(Base):
     published_date = Column(Date, index=True)
     source = Column(String(255))
     image_url = Column(Text)
-    author_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.current_timestamp(), nullable=False)
 
     # Relationships
-    author = relationship("User", back_populates="news_articles")
 
 
 class Order(Base):

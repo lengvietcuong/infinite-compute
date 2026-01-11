@@ -47,7 +47,7 @@ async def load_gpus_from_csv(session: AsyncSession, csv_path: Path):
                 description=row['description'],
                 price=float(row['price_usd']),
                 stock_quantity=10,
-                image_url=None
+                image_url=row.get('image_url')
             )
             products.append(product)
     
@@ -80,8 +80,7 @@ async def load_news_from_csv(session: AsyncSession, csv_path: Path):
                 summary=row['summary'],
                 published_date=published_date,
                 source=row['source'],
-                image_url=None,  # Will be set manually or through admin interface
-                author_id=None  # Will be set when staff/admin posts
+                image_url=row.get('image_url')
             )
             news_articles.append(article)
     
@@ -96,7 +95,7 @@ async def initialize_database():
     
     # Define CSV file paths
     data_dir = Path(__file__).parent.parent / "data"
-    gpus_csv_path = data_dir / "nvidia_gpus.csv"
+    gpus_csv_path = data_dir / "gpus.csv"
     news_csv_path = data_dir / "news.csv"
     
     # Create tables
