@@ -161,7 +161,7 @@ body.light-mode .gradient-light {
   }
 }
 
-@media (min-width: 992px) {
+@media (min-width: 1280px) {
   .features-grid {
     grid-template-columns: repeat(3, 1fr);
   }

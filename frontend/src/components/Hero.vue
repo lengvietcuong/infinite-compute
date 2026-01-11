@@ -351,7 +351,7 @@ body.light-mode .moving-blob-2 {
   border-left: 0;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1279px) {
   .glass-card h2 {
     font-size: 1.5rem !important;
   }

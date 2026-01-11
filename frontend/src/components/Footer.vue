@@ -251,7 +251,7 @@
   opacity: 0.5;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1279px) {
   .footer .mt-5 {
     margin-top: 2rem !important;
   }

@@ -139,14 +139,14 @@ body.light-mode {
   padding-right: 4rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .container {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
   }
 }
 
-@media (min-width: 769px) and (max-width: 991px) {
+@media (min-width: 768px) and (max-width: 1279px) {
   .container {
     padding-left: 2rem;
     padding-right: 2rem;
@@ -240,6 +240,7 @@ h6 {
   text-decoration: none;
   outline: none;
   box-shadow: none;
+  border-color: transparent;
 }
 
 .btn-primary:focus,
@@ -581,6 +582,39 @@ a.badge-secondary-bg:hover {
   animation-delay: 0.3s;
 }
 
+/* Infinite Scroll Animation */
+@keyframes scroll {
+  to {
+    transform: translate(calc(-50% - 0.5rem));
+  }
+}
+
+.animate-scroll {
+  animation: scroll var(--animation-duration, 40s)
+    var(--animation-direction, forwards) linear infinite;
+}
+
+.scroller-mask {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    white 5%,
+    white 95%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    white 5%,
+    white 95%,
+    transparent
+  );
+}
+
+.pause-animation:hover {
+  animation-play-state: paused;
+}
+
 /* Grid Background */
 .bg-grid {
   background-size: 40px 40px;
@@ -637,7 +671,7 @@ body.light-mode .bg-grid {
   line-height: 1.2;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1279px) {
   .hero-heading {
     font-size: 2.2rem;
   }
