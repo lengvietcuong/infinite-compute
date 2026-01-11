@@ -49,22 +49,36 @@ psql infinitecompute < database/database.sql
 Then load initial data:
 
 ```bash
-python -m database.initialize_database
+python database/initialize_database.py
 ```
 
-### 5. Run the Server
+## Running the Application
 
 ```bash
-python main.py
+uvicorn main:app --reload
 ```
 
-Or with uvicorn:
+## Testing
+
+The backend uses `pytest` for testing.
+
+### Run all tests
 
 ```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+pytest
 ```
 
-The API will be available at `http://localhost:8000`
+### Run tests with coverage
+
+```bash
+pytest --cov=.
+```
+
+### Run specific test files
+
+```bash
+pytest tests/test_auth.py
+```
 
 ## API Documentation
 

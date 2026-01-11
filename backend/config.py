@@ -1,5 +1,8 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Settings(BaseSettings):
@@ -17,7 +20,7 @@ class Settings(BaseSettings):
     # CORS Settings
     CORS_ORIGINS: list = ["http://localhost:5173", "http://localhost:3000"]
     
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
+    model_config = SettingsConfigDict(case_sensitive=True)
 
 
 settings = Settings()
