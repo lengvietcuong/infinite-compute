@@ -1,13 +1,20 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { useRouter } from "vue-router";
 import { useCart } from "../composables/useCart";
 
+const router = useRouter();
 const { cartItemCount, toggleCart } = useCart();
 const isVisible = ref(true);
 const isScrolled = ref(false);
 const isDarkMode = ref(true);
 const isMenuExpanded = ref(false);
+const searchQuery = ref("");
+const searchResults = ref([]);
+const showDropdown = ref(false);
+const isLoading = ref(false);
 let lastScrollPosition = 0;
+let searchTimeout = null;
 
 const handleScroll = () => {
   const currentScrollPosition = window.scrollY;
@@ -48,6 +55,72 @@ const collapseMenu = () => {
   if (navbarToggler && isMenuExpanded.value) {
     navbarToggler.click();
   }
+};
+
+const handleSearch = () => {
+  if (searchQuery.value.trim()) {
+    router.push({ path: "/products", query: { search: searchQuery.value } });
+    showDropdown.value = false;
+    collapseMenu();
+  }
+};
+
+const fetchSearchResults = async () => {
+  if (!searchQuery.value.trim()) {
+    searchResults.value = [];
+    showDropdown.value = false;
+    return;
+  }
+
+  isLoading.value = true;
+  showDropdown.value = true;
+
+  try {
+    const params = new URLSearchParams({
+      search: searchQuery.value,
+      limit: 5, // Limit preview results
+    });
+    const response = await fetch(`http://localhost:8000/products?${params.toString()}`);
+    if (response.ok) {
+      searchResults.value = await response.json();
+    }
+  } catch (error) {
+    console.error("Search failed:", error);
+    searchResults.value = [];
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+watch(searchQuery, () => {
+  if (searchTimeout) clearTimeout(searchTimeout);
+  if (!searchQuery.value.trim()) {
+    searchResults.value = [];
+    showDropdown.value = false;
+    return;
+  }
+  searchTimeout = setTimeout(fetchSearchResults, 300);
+});
+
+const selectResult = (id) => {
+  router.push(`/products/${id}`);
+  searchQuery.value = "";
+  showDropdown.value = false;
+  collapseMenu();
+};
+
+const closeDropdown = () => {
+  // Small delay to allow click event on result item to fire
+  setTimeout(() => {
+    showDropdown.value = false;
+  }, 200);
+};
+
+const formatPrice = (price) => {
+  return parseFloat(price).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 };
 
 onMounted(() => {
@@ -163,7 +236,40 @@ onUnmounted(() => {
                 type="search"
                 placeholder="Search..."
                 class="search-input"
+                v-model="searchQuery"
+                @keyup.enter="handleSearch"
+                @focus="showDropdown = true"
+                @blur="closeDropdown"
               />
+              
+              <!-- Search Results Dropdown -->
+              <div 
+                v-if="showDropdown && searchResults.length > 0" 
+                class="search-dropdown"
+              >
+                <a 
+                  v-for="product in searchResults" 
+                  :key="product.id"
+                  href="#"
+                  class="search-result-item"
+                  @click.prevent="selectResult(product.id)"
+                >
+                  <div class="result-image">
+                    <img 
+                      :src="product.image_url || '/images/default-product.webp'" 
+                      :alt="product.name"
+                      @error="$event.target.src = 'https://placehold.co/100x100/1a1a1a/FFF?text=IMG'"
+                    />
+                  </div>
+                  <div class="result-info">
+                    <div class="result-name">{{ product.name }}</div>
+                    <div class="result-price">${{ formatPrice(product.price) }}</div>
+                  </div>
+                </a>
+                <div class="dropdown-footer" @click="handleSearch">
+                  See all results for "{{ searchQuery }}"
+                </div>
+              </div>
             </div>
           </li>
           <!-- Cart Icon -->
@@ -383,6 +489,97 @@ body.light-mode .navbar-expanded {
   pointer-events: none;
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.5rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 50;
+  overflow: hidden;
+  width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+@media (max-width: 991px) {
+  .search-dropdown {
+    width: 100%;
+  }
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  text-decoration: none;
+  color: var(--foreground);
+  transition: background-color 0.2s;
+}
+
+.search-result-item:not(:last-of-type) {
+  border-bottom: 1px solid var(--border);
+}
+
+.search-result-item:hover {
+  background-color: color-mix(in srgb, var(--primary), transparent 90%);
+}
+
+.result-image {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background-color: var(--card);
+  flex-shrink: 0;
+}
+
+.result-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.result-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.result-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.125rem;
+}
+
+.result-price {
+  font-size: 0.75rem;
+  color: var(--primary);
+  font-family: var(--font-mono);
+}
+
+.dropdown-footer {
+  padding: 0.75rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--primary);
+  cursor: pointer;
+  background-color: color-mix(in srgb, var(--card), transparent 50%);
+  border-top: 1px solid var(--border);
+  transition: background-color 0.2s;
+}
+
+.dropdown-footer:hover {
+  background-color: color-mix(in srgb, var(--primary), transparent 90%);
 }
 
 .navbar-toggler {
