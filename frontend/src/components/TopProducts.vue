@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { formatPrice } from "../utils/format";
 import SparklesCore from "./SparklesCore.vue";
+import Skeleton from "./Skeleton.vue";
 
 const router = useRouter();
 const products = ref([]);
@@ -95,10 +96,73 @@ const navigateToProduct = (id) => {
     <div class="container content-container">
       <h2 class="section-title">Top Products</h2>
 
-      <div v-if="loading" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
+      <div v-if="loading" class="carousel-container">
+        <!-- Navigation Buttons -->
+        <button class="nav-btn prev-btn" disabled aria-label="Previous">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+        </button>
+
+        <div class="carousel-viewport">
+          <div class="carousel-track">
+            <div
+              v-for="n in visibleCount"
+              :key="n"
+              class="carousel-item-wrapper"
+              :style="{
+                width: `${100 / visibleCount}%`,
+                flex: `0 0 ${100 / visibleCount}%`,
+              }"
+            >
+              <div class="product-card glass-card">
+                <div class="corner-borders">
+                  <span class="corner top-left"></span>
+                  <span class="corner top-right"></span>
+                  <span class="corner bottom-left"></span>
+                  <span class="corner bottom-right"></span>
+                </div>
+                <div class="card-image">
+                  <Skeleton class="w-full h-full" />
+                </div>
+                <div class="card-content">
+                  <div class="flex justify-between mb-2">
+                    <Skeleton class="w-1/3 h-4" />
+                    <Skeleton class="w-1/4 h-4" />
+                  </div>
+                  <Skeleton class="w-3/4 h-6 mb-2" />
+                  <Skeleton class="w-full h-12" />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <button class="nav-btn next-btn" disabled aria-label="Next">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        </button>
       </div>
 
       <div v-else-if="products.length > 0" class="carousel-container">
@@ -321,7 +385,8 @@ const navigateToProduct = (id) => {
   flex-direction: column;
   overflow: hidden;
   transition: transform var(--transition-slow) ease,
-    box-shadow var(--transition-slow) ease, border-color var(--transition-slow) ease;
+    box-shadow var(--transition-slow) ease,
+    border-color var(--transition-slow) ease;
   cursor: pointer;
   background: color-mix(in srgb, var(--card), transparent 80%);
   border: 1px solid var(--border);

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import Skeleton from "../components/Skeleton.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -62,7 +63,7 @@ const updateURL = () => {
   if (startDate.value) query.start_date = startDate.value;
   if (endDate.value) query.end_date = endDate.value;
 
-  // Use replace to avoid polluting history for every small change, 
+  // Use replace to avoid polluting history for every small change,
   // or push for significant ones?
   // Let's use push for pagination to allow "Back" to work.
   // But for typing search, replace is better.
@@ -101,10 +102,10 @@ watch(
       page.value = newPage;
       // fetchNews will be triggered by page watcher
     }
-    
+
     // Handle other params if needed (e.g. shared link)
     if (newQuery.sort_by && newQuery.sort_by !== sortBy.value) {
-        sortBy.value = newQuery.sort_by;
+      sortBy.value = newQuery.sort_by;
     }
     // ... similarly for others
   }
@@ -115,7 +116,7 @@ onMounted(() => {
 });
 
 const navigateToNewsDetails = (id) => {
-  router.push({ name: 'NewsDetails', params: { id } });
+  router.push({ name: "NewsDetails", params: { id } });
 };
 
 const goToFirstPage = () => {
@@ -137,7 +138,7 @@ const prevPage = () => {
 
 <template>
   <div class="news-page container">
-    <h1 class="page-title mb-5 fade-in-up-fast">
+    <h1 class="page-title mb-5">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
@@ -159,7 +160,7 @@ const prevPage = () => {
     </h1>
 
     <!-- Filters -->
-    <div class="filters-row mb-5 fade-in-up-fast delay-100-fast">
+    <div class="filters-row mb-5">
       <!-- Search -->
       <div class="search-box">
         <span class="search-icon">
@@ -203,7 +204,11 @@ const prevPage = () => {
         >
           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
         </svg>
-        <select v-model="sortBy" class="form-select" aria-label="Sort news articles">
+        <select
+          v-model="sortBy"
+          class="form-select"
+          aria-label="Sort news articles"
+        >
           <option value="recent">Most Recent</option>
           <option value="oldest">Oldest</option>
         </select>
@@ -267,9 +272,19 @@ const prevPage = () => {
     </div>
 
     <!-- Loading/Error -->
-    <div v-if="loading && news.length === 0" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
+    <div v-if="loading" class="news-grid">
+      <div v-for="n in pageSize" :key="n" class="news-card glass-card">
+        <div class="card-image">
+          <Skeleton class="w-full h-full" />
+        </div>
+        <div class="card-content">
+          <div class="flex justify-between mb-2">
+            <Skeleton class="w-1/3 h-4" />
+            <Skeleton class="w-1/4 h-4" />
+          </div>
+          <Skeleton class="w-3/4 h-6 mb-4" />
+          <Skeleton class="w-full h-16" />
+        </div>
       </div>
     </div>
     <div v-else-if="error" class="text-center py-5 text-danger">
@@ -277,10 +292,10 @@ const prevPage = () => {
     </div>
 
     <!-- Grid -->
-    <div v-else class="news-grid fade-in-up-fast delay-200-fast">
-      <article 
-        v-for="item in news" 
-        :key="item.id" 
+    <div v-else class="news-grid">
+      <article
+        v-for="item in news"
+        :key="item.id"
         class="news-card glass-card"
         @click="navigateToNewsDetails(item.id)"
       >
@@ -352,7 +367,7 @@ const prevPage = () => {
     <!-- Empty State -->
     <div
       v-if="!loading && !error && news.length === 0"
-      class="text-center py-5 text-muted fade-in-up-fast"
+      class="text-center py-5 text-muted"
     >
       No news articles found matching your criteria.
     </div>
@@ -642,7 +657,8 @@ const prevPage = () => {
   flex-direction: column;
   overflow: hidden;
   transition: transform var(--transition-slow) ease,
-    box-shadow var(--transition-slow) ease, border-color var(--transition-slow) ease;
+    box-shadow var(--transition-slow) ease,
+    border-color var(--transition-slow) ease;
   height: 100%;
   cursor: pointer;
 }
@@ -719,7 +735,6 @@ const prevPage = () => {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
 
 input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(1);

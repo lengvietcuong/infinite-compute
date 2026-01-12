@@ -2,6 +2,7 @@
 import { ref, watch, onMounted, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { formatPrice } from "../utils/format";
+import Skeleton from "../components/Skeleton.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -49,8 +50,8 @@ const paginatedProducts = computed(() => {
   return filteredAndSortedProducts.value.slice(start, end);
 });
 
-const totalPages = computed(() =>
-  Math.ceil(filteredAndSortedProducts.value.length / pageSize) || 1
+const totalPages = computed(
+  () => Math.ceil(filteredAndSortedProducts.value.length / pageSize) || 1
 );
 
 const fetchProducts = async () => {
@@ -85,9 +86,9 @@ const fetchProducts = async () => {
 
 // URL Syncing
 const updateURL = () => {
-  const query = { 
+  const query = {
     page: page.value,
-    sort_by: sortBy.value 
+    sort_by: sortBy.value,
   };
   if (searchQuery.value) {
     query.search = searchQuery.value;
@@ -98,7 +99,7 @@ const updateURL = () => {
 // Watchers
 watch(searchQuery, () => {
   page.value = 1; // Reset to page 1 on search
-  // Debounce fetch handled by separate watcher or logic if needed, 
+  // Debounce fetch handled by separate watcher or logic if needed,
   // but here we just fetch immediately or via debounced function.
   debouncedFetch();
 });
@@ -130,24 +131,24 @@ watch(
     if (page.value !== newPage) {
       page.value = newPage;
     }
-    
+
     if (newQuery.search !== searchQuery.value) {
       searchQuery.value = newQuery.search || "";
-      // Fetch will be triggered by searchQuery watcher? 
+      // Fetch will be triggered by searchQuery watcher?
       // No, searchQuery watcher calls debouncedFetch.
       // But if it comes from URL, we might want immediate fetch?
       // Let's rely on searchQuery watcher for now.
     }
-    
+
     if (newQuery.sort_by !== sortBy.value && newQuery.sort_by) {
-        sortBy.value = newQuery.sort_by;
+      sortBy.value = newQuery.sort_by;
     }
   }
 );
 
 onMounted(() => {
-    // Initial fetch
-    fetchProducts();
+  // Initial fetch
+  fetchProducts();
 });
 
 const goToFirstPage = () => {
@@ -173,7 +174,7 @@ const navigateToProduct = (id) => {
 
 <template>
   <div class="products-page container">
-    <h1 class="page-title mb-4 fade-in-up-fast">
+    <h1 class="page-title mb-4">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="48"
@@ -198,7 +199,7 @@ const navigateToProduct = (id) => {
     </h1>
 
     <!-- Filters -->
-    <div class="filters-row mb-5 fade-in-up-fast delay-100-fast">
+    <div class="filters-row mb-5">
       <!-- Search -->
       <div class="search-box">
         <span class="search-icon">
@@ -255,12 +256,19 @@ const navigateToProduct = (id) => {
     </div>
 
     <!-- Loading/Error -->
-    <div
-      v-if="loading && allFetchedProducts.length === 0"
-      class="text-center py-5"
-    >
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
+    <div v-if="loading" class="products-grid">
+      <div v-for="n in pageSize" :key="n" class="product-card glass-card">
+        <div class="card-image">
+          <Skeleton class="w-full h-full" />
+        </div>
+        <div class="card-content">
+          <div class="flex justify-between mb-2">
+            <Skeleton class="w-1/3 h-4" />
+            <Skeleton class="w-1/4 h-4" />
+          </div>
+          <Skeleton class="w-3/4 h-6 mb-2" />
+          <Skeleton class="w-full h-12" />
+        </div>
       </div>
     </div>
     <div v-else-if="error" class="text-center py-5 text-danger">
@@ -268,7 +276,7 @@ const navigateToProduct = (id) => {
     </div>
 
     <!-- Grid -->
-    <div v-else class="products-grid fade-in-up-fast delay-200-fast">
+    <div v-else class="products-grid">
       <article
         v-for="product in paginatedProducts"
         :key="product.id"
@@ -326,14 +334,14 @@ const navigateToProduct = (id) => {
     <!-- Empty State -->
     <div
       v-if="!loading && !error && allFetchedProducts.length === 0"
-      class="text-center py-5 text-muted fade-in-up-fast"
+      class="text-center py-5 text-muted"
     >
       No products found matching your criteria.
     </div>
 
     <!-- Pagination -->
     <div
-      class="pagination mt-5 d-flex justify-content-center gap-2 fade-in-up-fast delay-300-fast"
+      class="pagination mt-5 d-flex justify-content-center gap-2"
       v-if="filteredAndSortedProducts.length > pageSize"
     >
       <button
@@ -551,7 +559,8 @@ const navigateToProduct = (id) => {
   flex-direction: column;
   overflow: hidden;
   transition: transform var(--transition-slow) ease,
-    box-shadow var(--transition-slow) ease, border-color var(--transition-slow) ease;
+    box-shadow var(--transition-slow) ease,
+    border-color var(--transition-slow) ease;
   height: 100%;
   cursor: pointer;
   background: color-mix(in srgb, var(--card), transparent 80%);
