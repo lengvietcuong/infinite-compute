@@ -135,6 +135,16 @@ class PaginatedNewsResponse(BaseModel):
 
 
 # ==================== Order Schemas ====================
+class CouponCreate(BaseModel):
+    first_name: str
+    last_name: str
+
+
+class CouponResponse(BaseModel):
+    code: str
+    discount_percent: Decimal
+
+
 class OrderItemCreate(BaseModel):
     product_id: int
     quantity: int = Field(..., gt=0)
@@ -154,6 +164,7 @@ class OrderCreate(BaseModel):
     guest_email: Optional[EmailStr] = None
     shipping_address: str
     items: List[OrderItemCreate] = Field(..., min_length=1)
+    discount_code: Optional[str] = None
 
 
 class OrderUpdateStatus(BaseModel):

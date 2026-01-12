@@ -80,7 +80,9 @@ const fetchSearchResults = async () => {
       search: searchQuery.value,
       limit: 5, // Limit preview results
     });
-    const response = await fetch(`http://localhost:8000/products?${params.toString()}`);
+    const response = await fetch(
+      `http://localhost:8000/products?${params.toString()}`
+    );
     if (response.ok) {
       searchResults.value = await response.json();
     }
@@ -178,7 +180,9 @@ onUnmounted(() => {
           <router-link class="nav-link text-foreground" to="/news"
             >News</router-link
           >
-          <a class="nav-link text-foreground" href="#">About</a>
+          <router-link class="nav-link text-foreground" to="/about"
+            >About</router-link
+          >
         </nav>
       </div>
       <button
@@ -222,8 +226,11 @@ onUnmounted(() => {
             >
           </li>
           <li class="nav-item d-lg-none mb-3">
-            <a class="nav-link text-foreground" href="#" @click="collapseMenu"
-              >About</a
+            <router-link
+              class="nav-link text-foreground"
+              to="/about"
+              @click="collapseMenu"
+              >About</router-link
             >
           </li>
           <li class="nav-item d-none d-lg-block">
@@ -252,29 +259,34 @@ onUnmounted(() => {
                 @focus="showDropdown = true"
                 @blur="closeDropdown"
               />
-              
+
               <!-- Search Results Dropdown -->
-              <div 
-                v-if="showDropdown && searchResults.length > 0" 
+              <div
+                v-if="showDropdown && searchResults.length > 0"
                 class="search-dropdown"
               >
-                <a 
-                  v-for="product in searchResults" 
+                <a
+                  v-for="product in searchResults"
                   :key="product.id"
                   href="#"
                   class="search-result-item"
                   @click.prevent="selectResult(product.id)"
                 >
                   <div class="result-image">
-                    <img 
-                      :src="product.image_url || '/images/default-product.webp'" 
+                    <img
+                      :src="product.image_url || '/images/default-product.webp'"
                       :alt="product.name"
-                      @error="$event.target.src = 'https://placehold.co/100x100/1a1a1a/FFF?text=IMG'"
+                      @error="
+                        $event.target.src =
+                          'https://placehold.co/100x100/1a1a1a/FFF?text=IMG'
+                      "
                     />
                   </div>
                   <div class="result-info">
                     <div class="result-name">{{ product.name }}</div>
-                    <div class="result-price">${{ formatPrice(product.price) }}</div>
+                    <div class="result-price">
+                      ${{ formatPrice(product.price) }}
+                    </div>
                   </div>
                 </a>
                 <div class="dropdown-footer" @click="handleSearch">
@@ -307,10 +319,7 @@ onUnmounted(() => {
                   d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
                 />
               </svg>
-              <span
-                v-if="cartItemCount > 0"
-                class="cart-badge"
-              >
+              <span v-if="cartItemCount > 0" class="cart-badge">
                 {{ cartItemCount }}
                 <span class="visually-hidden">items in cart</span>
               </span>
@@ -339,10 +348,7 @@ onUnmounted(() => {
                   d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
                 />
               </svg>
-              <span
-                v-if="cartItemCount > 0"
-                class="cart-badge"
-              >
+              <span v-if="cartItemCount > 0" class="cart-badge">
                 {{ cartItemCount }}
                 <span class="visually-hidden">items in cart</span>
               </span>
@@ -511,7 +517,8 @@ body.light-mode .navbar-expanded {
   background: var(--background);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
   z-index: 50;
   overflow: hidden;
   width: 300px;
@@ -688,7 +695,7 @@ body.light-mode .navbar-expanded {
     margin-left: 0;
     margin-bottom: 0.75rem;
   }
-  
+
   .cart-nav-item,
   .auth-nav-group {
     margin-left: 0 !important;

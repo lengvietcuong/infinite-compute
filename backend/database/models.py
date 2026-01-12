@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DECIMAL, Date, ForeignKey, CheckConstraint, Enum as SQLEnum, TIMESTAMP
+from sqlalchemy import Column, Integer, String, Text, DECIMAL, Date, ForeignKey, CheckConstraint, Enum as SQLEnum, TIMESTAMP, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database.database import Base
@@ -82,6 +82,16 @@ class News(Base):
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.current_timestamp(), nullable=False)
 
     # Relationships
+
+
+class Coupon(Base):
+    __tablename__ = "coupons"
+
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String(50), unique=True, nullable=False, index=True)
+    discount_percent = Column(DECIMAL(5, 2), nullable=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
 
 
 class Order(Base):
