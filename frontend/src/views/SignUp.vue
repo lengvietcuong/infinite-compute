@@ -75,261 +75,270 @@ const handleSignUp = async () => {
 </script>
 
 <template>
-  <div class="auth-page">
-    <div
-      class="container d-flex justify-content-center align-items-center py-5"
-    >
-      <div class="glass-card auth-card p-4 p-md-5 fade-in-up">
-        <div class="text-center mb-4">
-          <h2 class="mb-2">Create Account</h2>
+  <div class="auth-page container-fluid p-0">
+    <div class="gradient-light top-right"></div>
+    <div class="row g-0 h-100">
+      <!-- Left Column: Auth Form -->
+      <div
+        class="col-12 col-lg-6 d-flex justify-content-center align-items-center"
+      >
+        <div class="glass-card auth-card p-4 p-md-5">
+          <div class="text-center mb-4">
+            <h2 class="mb-2">Create Account</h2>
+          </div>
+
+          <form @submit.prevent="handleSignUp">
+            <div class="mb-3">
+              <label for="name" class="form-label">Full Name</label>
+              <div class="input-group-custom">
+                <span class="input-icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  id="name"
+                  v-model="name"
+                  class="form-control-custom"
+                  placeholder="John Doe"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <div class="input-group-custom">
+                <span class="input-icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7" />
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                  </svg>
+                </span>
+                <input
+                  type="email"
+                  id="email"
+                  v-model="email"
+                  class="form-control-custom"
+                  placeholder="name@example.com"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="password" class="form-label">Password</label>
+              <div class="input-group-custom">
+                <span class="input-icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </span>
+                <input
+                  :type="showPassword ? 'text' : 'password'"
+                  id="password"
+                  v-model="password"
+                  class="form-control-custom"
+                  placeholder="Create a password"
+                  required
+                />
+                <button
+                  type="button"
+                  class="password-toggle"
+                  @click="togglePassword"
+                >
+                  <svg
+                    v-if="!showPassword"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+                    />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  <svg
+                    v-else
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"
+                    />
+                    <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+                    <path
+                      d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"
+                    />
+                    <path d="m2 2 20 20" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label for="confirmPassword" class="form-label"
+                >Confirm Password</label
+              >
+              <div class="input-group-custom">
+                <span class="input-icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </span>
+                <input
+                  :type="showConfirmPassword ? 'text' : 'password'"
+                  id="confirmPassword"
+                  v-model="confirmPassword"
+                  class="form-control-custom"
+                  placeholder="Confirm your password"
+                  required
+                />
+                <button
+                  type="button"
+                  class="password-toggle"
+                  @click="toggleConfirmPassword"
+                >
+                  <svg
+                    v-if="!showConfirmPassword"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+                    />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  <svg
+                    v-else
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"
+                    />
+                    <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+                    <path
+                      d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"
+                    />
+                    <path d="m2 2 20 20" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div v-if="error" class="alert alert-danger mb-4" role="alert">
+              {{ error }}
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-primary w-100 py-2 mb-4 auth-submit-btn"
+              :disabled="isLoading"
+            >
+              <svg
+                v-if="isLoading"
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="spinner-icon"
+              >
+                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+              </svg>
+              <span v-if="!isLoading">Sign Up</span>
+              <span v-else>Signing up...</span>
+            </button>
+
+            <p class="text-center text-muted mb-0">
+              Already have an account?
+              <router-link to="/sign-in" class="text-primary text-decoration-none"
+                >Sign in</router-link
+              >
+            </p>
+          </form>
         </div>
+      </div>
 
-        <form @submit.prevent="handleSignUp">
-          <div class="mb-3">
-            <label for="name" class="form-label">Full Name</label>
-            <div class="input-group-custom">
-              <span class="input-icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-              </span>
-              <input
-                type="text"
-                id="name"
-                v-model="name"
-                class="form-control-custom"
-                placeholder="John Doe"
-                required
-              />
-            </div>
-          </div>
-
-          <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <div class="input-group-custom">
-              <span class="input-icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7" />
-                  <rect x="2" y="4" width="20" height="16" rx="2" />
-                </svg>
-              </span>
-              <input
-                type="email"
-                id="email"
-                v-model="email"
-                class="form-control-custom"
-                placeholder="name@example.com"
-                required
-              />
-            </div>
-          </div>
-
-          <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <div class="input-group-custom">
-              <span class="input-icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-              </span>
-              <input
-                :type="showPassword ? 'text' : 'password'"
-                id="password"
-                v-model="password"
-                class="form-control-custom"
-                placeholder="Create a password"
-                required
-              />
-              <button
-                type="button"
-                class="password-toggle"
-                @click="togglePassword"
-              >
-                <svg
-                  v-if="!showPassword"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
-                  />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                <svg
-                  v-else
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"
-                  />
-                  <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
-                  <path
-                    d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"
-                  />
-                  <path d="m2 2 20 20" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <div class="mb-4">
-            <label for="confirmPassword" class="form-label"
-              >Confirm Password</label
-            >
-            <div class="input-group-custom">
-              <span class="input-icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-              </span>
-              <input
-                :type="showConfirmPassword ? 'text' : 'password'"
-                id="confirmPassword"
-                v-model="confirmPassword"
-                class="form-control-custom"
-                placeholder="Confirm your password"
-                required
-              />
-              <button
-                type="button"
-                class="password-toggle"
-                @click="toggleConfirmPassword"
-              >
-                <svg
-                  v-if="!showConfirmPassword"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
-                  />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                <svg
-                  v-else
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"
-                  />
-                  <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
-                  <path
-                    d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"
-                  />
-                  <path d="m2 2 20 20" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <div v-if="error" class="alert alert-danger mb-4" role="alert">
-            {{ error }}
-          </div>
-
-          <button
-            type="submit"
-            class="btn btn-primary w-100 py-2 mb-4 auth-submit-btn"
-            :disabled="isLoading"
-          >
-            <svg
-              v-if="isLoading"
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="spinner-icon"
-            >
-              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-            </svg>
-            <span v-if="!isLoading">Sign Up</span>
-            <span v-else>Signing up...</span>
-          </button>
-
-          <p class="text-center text-muted mb-0">
-            Already have an account?
-            <router-link to="/sign-in" class="text-primary text-decoration-none"
-              >Sign in</router-link
-            >
-          </p>
-        </form>
+      <!-- Right Column: Image (Desktop only) -->
+      <div class="d-none d-lg-block col-lg-6 p-0">
+        <div class="auth-image"></div>
       </div>
     </div>
   </div>
@@ -337,16 +346,47 @@ const handleSignUp = async () => {
 
 <style scoped>
 .auth-page {
-  background-image: radial-gradient(
-    circle at 50% 0%,
-    color-mix(in srgb, var(--primary), transparent 90%),
-    transparent 40%
-  );
+  height: 90vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.gradient-light {
+  position: absolute;
+  width: 40rem;
+  height: 40rem;
+  border-radius: var(--radius-full);
+  background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+  filter: blur(100px);
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body.light-mode .gradient-light {
+  opacity: 0.1;
+}
+
+.gradient-light.top-right {
+  top: 0;
+  left: 0;
+  transform: translate(-40%, -40%);
+}
+
+.auth-image {
+  height: 100%;
+  width: 100%;
+  background-image: url("/images/gpu-cover-2.webp");
+  background-size: cover;
+  background-position: center;
 }
 
 .auth-card {
   width: 100%;
   max-width: 450px;
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 
 .form-label {
