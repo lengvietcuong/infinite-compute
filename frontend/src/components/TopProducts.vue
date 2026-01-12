@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
+import SparklesCore from "./SparklesCore.vue";
 
 const router = useRouter();
 const products = ref([]);
@@ -40,21 +41,22 @@ const fetchTopProducts = async () => {
   }
 };
 
-const next = () => {
-  if (currentIndex.value + visibleCount.value < products.value.length) {
-    currentIndex.value++;
-  } else {
-    currentIndex.value = 0;
+const visibleProducts = computed(() => {
+  const items = [];
+  for (let i = 0; i < visibleCount.value; i++) {
+    const index = (currentIndex.value + i) % products.value.length;
+    items.push(products.value[index]);
   }
+  return items;
+});
+
+const next = () => {
+  currentIndex.value = (currentIndex.value + 1) % products.value.length;
 };
 
 const prev = () => {
-  if (currentIndex.value > 0) {
-    currentIndex.value--;
-  } else {
-    currentIndex.value = products.value.length - visibleCount.value;
-    if (currentIndex.value < 0) currentIndex.value = 0;
-  }
+  currentIndex.value =
+    (currentIndex.value - 1 + products.value.length) % products.value.length;
 };
 
 onMounted(() => {
@@ -81,8 +83,20 @@ const formatPrice = (price) => {
 
 <template>
   <section v-if="shouldRender" class="top-products-section">
-    <div class="container">
-      <h2 class="section-title">Top Selling Products</h2>
+    <div class="gradient-light center"></div>
+    <div class="sparkles-wrapper">
+      <SparklesCore
+        id="tsparticles-top-products"
+        background="transparent"
+        :minSize="0.6"
+        :maxSize="1.4"
+        :particleDensity="100"
+        class="w-full h-full fade-mask"
+        particleColor="#FFFFFF"
+      />
+    </div>
+    <div class="container content-container">
+      <h2 class="section-title">Top Products</h2>
 
       <div v-if="loading" class="text-center py-5">
         <div class="spinner-border text-primary" role="status">
@@ -109,17 +123,15 @@ const formatPrice = (price) => {
         </button>
 
         <div class="carousel-viewport">
-          <div
-            class="carousel-track"
-            :style="{
-              transform: `translateX(-${currentIndex * (100 / visibleCount)}%)`,
-            }"
-          >
+          <transition-group name="card" tag="div" class="carousel-track">
             <div
-              v-for="product in products"
+              v-for="product in visibleProducts"
               :key="product.id"
               class="carousel-item-wrapper"
-              :style="{ flex: `0 0 ${100 / visibleCount}%` }"
+              :style="{
+                width: `${100 / visibleCount}%`,
+                flex: `0 0 ${100 / visibleCount}%`,
+              }"
             >
               <article
                 class="product-card glass-card"
@@ -172,7 +184,7 @@ const formatPrice = (price) => {
                 </div>
               </article>
             </div>
-          </div>
+          </transition-group>
         </div>
 
         <button class="nav-btn next-btn" @click="next" aria-label="Next">
@@ -198,7 +210,56 @@ const formatPrice = (price) => {
 <style scoped>
 .top-products-section {
   padding: 4rem 0;
+  padding-top: 5rem;
   background-color: var(--background);
+  position: relative;
+  overflow: hidden;
+}
+
+.sparkles-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.fade-mask {
+  mask-image: radial-gradient(ellipse at center, white 40%, transparent 80%);
+  -webkit-mask-image: radial-gradient(
+    ellipse at center,
+    white 40%,
+    transparent 80%
+  );
+}
+
+.content-container {
+  position: relative;
+  z-index: 1;
+}
+
+.gradient-light {
+  position: absolute;
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--primary), transparent 85%) 0%,
+    transparent 70%
+  );
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.gradient-light.center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80vw;
+  height: 40vw;
 }
 
 .section-title {
@@ -213,6 +274,8 @@ const formatPrice = (price) => {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  position: relative;
+  z-index: 1;
 }
 
 .carousel-container {
@@ -223,24 +286,20 @@ const formatPrice = (price) => {
 }
 
 .carousel-viewport {
-  overflow: hidden;
+  overflow: visible;
   width: 100%;
-  margin: 0 1rem; /* Space for buttons */
+  margin: 0 0.5rem; /* Space for buttons */
 }
 
 .carousel-track {
   display: flex;
-  transition: transform 0.5s ease-in-out;
   width: 100%;
+  position: relative;
 }
 
 .carousel-item-wrapper {
-  padding: 0 0.75rem;
-  /* This padding creates the gap between cards.
-       Since we wrap every item, two adjacent items will have 0.75 + 0.75 = 1.5rem gap.
-    */
+  padding: 1rem 0.8rem;
   box-sizing: border-box;
-  /* Flex basis is set inline */
 }
 
 .product-card {
@@ -362,9 +421,13 @@ const formatPrice = (price) => {
 }
 
 .nav-btn:hover {
-  background: var(--primary);
-  color: var(--primary-foreground);
-  border-color: var(--primary);
+  background: var(--card); /* Keep original background */
+  border-color: var(--border); /* Keep original border */
+}
+
+.nav-btn:hover svg {
+  color: var(--primary); /* Only change the icon color */
+  stroke: var(--primary);
 }
 
 .nav-btn:disabled {
@@ -390,5 +453,24 @@ const formatPrice = (price) => {
   .carousel-viewport {
     margin: 0;
   }
+}
+
+/* Card animations */
+.card-move, /* apply transition to moving elements */
+.card-enter-active,
+.card-leave-active {
+  transition: all 0.5s ease;
+}
+
+.card-enter-from,
+.card-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+/* ensure leaving items are taken out of layout flow so that moving
+   items can be calculated correctly. */
+.card-leave-active {
+  position: absolute;
 }
 </style>
