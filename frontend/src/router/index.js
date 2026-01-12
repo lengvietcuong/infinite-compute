@@ -8,6 +8,7 @@ import SignIn from "../views/SignIn.vue";
 import SignUp from "../views/SignUp.vue";
 import Checkout from "../views/Checkout.vue";
 import OrderTracking from "../views/OrderTracking.vue";
+import About from "../views/About.vue";
 
 const routes = [
   {
@@ -54,6 +55,11 @@ const routes = [
     path: "/track-order",
     name: "OrderTracking",
     component: OrderTracking,
+  },
+  {
+    path: "/about",
+    name: "About",
+    component: About,
   },
 ];
 

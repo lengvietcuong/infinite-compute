@@ -201,6 +201,7 @@
   color: var(--foreground);
   font-family: var(--font-sans);
   border-top: 1px solid var(--border);
+  padding-bottom: 1.5rem !important;
 }
 
 .footer-brand {
