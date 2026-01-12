@@ -1,12 +1,12 @@
 <script setup>
-import Navbar from "./components/Navbar.vue";
+import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 import CartSheet from "./components/CartSheet.vue";
 </script>
 
 <template>
   <div class="app-container">
-    <Navbar />
+    <Header />
     <router-view />
     <CartSheet />
     <Footer />

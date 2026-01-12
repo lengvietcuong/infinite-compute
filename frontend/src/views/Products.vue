@@ -107,11 +107,14 @@ const debouncedFetch = () => {
 
 watch(searchQuery, debouncedFetch);
 
-watch(() => route.query.search, (newSearch) => {
-  if (newSearch !== undefined && newSearch !== searchQuery.value) {
-    searchQuery.value = newSearch;
+watch(
+  () => route.query.search,
+  (newSearch) => {
+    if (newSearch !== undefined && newSearch !== searchQuery.value) {
+      searchQuery.value = newSearch;
+    }
   }
-});
+);
 
 // Reset page when sort changes
 watch(sortBy, () => {
@@ -148,7 +151,7 @@ const formatPrice = (price) => {
 
 <template>
   <div class="products-page container">
-    <h1 class="page-title mb-4 fade-in-up">
+    <h1 class="page-title mb-4 fade-in-up-fast">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="48"
@@ -173,7 +176,7 @@ const formatPrice = (price) => {
     </h1>
 
     <!-- Filters -->
-    <div class="filters-row mb-5 fade-in-up delay-100">
+    <div class="filters-row mb-5 fade-in-up-fast delay-100-fast">
       <!-- Search -->
       <div class="search-box">
         <span class="search-icon">
@@ -242,7 +245,7 @@ const formatPrice = (price) => {
     </div>
 
     <!-- Grid -->
-    <div v-else class="products-grid fade-in-up delay-200">
+    <div v-else class="products-grid fade-in-up-fast delay-200-fast">
       <article
         v-for="product in paginatedProducts"
         :key="product.id"
@@ -300,14 +303,14 @@ const formatPrice = (price) => {
     <!-- Empty State -->
     <div
       v-if="!loading && !error && allFetchedProducts.length === 0"
-      class="text-center py-5 text-muted fade-in-up"
+      class="text-center py-5 text-muted fade-in-up-fast"
     >
       No products found matching your criteria.
     </div>
 
     <!-- Pagination -->
     <div
-      class="pagination mt-5 d-flex justify-content-center gap-3 fade-in-up delay-300"
+      class="pagination mt-5 d-flex justify-content-center gap-3 fade-in-up-fast delay-300-fast"
       v-if="filteredAndSortedProducts.length > pageSize"
     >
       <button

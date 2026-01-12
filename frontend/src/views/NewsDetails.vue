@@ -54,7 +54,7 @@ const formattedDate = computed(() => {
     <!-- Back Button -->
     <button
       @click="goBack"
-      class="btn btn-link text-decoration-none mb-4 back-btn fade-in-up"
+      class="btn btn-link text-decoration-none mb-4 back-btn fade-in-up-none"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -93,7 +93,10 @@ const formattedDate = computed(() => {
     </div>
 
     <!-- News Content -->
-    <article v-else-if="newsItem" class="news-content fade-in-up delay-100">
+    <article
+      v-else-if="newsItem"
+      class="news-content fade-in-up-none delay-100-none"
+    >
       <!-- Header -->
       <header class="mb-5 text-center">
         <h1 class="news-title mb-3">{{ newsItem.title }}</h1>

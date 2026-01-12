@@ -144,6 +144,12 @@ const formatPrice = (price) => {
                 class="product-card glass-card"
                 @click="navigateToProduct(product.id)"
               >
+                <div class="corner-borders">
+                  <span class="corner top-left"></span>
+                  <span class="corner top-right"></span>
+                  <span class="corner bottom-left"></span>
+                  <span class="corner bottom-right"></span>
+                </div>
                 <div class="card-image">
                   <img
                     :src="product.image_url || '/images/default-product.webp'"
@@ -253,7 +259,7 @@ const formatPrice = (price) => {
   height: 50vw;
   background: radial-gradient(
     circle,
-    color-mix(in srgb, var(--primary), transparent 85%) 0%,
+    color-mix(in srgb, var(--primary), transparent 90%) 0%,
     transparent 70%
   );
   filter: blur(80px);
@@ -327,11 +333,63 @@ const formatPrice = (price) => {
   border: 1px solid var(--border);
   height: 100%;
   width: 100%; /* Fill wrapper */
+  position: relative;
+}
+
+.corner-borders {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.corner.top-left {
+  top: -1px;
+  left: -1px;
+  border-bottom: 0;
+  border-right: 0;
+}
+
+.corner.top-right {
+  top: -1px;
+  right: -1px;
+  border-bottom: 0;
+  border-left: 0;
+}
+
+.corner.bottom-left {
+  bottom: -1px;
+  left: -1px;
+  border-top: 0;
+  border-right: 0;
+}
+
+.corner.bottom-right {
+  bottom: -1px;
+  right: -1px;
+  border-top: 0;
+  border-left: 0;
 }
 
 .product-card:hover {
   transform: translateY(-5px);
-  border-color: var(--primary);
+  border-color: transparent;
+}
+
+.product-card:hover .corner {
+  opacity: 0.8;
 }
 
 .card-image {

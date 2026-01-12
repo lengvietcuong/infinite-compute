@@ -77,7 +77,7 @@ const specs = computed(() => {
     <button
       type="button"
       @click="goBack"
-      class="btn btn-link text-decoration-none mb-4 back-btn fade-in-up"
+      class="btn btn-link text-decoration-none mb-4 back-btn fade-in-up-none"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -116,7 +116,10 @@ const specs = computed(() => {
     </div>
 
     <!-- Product Content -->
-    <div v-else-if="product" class="product-content fade-in-up delay-100">
+    <div
+      v-else-if="product"
+      class="product-content fade-in-up-none delay-100-none"
+    >
       <div class="row g-5">
         <!-- Image Section -->
         <div class="col-lg-6">

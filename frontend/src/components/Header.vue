@@ -139,8 +139,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <nav
-    class="navbar navbar-expand-lg"
+  <header
+    class="app-header navbar navbar-expand-lg"
     :class="{
       'navbar-hidden': !isVisible,
       'navbar-scrolled': isScrolled,
@@ -168,15 +168,18 @@ onUnmounted(() => {
           </svg>
           InfiniteCompute
         </router-link>
-        <div class="nav-links d-none d-lg-flex gap-4 align-items-center">
+        <nav class="nav-links d-none d-lg-flex gap-4 align-items-center">
           <router-link class="nav-link text-foreground" to="/products"
             >Products</router-link
+          >
+          <router-link class="nav-link text-foreground" to="/track-order"
+            >Track Order</router-link
           >
           <router-link class="nav-link text-foreground" to="/news"
             >News</router-link
           >
           <a class="nav-link text-foreground" href="#">About</a>
-        </div>
+        </nav>
       </div>
       <button
         class="navbar-toggler"
@@ -200,6 +203,14 @@ onUnmounted(() => {
               to="/products"
               @click="collapseMenu"
               >Products</router-link
+            >
+          </li>
+          <li class="nav-item d-lg-none">
+            <router-link
+              class="nav-link text-foreground"
+              to="/track-order"
+              @click="collapseMenu"
+              >Track Order</router-link
             >
           </li>
           <li class="nav-item d-lg-none">
@@ -396,11 +407,11 @@ onUnmounted(() => {
         </ul>
       </div>
     </div>
-  </nav>
+  </header>
 </template>
 
 <style scoped>
-.navbar {
+.app-header {
   position: fixed;
   top: 0;
   left: 0;

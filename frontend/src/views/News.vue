@@ -83,7 +83,7 @@ const prevPage = () => {
 
 <template>
   <div class="news-page container">
-    <h1 class="page-title mb-5 fade-in-up">
+    <h1 class="page-title mb-5 fade-in-up-fast">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
@@ -105,7 +105,7 @@ const prevPage = () => {
     </h1>
 
     <!-- Filters -->
-    <div class="filters-row mb-5 fade-in-up delay-100">
+    <div class="filters-row mb-5 fade-in-up-fast delay-100-fast">
       <!-- Search -->
       <div class="search-box">
         <span class="search-icon">
@@ -222,7 +222,7 @@ const prevPage = () => {
     </div>
 
     <!-- Grid -->
-    <div v-else class="news-grid fade-in-up delay-200">
+    <div v-else class="news-grid fade-in-up-fast delay-200-fast">
       <article v-for="item in news" :key="item.id" class="news-card glass-card">
         <div class="card-image">
           <router-link :to="{ name: 'NewsDetails', params: { id: item.id } }">
@@ -319,14 +319,14 @@ const prevPage = () => {
     <!-- Empty State -->
     <div
       v-if="!loading && !error && news.length === 0"
-      class="text-center py-5 text-muted fade-in-up"
+      class="text-center py-5 text-muted fade-in-up-fast"
     >
       No news articles found matching your criteria.
     </div>
 
     <!-- Pagination -->
     <div
-      class="pagination mt-5 d-flex justify-content-center gap-3 fade-in-up delay-300"
+      class="pagination mt-5 d-flex justify-content-center gap-3 fade-in-up-fast delay-300-fast"
       v-if="news.length > 0 || page > 1"
     >
       <button
