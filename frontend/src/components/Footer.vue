@@ -243,7 +243,7 @@
 .description {
   max-width: 300px;
   line-height: 1.6;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-family: var(--font-sans);
 }
 

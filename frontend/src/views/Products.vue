@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch, onMounted, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import { formatPrice } from "../utils/format";
 
 const router = useRouter();
 const route = useRoute();
@@ -8,31 +9,17 @@ const products = ref([]);
 const loading = ref(false);
 const error = ref(null);
 
-// Filters
 const searchQuery = ref(route.query.search || "");
-const sortBy = ref("latest"); // latest, price_asc, price_desc, most_reviews
+const sortBy = ref(route.query.sort_by || "latest");
 
-// Pagination (User asked for specific grid dimensions which implies 12 items per page: 4x3=12, 3x4=12, 2x6=12)
-const page = ref(1);
+const page = ref(parseInt(route.query.page) || 1);
 const pageSize = 12;
 const totalProducts = ref(0);
-
-// Computed property for sorted products
-// Note: We fetch 'all' (or a large batch) and sort client-side because backend only supports creation_date sort
-// However, if we paginate server-side, we can only sort by creation date server-side.
-// To support "Price" and "Reviews" sorting with pagination correctly, we need backend support.
-// As per instructions "Scan backend... then implement", and "Avoid overly complicated... logic",
-// I will fetch a larger batch (e.g. 100) and do client-side pagination and sorting for the best UX without modifying backend deeply yet.
-// If the user meant "Show ALL products", fetching 100 is reasonable for a start.
 const allFetchedProducts = ref([]);
 
 const filteredAndSortedProducts = computed(() => {
   let result = [...allFetchedProducts.value];
 
-  // Search is handled by API usually, but if we do client-side:
-  // API has 'search' param, so we use that during fetch.
-
-  // Client-side Sorting
   switch (sortBy.value) {
     case "price_asc":
       result.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
@@ -45,11 +32,12 @@ const filteredAndSortedProducts = computed(() => {
       break;
     case "latest":
     default:
-      // Assuming default API order is latest, or we sort by ID/date if available
-      // API returns "order_by(Product.created_at.desc())"
-      // So default fetch is already latest.
-      // If we re-sort:
-      result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      // Handle potential missing dates safely
+      result.sort((a, b) => {
+        const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
+        const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
+        return dateB - dateA;
+      });
       break;
   }
   return result;
@@ -62,7 +50,7 @@ const paginatedProducts = computed(() => {
 });
 
 const totalPages = computed(() =>
-  Math.ceil(filteredAndSortedProducts.value.length / pageSize)
+  Math.ceil(filteredAndSortedProducts.value.length / pageSize) || 1
 );
 
 const fetchProducts = async () => {
@@ -71,13 +59,11 @@ const fetchProducts = async () => {
   try {
     const params = new URLSearchParams({
       skip: 0,
-      limit: 100, // Fetch up to 100 to allow client-side sorting
+      limit: 100,
     });
 
     if (searchQuery.value) params.append("search", searchQuery.value);
 
-    // Note: We are not using backend pagination (skip/limit) for the view pages,
-    // but for the initial data load to enable client-side sorting.
     const response = await fetch(
       `http://localhost:8000/products?${params.toString()}`
     );
@@ -97,55 +83,91 @@ const fetchProducts = async () => {
   }
 };
 
-// Debounce search
-let timeout;
-const debouncedFetch = () => {
-  page.value = 1;
-  clearTimeout(timeout);
-  timeout = setTimeout(fetchProducts, 500);
+// URL Syncing
+const updateURL = () => {
+  const query = { 
+    page: page.value,
+    sort_by: sortBy.value 
+  };
+  if (searchQuery.value) {
+    query.search = searchQuery.value;
+  }
+  router.replace({ query }).catch(() => {});
 };
 
-watch(searchQuery, debouncedFetch);
+// Watchers
+watch(searchQuery, () => {
+  page.value = 1; // Reset to page 1 on search
+  // Debounce fetch handled by separate watcher or logic if needed, 
+  // but here we just fetch immediately or via debounced function.
+  debouncedFetch();
+});
 
+let timeout;
+const debouncedFetch = () => {
+  clearTimeout(timeout);
+  timeout = setTimeout(() => {
+    updateURL();
+    fetchProducts();
+  }, 500);
+};
+
+watch(sortBy, () => {
+  page.value = 1;
+  updateURL();
+});
+
+watch(page, () => {
+  updateURL();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+// React to route changes (Back/Forward buttons)
 watch(
-  () => route.query.search,
-  (newSearch) => {
-    if (newSearch !== undefined && newSearch !== searchQuery.value) {
-      searchQuery.value = newSearch;
+  () => route.query,
+  (newQuery) => {
+    const newPage = parseInt(newQuery.page) || 1;
+    if (page.value !== newPage) {
+      page.value = newPage;
+    }
+    
+    if (newQuery.search !== searchQuery.value) {
+      searchQuery.value = newQuery.search || "";
+      // Fetch will be triggered by searchQuery watcher? 
+      // No, searchQuery watcher calls debouncedFetch.
+      // But if it comes from URL, we might want immediate fetch?
+      // Let's rely on searchQuery watcher for now.
+    }
+    
+    if (newQuery.sort_by !== sortBy.value && newQuery.sort_by) {
+        sortBy.value = newQuery.sort_by;
     }
   }
 );
 
-// Reset page when sort changes
-watch(sortBy, () => {
-  page.value = 1;
+onMounted(() => {
+    // Initial fetch
+    fetchProducts();
 });
 
-onMounted(fetchProducts);
+const goToFirstPage = () => {
+  if (page.value !== 1) page.value = 1;
+};
+
+const goToLastPage = () => {
+  if (page.value !== totalPages.value) page.value = totalPages.value;
+};
 
 const nextPage = () => {
-  if (page.value < totalPages.value) {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    page.value++;
-  }
+  if (page.value < totalPages.value) page.value++;
 };
 
 const prevPage = () => {
-  if (page.value > 1) {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    page.value--;
-  }
+  if (page.value > 1) page.value--;
 };
 
 const navigateToProduct = (id) => {
   router.push(`/products/${id}`);
-};
-
-const formatPrice = (price) => {
-  return parseFloat(price).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 };
 </script>
 
@@ -159,7 +181,7 @@ const formatPrice = (price) => {
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2"
+        stroke-width="1.5"
         stroke-linecap="round"
         stroke-linejoin="round"
         class="title-icon"
@@ -200,6 +222,7 @@ const formatPrice = (price) => {
           type="text"
           placeholder="Search products..."
           class="form-input"
+          aria-label="Search products"
         />
       </div>
 
@@ -222,7 +245,7 @@ const formatPrice = (price) => {
           <path d="m21 8-4-4-4 4" />
           <path d="M17 4v16" />
         </svg>
-        <select v-model="sortBy" class="form-select">
+        <select v-model="sortBy" class="form-select" aria-label="Sort products">
           <option value="latest">Newest</option>
           <option value="price_asc">Price: Low to High</option>
           <option value="price_desc">Price: High to Low</option>
@@ -310,13 +333,35 @@ const formatPrice = (price) => {
 
     <!-- Pagination -->
     <div
-      class="pagination mt-5 d-flex justify-content-center gap-3 fade-in-up-fast delay-300-fast"
+      class="pagination mt-5 d-flex justify-content-center gap-2 fade-in-up-fast delay-300-fast"
       v-if="filteredAndSortedProducts.length > pageSize"
     >
       <button
+        @click="goToFirstPage"
+        :disabled="page === 1"
+        class="btn-pagination"
+        aria-label="Go to first page"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="m11 17-5-5 5-5" />
+          <path d="m18 17-5-5 5-5" />
+        </svg>
+      </button>
+      <button
         @click="prevPage"
         :disabled="page === 1"
-        class="btn btn-outline btn-sm"
+        class="btn-pagination"
+        aria-label="Go to previous page"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -331,7 +376,6 @@ const formatPrice = (price) => {
         >
           <path d="m15 18-6-6 6-6" />
         </svg>
-        Previous
       </button>
       <span class="d-flex align-items-center font-mono text-muted"
         >Page {{ page }}/{{ totalPages }}</span
@@ -339,9 +383,9 @@ const formatPrice = (price) => {
       <button
         @click="nextPage"
         :disabled="page >= totalPages"
-        class="btn btn-outline btn-sm"
+        class="btn-pagination"
+        aria-label="Go to next page"
       >
-        Next
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -356,18 +400,39 @@ const formatPrice = (price) => {
           <path d="m9 18 6-6-6-6" />
         </svg>
       </button>
+      <button
+        @click="goToLastPage"
+        :disabled="page >= totalPages"
+        class="btn-pagination"
+        aria-label="Go to last page"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="m6 17 5-5-5-5" />
+          <path d="m13 17 5-5-5-5" />
+        </svg>
+      </button>
     </div>
   </div>
 </template>
 
 <style scoped>
 .products-page {
-  padding-top: 2rem;
-  padding-bottom: 4rem;
+  padding-top: var(--spacing-xl);
+  padding-bottom: var(--spacing-2xl);
 }
 
 .page-title {
-  font-size: 3rem;
+  font-size: var(--text-5xl);
   text-align: center;
   color: var(--foreground);
   font-family: var(--font-mono);
@@ -375,17 +440,19 @@ const formatPrice = (price) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  gap: var(--spacing-md);
 }
 
 .title-icon {
   width: 48px;
   height: 48px;
+  color: var(--primary);
+  stroke: var(--primary);
 }
 
 @media (max-width: 768px) {
   .page-title {
-    font-size: 2rem;
+    font-size: var(--text-3xl);
   }
 
   .title-icon {
@@ -396,7 +463,7 @@ const formatPrice = (price) => {
 
 @media (max-width: 480px) {
   .page-title {
-    font-size: 1.5rem;
+    font-size: var(--text-2xl);
   }
 
   .title-icon {
@@ -408,7 +475,7 @@ const formatPrice = (price) => {
 .filters-row {
   display: grid;
   grid-template-columns: 300px 180px;
-  gap: 1rem;
+  gap: var(--spacing-md);
   align-items: center;
   justify-content: center;
   max-width: 800px;
@@ -434,20 +501,20 @@ const formatPrice = (price) => {
   background: color-mix(in srgb, var(--background), transparent 50%);
   border: 1px solid var(--border);
   color: var(--foreground);
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-  padding-right: 1rem;
+  padding-top: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
+  padding-right: var(--spacing-md);
   border-radius: var(--radius);
   outline: none;
   font-family: var(--font-sans);
-  transition: all 0.2s;
-  font-size: 0.9rem;
+  transition: all var(--transition-base);
+  font-size: var(--text-sm);
 }
 
 .search-icon,
 .select-icon {
   position: absolute;
-  left: 1rem;
+  left: var(--spacing-md);
   top: 50%;
   transform: translateY(-50%);
   color: var(--muted-foreground);
@@ -461,11 +528,10 @@ const formatPrice = (price) => {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary), transparent 80%);
 }
 
-/* Products Grid - Specific Requirements */
 .products-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
+  gap: var(--spacing-lg);
 }
 
 @media (min-width: 768px) {
@@ -484,7 +550,8 @@ const formatPrice = (price) => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  transition: transform var(--transition-slow) ease,
+    box-shadow var(--transition-slow) ease, border-color var(--transition-slow) ease;
   height: 100%;
   cursor: pointer;
   background: color-mix(in srgb, var(--card), transparent 80%);
@@ -493,7 +560,7 @@ const formatPrice = (price) => {
 
 .product-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-xl);
   border-color: var(--primary);
 }
 
@@ -508,7 +575,7 @@ const formatPrice = (price) => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  transition: transform var(--transition-slower) ease;
 }
 
 .product-card:hover .card-image img {
@@ -517,19 +584,19 @@ const formatPrice = (price) => {
 
 .price-tag {
   position: absolute;
-  bottom: 0.5rem;
-  right: 0.5rem;
+  bottom: var(--spacing-sm);
+  right: var(--spacing-sm);
   background: var(--primary);
   color: var(--primary-foreground);
-  padding: 0.25rem 0.5rem;
+  padding: var(--spacing-xs) var(--spacing-sm);
   font-weight: 700;
   font-family: var(--font-mono);
   border-radius: var(--radius);
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
 }
 
 .card-content {
-  padding: 1rem;
+  padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -539,26 +606,26 @@ const formatPrice = (price) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
   font-size: 0.75rem;
   color: var(--muted-foreground);
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--spacing-sm);
   font-family: var(--font-mono);
 }
 
 .rating {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--spacing-xs);
 }
 
 .text-warning {
-  color: #f59e0b;
+  color: var(--warning);
 }
 
 .card-title {
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
+  font-size: var(--text-lg);
+  margin-bottom: var(--spacing-sm);
   line-height: 1.3;
   font-weight: 600;
   color: var(--foreground);
@@ -568,14 +635,44 @@ const formatPrice = (price) => {
 }
 
 .card-excerpt {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--muted-foreground);
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-md);
   flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.btn-pagination {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  color: var(--muted-foreground);
+  padding: 0;
+}
+
+.btn-pagination:hover:not(:disabled) {
+  color: var(--primary);
+  border-color: var(--border);
+}
+
+.btn-pagination:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  border-color: var(--border);
+}
+
+.btn-pagination svg {
+  flex-shrink: 0;
 }
 </style>

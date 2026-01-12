@@ -41,10 +41,7 @@ const handleLogin = async () => {
       throw new Error(data.detail || "Failed to login");
     }
 
-    // Store token
     localStorage.setItem("token", data.access_token);
-
-    // Redirect to home
     router.push("/");
   } catch (e) {
     error.value = e.message;
@@ -226,7 +223,7 @@ const handleLogin = async () => {
 .form-label {
   font-weight: 500;
   font-size: 0.875rem;
-  margin-bottom: 0.25rem;
+  margin-bottom: var(--spacing-xs);
 }
 
 .input-group-custom {
@@ -237,7 +234,7 @@ const handleLogin = async () => {
 
 .input-icon {
   position: absolute;
-  left: 1rem;
+  left: var(--spacing-md);
   color: var(--muted-foreground);
   pointer-events: none;
   z-index: 10;
@@ -253,18 +250,18 @@ const handleLogin = async () => {
 
 .form-control-custom {
   width: 100%;
-  padding: 0.5rem 1rem 0.5rem 2.75rem;
-  font-size: 0.9rem;
+  padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm) 2.75rem;
+  font-size: var(--text-sm);
   background-color: color-mix(in srgb, var(--background), transparent 50%);
   border: 1px solid var(--input);
   border-radius: var(--radius);
   color: var(--foreground);
-  transition: all 0.2s;
+  transition: all var(--transition-base);
   outline: none;
 }
 
 .form-control-custom::placeholder {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 .form-control-custom:focus {
@@ -274,7 +271,7 @@ const handleLogin = async () => {
 
 .password-toggle {
   position: absolute;
-  right: 1rem;
+  right: var(--spacing-md);
   background: none;
   border: none;
   color: var(--muted-foreground);
@@ -289,10 +286,10 @@ const handleLogin = async () => {
 }
 
 .alert-danger {
-  color: #ef4444;
-  background-color: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  padding: 0.75rem;
+  color: var(--error);
+  background-color: color-mix(in srgb, var(--error), transparent 90%);
+  border: 1px solid color-mix(in srgb, var(--error), transparent 80%);
+  padding: var(--spacing-sm);
   border-radius: var(--radius);
   font-size: 0.875rem;
 }

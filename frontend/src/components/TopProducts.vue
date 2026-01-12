@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
+import { formatPrice } from "../utils/format";
 import SparklesCore from "./SparklesCore.vue";
 
 const router = useRouter();
@@ -74,13 +75,6 @@ onUnmounted(() => {
 
 const navigateToProduct = (id) => {
   router.push(`/products/${id}`);
-};
-
-const formatPrice = (price) => {
-  return parseFloat(price).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 };
 </script>
 
@@ -222,7 +216,7 @@ const formatPrice = (price) => {
 
 <style scoped>
 .top-products-section {
-  padding: 4rem 0;
+  padding: var(--spacing-2xl) 0;
   padding-top: 5rem;
   background-color: var(--background);
   position: relative;
@@ -276,7 +270,7 @@ const formatPrice = (price) => {
 }
 
 .section-title {
-  font-size: 2.5rem;
+  font-size: var(--text-4xl);
   text-align: center;
   margin-bottom: 1.25rem;
   background: linear-gradient(
@@ -293,7 +287,7 @@ const formatPrice = (price) => {
 
 @media (max-width: 768px) {
   .section-title {
-    font-size: 1.75rem;
+    font-size: var(--text-3xl);
     margin-bottom: 0.75rem;
   }
 }
@@ -302,13 +296,13 @@ const formatPrice = (price) => {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
 }
 
 .carousel-viewport {
   overflow: hidden;
   width: 100%;
-  margin: 0; /* Space for buttons */
+  margin: 0;
 }
 
 .carousel-track {
@@ -318,21 +312,21 @@ const formatPrice = (price) => {
 }
 
 .carousel-item-wrapper {
-  padding: 1rem 0.8rem;
+  padding: var(--spacing-md) var(--spacing-sm);
   box-sizing: border-box;
 }
 
 .product-card {
-  /* Shared card styles (copied) */
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  transition: transform var(--transition-slow) ease,
+    box-shadow var(--transition-slow) ease, border-color var(--transition-slow) ease;
   cursor: pointer;
   background: color-mix(in srgb, var(--card), transparent 80%);
   border: 1px solid var(--border);
   height: 100%;
-  width: 100%; /* Fill wrapper */
+  width: 100%;
   position: relative;
 }
 
@@ -352,7 +346,7 @@ const formatPrice = (price) => {
   height: 24px;
   border: 3px solid var(--primary);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-slow) ease;
 }
 
 .corner.top-left {
@@ -389,7 +383,7 @@ const formatPrice = (price) => {
 }
 
 .product-card:hover .corner {
-  opacity: 0.8;
+  opacity: var(--opacity-hover);
 }
 
 .card-image {
@@ -403,7 +397,7 @@ const formatPrice = (price) => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  transition: transform var(--transition-slower) ease;
 }
 
 .product-card:hover .card-image img {
@@ -412,19 +406,19 @@ const formatPrice = (price) => {
 
 .price-tag {
   position: absolute;
-  bottom: 0.5rem;
-  right: 0.5rem;
+  bottom: var(--spacing-sm);
+  right: var(--spacing-sm);
   background: var(--primary);
   color: var(--primary-foreground);
-  padding: 0.25rem 0.5rem;
+  padding: var(--spacing-xs) var(--spacing-sm);
   font-weight: 700;
   font-family: var(--font-mono);
   border-radius: var(--radius);
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
 }
 
 .card-content {
-  padding: 1rem;
+  padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -434,26 +428,26 @@ const formatPrice = (price) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
   font-size: 0.75rem;
   color: var(--muted-foreground);
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--spacing-sm);
   font-family: var(--font-mono);
 }
 
 .rating {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--spacing-xs);
 }
 
 .text-warning {
-  color: #f59e0b;
+  color: var(--warning);
 }
 
 .card-title {
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
+  font-size: var(--text-lg);
+  margin-bottom: var(--spacing-sm);
   line-height: 1.3;
   font-weight: 600;
   color: var(--foreground);
@@ -463,9 +457,9 @@ const formatPrice = (price) => {
 }
 
 .card-excerpt {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--muted-foreground);
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-md);
   flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -474,35 +468,34 @@ const formatPrice = (price) => {
   overflow: hidden;
 }
 
-/* Nav Buttons */
 .nav-btn {
   background: var(--card);
   border: 1px solid var(--border);
   color: var(--foreground);
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-base);
   z-index: 10;
   flex-shrink: 0;
 }
 
 .nav-btn:hover {
-  background: var(--card); /* Keep original background */
-  border-color: var(--border); /* Keep original border */
+  background: var(--card);
+  border-color: var(--border);
 }
 
 .nav-btn:hover svg {
-  color: var(--primary); /* Only change the icon color */
+  color: var(--primary);
   stroke: var(--primary);
 }
 
 .nav-btn:disabled {
-  opacity: 0.5;
+  opacity: var(--opacity-disabled);
   cursor: not-allowed;
 }
 
@@ -528,14 +521,13 @@ const formatPrice = (price) => {
   }
 }
 
-/* Card animations */
 .slide-next-move,
 .slide-next-enter-active,
 .slide-next-leave-active,
 .slide-prev-move,
 .slide-prev-enter-active,
 .slide-prev-leave-active {
-  transition: all 0.5s ease;
+  transition: all var(--transition-slower) ease;
 }
 
 .slide-next-leave-active {
@@ -550,7 +542,6 @@ const formatPrice = (price) => {
   right: 0;
 }
 
-/* Slide Next */
 .slide-next-enter-from {
   transform: translateX(100%);
   opacity: 0;
@@ -559,7 +550,6 @@ const formatPrice = (price) => {
   transform: translateX(-100%);
 }
 
-/* Slide Prev */
 .slide-prev-enter-from {
   transform: translateX(-100%);
   opacity: 0;

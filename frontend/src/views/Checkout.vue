@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { useCart } from "../composables/useCart";
 import { useRouter } from "vue-router";
+import { formatPrice } from "../utils/format";
 
 const { cart, cartTotal, clearCart } = useCart();
 const router = useRouter();
@@ -21,13 +22,6 @@ const form = ref({
 const isProcessing = ref(false);
 const showModal = ref(false);
 const orderId = ref(null);
-
-const formatPrice = (price) => {
-  return parseFloat(price).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-};
 
 const formatExpiry = (e) => {
   let value = e.target.value.replace(/\D/g, "");
@@ -55,10 +49,8 @@ const formatExpiry = (e) => {
 const placeOrder = async () => {
   isProcessing.value = true;
 
-  // Simulate API call
   await new Promise((resolve) => setTimeout(resolve, 2000));
 
-  // Success
   isProcessing.value = false;
   showModal.value = true;
   orderId.value = "ORD-" + Math.floor(Math.random() * 1000000);
@@ -345,8 +337,8 @@ const handleOverlayClick = () => {
 
 <style scoped>
 .checkout-page {
-  padding-top: 2rem;
-  padding-bottom: 4rem;
+  padding-top: var(--spacing-xl);
+  padding-bottom: var(--spacing-2xl);
 }
 
 .page-title {
@@ -357,8 +349,8 @@ const handleOverlayClick = () => {
 
 @media (max-width: 576px) {
   .page-title {
-    font-size: 1.75rem;
-    margin-bottom: 2rem !important;
+    font-size: var(--text-3xl);
+    margin-bottom: var(--spacing-xl) !important;
   }
 
   .page-title svg {
@@ -367,13 +359,13 @@ const handleOverlayClick = () => {
   }
 
   .col-lg-5 {
-    margin-bottom: 1rem;
+    margin-bottom: var(--spacing-md);
   }
 }
 
 @media (max-width: 768px) {
   .page-title {
-    font-size: 1.875rem;
+    font-size: var(--text-3xl);
     margin-bottom: 2.5rem !important;
   }
 
@@ -383,23 +375,23 @@ const handleOverlayClick = () => {
   }
 
   .col-lg-5 {
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--spacing-lg);
   }
 
   .col-lg-7 {
-    margin-top: 1rem;
+    margin-top: var(--spacing-md);
   }
 }
 
 .form-label {
-  margin-bottom: 0.35rem;
+  margin-bottom: var(--spacing-xs);
 }
 
 .form-control {
   background: color-mix(in srgb, var(--background), transparent 50%);
   border: 1px solid var(--border);
   color: var(--foreground);
-  padding: 0.5rem 0.75rem;
+  padding: var(--spacing-sm) var(--spacing-sm);
   height: auto;
 }
 
@@ -415,7 +407,7 @@ const handleOverlayClick = () => {
 }
 
 .text-success {
-  color: #22c55e;
+  color: var(--success);
 }
 
 .summary-title,
@@ -439,9 +431,9 @@ const handleOverlayClick = () => {
 .section-heading {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-xl);
+  margin-bottom: var(--spacing-md);
 }
 
 .section-heading:first-of-type {
@@ -480,7 +472,7 @@ body.light-mode .section-icon {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
+  z-index: var(--z-modal);
 }
 
 .modal-content {

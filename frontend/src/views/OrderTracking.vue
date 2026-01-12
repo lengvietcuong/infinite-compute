@@ -1,26 +1,12 @@
 <script setup>
 import { ref } from "vue";
+import { formatPrice, formatDate } from "../utils/format";
 
 const identifier = ref("");
 const orders = ref([]);
 const loading = ref(false);
 const error = ref(null);
 const searched = ref(false);
-
-const formatPrice = (price) => {
-  return parseFloat(price).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-};
-
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-};
 
 const trackOrder = async () => {
   if (!identifier.value) return;
@@ -58,7 +44,29 @@ const trackOrder = async () => {
 <template>
   <div class="tracking-page container">
     <div class="tracking-header text-center mb-2 fade-in-up-fast">
-      <h1 class="page-title mb-3">Track Your Order</h1>
+      <h1
+        class="page-title mb-3 d-flex align-items-center justify-content-center gap-2"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="title-icon"
+        >
+          <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
+          <circle cx="7" cy="18" r="2" />
+          <path d="M15 18H9" />
+          <path
+            d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.63l-1.02-1.53a1 1 0 0 0-.84-.37H14"
+          />
+          <circle cx="17" cy="18" r="2" />
+        </svg>
+        Track Your Order
+      </h1>
       <p class="text-muted">
         Enter your email or order ID to check the status of your order.
       </p>
@@ -76,6 +84,7 @@ const trackOrder = async () => {
             class="form-control form-control-lg rounded-0"
             placeholder="Email or Order ID"
             required
+            aria-label="Email or Order ID"
           />
           <button
             type="submit"
@@ -169,22 +178,55 @@ const trackOrder = async () => {
 
 <style scoped>
 .tracking-page {
-  padding-top: 2rem;
-  padding-bottom: 4rem;
+  padding-top: var(--spacing-xl);
+  padding-bottom: var(--spacing-2xl);
   min-height: 60vh;
 }
 
 .page-title {
   font-family: var(--font-mono);
   font-weight: 700;
+  font-size: var(--text-5xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+}
+
+.title-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--primary);
+}
+
+@media (max-width: 768px) {
+  .page-title {
+    font-size: var(--text-3xl);
+  }
+
+  .title-icon {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: var(--text-2xl);
+  }
+
+  .title-icon {
+    width: 28px;
+    height: 28px;
+  }
 }
 
 .form-control {
   background: color-mix(in srgb, var(--background), transparent 50%);
   border: 1px solid var(--border);
   color: var(--foreground);
-  font-size: 0.9rem;
-  padding: 0.625rem 0.75rem;
+  font-size: var(--text-sm);
+  padding: var(--spacing-sm) var(--spacing-sm);
   line-height: 1.5;
   display: flex;
   align-items: center;
@@ -192,7 +234,7 @@ const trackOrder = async () => {
 
 .form-control::placeholder {
   color: var(--muted-foreground);
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
 }
 
 .form-control:focus {
@@ -202,7 +244,7 @@ const trackOrder = async () => {
 }
 
 :deep(.btn-lg) {
-  padding: 0.625rem 1rem;
+  padding: var(--spacing-sm) var(--spacing-md);
   height: auto;
 }
 </style>

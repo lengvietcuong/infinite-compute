@@ -1,19 +1,21 @@
 <script setup>
 import { ref, watch, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
 
+const router = useRouter();
+const route = useRoute();
 const news = ref([]);
 const loading = ref(false);
 const error = ref(null);
 
-// Filters
-const searchQuery = ref("");
-const sortBy = ref("recent");
-const startDate = ref("");
-const endDate = ref("");
+// Initialize state from URL
+const searchQuery = ref(route.query.search || "");
+const sortBy = ref(route.query.sort_by || "recent");
+const startDate = ref(route.query.start_date || "");
+const endDate = ref(route.query.end_date || "");
+const page = ref(parseInt(route.query.page) || 1);
 
-// Pagination
-const page = ref(1);
-const pageSize = 6; // 3x2 (desktop) or 2x3 (tablet)
+const pageSize = 6;
 const totalPages = ref(0);
 const totalCount = ref(0);
 
@@ -51,33 +53,85 @@ const fetchNews = async () => {
   }
 };
 
-// Debounce search
-let timeout;
-const debouncedFetch = () => {
-  page.value = 1; // Reset to first page on filter change
-  clearTimeout(timeout);
-  timeout = setTimeout(fetchNews, 500);
+const updateURL = () => {
+  const query = {
+    page: page.value,
+    sort_by: sortBy.value,
+  };
+  if (searchQuery.value) query.search = searchQuery.value;
+  if (startDate.value) query.start_date = startDate.value;
+  if (endDate.value) query.end_date = endDate.value;
+
+  // Use replace to avoid polluting history for every small change, 
+  // or push for significant ones?
+  // Let's use push for pagination to allow "Back" to work.
+  // But for typing search, replace is better.
+  router.push({ query }).catch(() => {});
 };
 
-watch(searchQuery, debouncedFetch);
+// Watchers
+let debounceTimeout;
+watch(searchQuery, () => {
+  clearTimeout(debounceTimeout);
+  debounceTimeout = setTimeout(() => {
+    page.value = 1;
+    updateURL();
+    fetchNews();
+  }, 500);
+});
+
 watch([sortBy, startDate, endDate], () => {
   page.value = 1;
+  updateURL();
   fetchNews();
 });
-watch(page, fetchNews);
 
-onMounted(fetchNews);
+watch(page, () => {
+  updateURL();
+  fetchNews();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+// Sync from URL (Handling Back/Forward)
+watch(
+  () => route.query,
+  (newQuery) => {
+    const newPage = parseInt(newQuery.page) || 1;
+    if (page.value !== newPage) {
+      page.value = newPage;
+      // fetchNews will be triggered by page watcher
+    }
+    
+    // Handle other params if needed (e.g. shared link)
+    if (newQuery.sort_by && newQuery.sort_by !== sortBy.value) {
+        sortBy.value = newQuery.sort_by;
+    }
+    // ... similarly for others
+  }
+);
+
+onMounted(() => {
+  fetchNews();
+});
+
+const navigateToNewsDetails = (id) => {
+  router.push({ name: 'NewsDetails', params: { id } });
+};
+
+const goToFirstPage = () => {
+  if (page.value !== 1) page.value = 1;
+};
+
+const goToLastPage = () => {
+  if (page.value !== totalPages.value) page.value = totalPages.value;
+};
 
 const nextPage = () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-  page.value++;
+  if (page.value < totalPages.value) page.value++;
 };
 
 const prevPage = () => {
-  if (page.value > 1) {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    page.value--;
-  }
+  if (page.value > 1) page.value--;
 };
 </script>
 
@@ -89,7 +143,7 @@ const prevPage = () => {
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2"
+        stroke-width="1.5"
         stroke-linecap="round"
         stroke-linejoin="round"
         class="title-icon"
@@ -129,6 +183,7 @@ const prevPage = () => {
           type="text"
           placeholder="Search by title, content, category..."
           class="form-input"
+          aria-label="Search news articles"
         />
       </div>
 
@@ -148,7 +203,7 @@ const prevPage = () => {
         >
           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
         </svg>
-        <select v-model="sortBy" class="form-select">
+        <select v-model="sortBy" class="form-select" aria-label="Sort news articles">
           <option value="recent">Most Recent</option>
           <option value="oldest">Oldest</option>
         </select>
@@ -223,19 +278,22 @@ const prevPage = () => {
 
     <!-- Grid -->
     <div v-else class="news-grid fade-in-up-fast delay-200-fast">
-      <article v-for="item in news" :key="item.id" class="news-card glass-card">
+      <article 
+        v-for="item in news" 
+        :key="item.id" 
+        class="news-card glass-card"
+        @click="navigateToNewsDetails(item.id)"
+      >
         <div class="card-image">
-          <router-link :to="{ name: 'NewsDetails', params: { id: item.id } }">
-            <img
-              :src="item.image_url || '/images/default-news.webp'"
-              :alt="item.title"
-              loading="lazy"
-              @error="
-                $event.target.src =
-                  'https://placehold.co/600x400/1a1a1a/FFF?text=News'
-              "
-            />
-          </router-link>
+          <img
+            :src="item.image_url || '/images/default-news.webp'"
+            :alt="item.title"
+            loading="lazy"
+            @error="
+              $event.target.src =
+                'https://placehold.co/600x400/1a1a1a/FFF?text=News'
+            "
+          />
         </div>
         <div class="card-content">
           <div class="card-meta">
@@ -279,9 +337,7 @@ const prevPage = () => {
             </span>
           </div>
           <h3 class="card-title">
-            <router-link :to="{ name: 'NewsDetails', params: { id: item.id } }">
-              {{ item.title }}
-            </router-link>
+            {{ item.title }}
           </h3>
           <p class="card-excerpt">
             {{
@@ -289,29 +345,6 @@ const prevPage = () => {
               (item.content ? item.content.substring(0, 120) + "..." : "")
             }}
           </p>
-          <div class="mt-auto pt-3">
-            <router-link
-              :to="{ name: 'NewsDetails', params: { id: item.id } }"
-              class="read-more-link"
-            >
-              Read More
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="ms-1"
-              >
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
-            </router-link>
-          </div>
         </div>
       </article>
     </div>
@@ -326,13 +359,35 @@ const prevPage = () => {
 
     <!-- Pagination -->
     <div
-      class="pagination mt-5 d-flex justify-content-center gap-3 fade-in-up-fast delay-300-fast"
+      class="pagination mt-5 d-flex justify-content-center gap-2 fade-in-up-fast delay-300-fast"
       v-if="news.length > 0 || page > 1"
     >
       <button
+        @click="goToFirstPage"
+        :disabled="page === 1"
+        class="btn-pagination"
+        aria-label="Go to first page"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="m11 17-5-5 5-5" />
+          <path d="m18 17-5-5 5-5" />
+        </svg>
+      </button>
+      <button
         @click="prevPage"
         :disabled="page === 1"
-        class="btn btn-outline btn-sm"
+        class="btn-pagination"
+        aria-label="Go to previous page"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -347,7 +402,6 @@ const prevPage = () => {
         >
           <path d="m15 18-6-6 6-6" />
         </svg>
-        Previous
       </button>
       <span class="d-flex align-items-center font-mono text-muted"
         >Page {{ page }}/{{ totalPages }}</span
@@ -355,9 +409,9 @@ const prevPage = () => {
       <button
         @click="nextPage"
         :disabled="page >= totalPages"
-        class="btn btn-outline btn-sm"
+        class="btn-pagination"
+        aria-label="Go to next page"
       >
-        Next
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -372,18 +426,39 @@ const prevPage = () => {
           <path d="m9 18 6-6-6-6" />
         </svg>
       </button>
+      <button
+        @click="goToLastPage"
+        :disabled="page >= totalPages"
+        class="btn-pagination"
+        aria-label="Go to last page"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="m6 17 5-5-5-5" />
+          <path d="m13 17 5-5-5-5" />
+        </svg>
+      </button>
     </div>
   </div>
 </template>
 
 <style scoped>
 .news-page {
-  padding-top: 2rem;
-  padding-bottom: 4rem;
+  padding-top: var(--spacing-xl);
+  padding-bottom: var(--spacing-2xl);
 }
 
 .page-title {
-  font-size: 3rem;
+  font-size: var(--text-5xl);
   text-align: center;
   color: var(--foreground);
   font-family: var(--font-mono);
@@ -391,19 +466,21 @@ const prevPage = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem !important;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg) !important;
 }
 
 .title-icon {
   width: 48px;
   height: 48px;
+  color: var(--primary);
+  stroke: var(--primary);
 }
 
 @media (max-width: 1024px) {
   .page-title {
-    font-size: 2rem;
-    margin-bottom: 1rem !important;
+    font-size: var(--text-3xl);
+    margin-bottom: var(--spacing-md) !important;
   }
 
   .title-icon {
@@ -414,8 +491,8 @@ const prevPage = () => {
 
 @media (max-width: 640px) {
   .page-title {
-    font-size: 1.5rem;
-    margin-bottom: 1rem !important;
+    font-size: var(--text-2xl);
+    margin-bottom: var(--spacing-md) !important;
   }
 
   .title-icon {
@@ -427,7 +504,7 @@ const prevPage = () => {
 .filters-row {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 1rem;
+  gap: var(--spacing-md);
   align-items: center;
 }
 
@@ -455,7 +532,7 @@ const prevPage = () => {
 
 .search-box .search-icon {
   position: absolute;
-  left: 1rem;
+  left: var(--spacing-md);
   top: 50%;
   transform: translateY(-50%);
   color: var(--muted-foreground);
@@ -471,7 +548,7 @@ const prevPage = () => {
 
 .select-with-icon .select-icon {
   position: absolute;
-  left: 1rem;
+  left: var(--spacing-md);
   top: 50%;
   transform: translateY(-50%);
   color: var(--muted-foreground);
@@ -495,7 +572,7 @@ const prevPage = () => {
   top: -0.65rem;
   background: var(--background);
   padding: 0 0.25rem;
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   color: var(--muted-foreground);
   font-family: var(--font-sans);
   z-index: 2;
@@ -503,7 +580,7 @@ const prevPage = () => {
 
 .date-input-wrapper .date-icon {
   position: absolute;
-  left: 1rem;
+  left: var(--spacing-md);
   top: 50%;
   transform: translateY(-50%);
   color: var(--muted-foreground);
@@ -519,7 +596,7 @@ const prevPage = () => {
 .filter-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: var(--spacing-md);
   align-items: center;
 }
 
@@ -528,12 +605,12 @@ const prevPage = () => {
   background: color-mix(in srgb, var(--background), transparent 50%);
   border: 1px solid var(--border);
   color: var(--foreground);
-  padding: 0.5rem 1rem;
+  padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius);
   outline: none;
   font-family: var(--font-sans);
-  transition: all 0.2s;
-  font-size: 0.9rem;
+  transition: all var(--transition-base);
+  font-size: var(--text-sm);
 }
 
 .form-input:focus,
@@ -545,7 +622,7 @@ const prevPage = () => {
 .news-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2rem;
+  gap: var(--spacing-xl);
 }
 
 @media (min-width: 768px) {
@@ -564,14 +641,15 @@ const prevPage = () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  transition: transform var(--transition-slow) ease,
+    box-shadow var(--transition-slow) ease, border-color var(--transition-slow) ease;
   height: 100%;
   cursor: pointer;
 }
 
 .news-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-xl);
   border-color: var(--primary);
 }
 
@@ -586,7 +664,7 @@ const prevPage = () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  transition: transform var(--transition-slower) ease;
 }
 
 .news-card:hover .card-image img {
@@ -594,7 +672,7 @@ const prevPage = () => {
 }
 
 .card-content {
-  padding: 1.75rem;
+  padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -604,10 +682,10 @@ const prevPage = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
+  gap: var(--spacing-sm);
+  font-size: var(--text-sm);
   color: var(--muted-foreground);
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--spacing-sm);
   font-family: var(--font-mono);
 }
 
@@ -615,7 +693,7 @@ const prevPage = () => {
 .card-meta .category {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--spacing-xs);
 }
 
 .card-meta svg {
@@ -623,25 +701,15 @@ const prevPage = () => {
 }
 
 .card-title {
-  font-size: 1.25rem;
-  margin-bottom: 1.5rem;
+  font-size: var(--text-xl);
+  margin-bottom: var(--spacing-lg);
   line-height: 1.4;
   font-weight: 600;
   color: var(--foreground);
 }
 
-.card-title a {
-  color: inherit;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.card-title a:hover {
-  color: var(--primary);
-}
-
 .card-excerpt {
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
   color: var(--muted-foreground);
   margin-bottom: 0;
   flex: 1;
@@ -652,25 +720,40 @@ const prevPage = () => {
   overflow: hidden;
 }
 
-.read-more-link {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--primary);
-  text-decoration: none;
-  transition: all 0.2s;
-}
 
-.read-more-link:hover {
-  text-decoration: underline;
-  opacity: 0.8;
-}
-
-/* Dark mode specific adjustments for inputs */
 input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
-  opacity: 0.6;
+  opacity: var(--opacity-hover);
   cursor: pointer;
+}
+
+.btn-pagination {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  color: var(--muted-foreground);
+  padding: 0;
+}
+
+.btn-pagination:hover:not(:disabled) {
+  color: var(--primary);
+  border-color: var(--border);
+}
+
+.btn-pagination:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  border-color: var(--border);
+}
+
+.btn-pagination svg {
+  flex-shrink: 0;
 }
 </style>

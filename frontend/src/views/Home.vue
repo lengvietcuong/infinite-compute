@@ -73,9 +73,9 @@ const testimonials = [
 }
 
 .section-title {
-  font-size: 2.5rem;
+  font-size: var(--text-4xl);
   text-align: center;
-  margin-bottom: 1.25rem;
+  margin-bottom: var(--spacing-lg);
   background: linear-gradient(
     to right,
     var(--foreground),
@@ -88,8 +88,8 @@ const testimonials = [
 
 @media (max-width: 768px) {
   .section-title {
-    font-size: 1.75rem;
-    margin-bottom: 0.75rem;
+    font-size: var(--text-3xl);
+    margin-bottom: var(--spacing-sm);
   }
 }
 

@@ -1,6 +1,7 @@
 <script setup>
 import { useCart } from "../composables/useCart";
 import { useRouter } from "vue-router";
+import { formatPrice } from "../utils/format";
 
 const {
   cart,
@@ -11,13 +12,6 @@ const {
   toggleCart,
 } = useCart();
 const router = useRouter();
-
-const formatPrice = (price) => {
-  return parseFloat(price).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-};
 
 const handleCheckout = () => {
   toggleCart();
@@ -41,7 +35,7 @@ const handleCheckout = () => {
   <div class="cart-sheet" :class="{ open: isCartOpen }">
     <div class="cart-header">
       <h3>Shopping Cart</h3>
-      <button class="close-btn" @click="toggleCart">
+      <button class="close-btn" @click="toggleCart" aria-label="Close cart">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -52,6 +46,7 @@ const handleCheckout = () => {
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
+          aria-hidden="true"
         >
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -79,22 +74,24 @@ const handleCheckout = () => {
             <h4 class="item-name">{{ item.name }}</h4>
             <p class="item-price">${{ formatPrice(item.price) }}</p>
             <div class="item-controls">
-              <div class="quantity-control">
+              <div class="quantity-control" role="group" aria-label="Quantity">
                 <button
                   class="qty-btn"
                   @click="updateQuantity(item.id, item.quantity - 1)"
+                  aria-label="Decrease quantity"
                 >
                   -
                 </button>
-                <span class="qty-val">{{ item.quantity }}</span>
+                <span class="qty-val" aria-live="polite">{{ item.quantity }}</span>
                 <button
                   class="qty-btn"
                   @click="updateQuantity(item.id, item.quantity + 1)"
+                  aria-label="Increase quantity"
                 >
                   +
                 </button>
               </div>
-              <button class="remove-btn" @click="removeFromCart(item.id)">
+              <button class="remove-btn" @click="removeFromCart(item.id)" :aria-label="`Remove ${item.name} from cart`">
                 Remove
               </button>
             </div>
@@ -126,10 +123,11 @@ const handleCheckout = () => {
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 1040;
+  z-index: var(--z-modal-backdrop);
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition: opacity var(--transition-slow) ease,
+    visibility var(--transition-slow) ease;
   backdrop-filter: blur(2px);
 }
 
@@ -146,13 +144,13 @@ const handleCheckout = () => {
   max-width: 400px;
   height: 100%;
   background: var(--background);
-  z-index: 1050;
+  z-index: var(--z-modal);
   transform: translateX(100%);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--transition-slow) cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
   border-left: 1px solid var(--border);
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-xl);
 }
 
 .cart-sheet.open {
@@ -160,7 +158,7 @@ const handleCheckout = () => {
 }
 
 .cart-header {
-  padding: 1.5rem;
+  padding: var(--spacing-lg);
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
@@ -169,7 +167,7 @@ const handleCheckout = () => {
 
 .cart-header h3 {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 600;
 }
 
@@ -178,8 +176,8 @@ const handleCheckout = () => {
   border: none;
   color: var(--muted-foreground);
   cursor: pointer;
-  padding: 0.25rem;
-  transition: color 0.2s;
+  padding: var(--spacing-xs);
+  transition: color var(--transition-base);
 }
 
 .close-btn:hover {
@@ -189,24 +187,24 @@ const handleCheckout = () => {
 .cart-body {
   flex: 1;
   overflow-y: auto;
-  padding: 1.5rem;
+  padding: var(--spacing-lg);
 }
 
 .empty-cart {
   text-align: center;
   color: var(--muted-foreground);
-  padding-top: 2rem;
+  padding-top: var(--spacing-xl);
 }
 
 .cart-items {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--spacing-lg);
 }
 
 .cart-item {
   display: flex;
-  gap: 1rem;
+  gap: var(--spacing-md);
 }
 
 .item-image {
@@ -232,7 +230,7 @@ const handleCheckout = () => {
 }
 
 .item-name {
-  font-size: 0.95rem;
+  font-size: var(--text-base);
   margin: 0 0 0.25rem 0;
   line-height: 1.3;
 }
@@ -248,7 +246,7 @@ const handleCheckout = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 0.5rem;
+  margin-top: var(--spacing-sm);
 }
 
 .quantity-control {
@@ -262,7 +260,7 @@ const handleCheckout = () => {
 .qty-btn {
   background: none;
   border: none;
-  padding: 0.25rem 0.5rem;
+  padding: var(--spacing-xs) var(--spacing-sm);
   color: var(--foreground);
   cursor: pointer;
 }
@@ -272,8 +270,8 @@ const handleCheckout = () => {
 }
 
 .qty-val {
-  padding: 0 0.5rem;
-  font-size: 0.85rem;
+  padding: 0 var(--spacing-sm);
+  font-size: var(--text-sm);
   min-width: 1.5rem;
   text-align: center;
 }
@@ -281,8 +279,8 @@ const handleCheckout = () => {
 .remove-btn {
   background: none;
   border: none;
-  color: var(--destructive, #ef4444);
-  font-size: 0.8rem;
+  color: var(--error);
+  font-size: var(--text-sm);
   cursor: pointer;
   padding: 0;
 }
@@ -292,7 +290,7 @@ const handleCheckout = () => {
 }
 
 .cart-footer {
-  padding: 1.5rem;
+  padding: var(--spacing-lg);
   border-top: 1px solid var(--border);
   background: var(--background);
 }
@@ -301,8 +299,8 @@ const handleCheckout = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
+  margin-bottom: var(--spacing-md);
+  font-size: var(--text-lg);
   font-weight: 600;
 }
 
@@ -313,6 +311,6 @@ const handleCheckout = () => {
 
 .checkout-btn {
   font-weight: 600;
-  padding: 0.75rem;
+  padding: var(--spacing-sm);
 }
 </style>

@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useCart } from "../composables/useCart";
+import { formatPrice } from "../utils/format";
 
 const route = useRoute();
 const router = useRouter();
@@ -60,14 +61,6 @@ onMounted(() => {
 
 const goBack = () => {
   router.push("/products");
-};
-
-const formatPrice = (price) => {
-  if (!price) return "0.00";
-  return parseFloat(price).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 };
 
 const specs = computed(() => {
@@ -193,7 +186,9 @@ const specs = computed(() => {
 
             <div class="price-section price-section-mobile">
               <span class="currency">$</span>
-              <span class="amount">{{ formatPrice(product.price) }}</span>
+              <span class="amount">{{
+                product.price ? formatPrice(product.price) : "0.00"
+              }}</span>
             </div>
 
             <p class="description mb-4">{{ product.description }}</p>
@@ -337,16 +332,16 @@ const specs = computed(() => {
 
 <style scoped>
 .product-details-page {
-  padding-top: 1rem;
-  padding-bottom: 4rem;
+  padding-top: var(--spacing-md);
+  padding-bottom: var(--spacing-2xl);
 }
 
 .back-btn {
   color: var(--muted-foreground);
-  transition: color 0.2s;
+  transition: color var(--transition-base);
   text-decoration: none;
   display: inline-block;
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-md);
   position: relative;
   z-index: 10;
 }
@@ -364,7 +359,7 @@ const specs = computed(() => {
 }
 
 .product-title {
-  font-size: 2.5rem;
+  font-size: var(--text-4xl);
   font-weight: 700;
   color: var(--foreground);
   line-height: 1.2;
@@ -373,36 +368,42 @@ const specs = computed(() => {
 .price-section {
   color: var(--primary);
   font-family: var(--font-mono);
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-lg);
 }
 
 .price-section-mobile {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-lg);
 }
 
 .currency {
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   vertical-align: top;
   margin-top: 0.2rem;
   display: inline-block;
 }
 
 .amount {
-  font-size: 3rem;
+  font-size: var(--text-5xl);
   font-weight: 700;
   line-height: 1;
 }
 
 .description {
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   line-height: 1.6;
   color: var(--muted-foreground);
+}
+
+@media (min-width: 1024px) {
+  .description {
+    font-size: var(--text-base);
+  }
 }
 
 .specs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem 2rem;
+  gap: var(--spacing-md) var(--spacing-xl);
 }
 
 .rating-badge {
@@ -414,11 +415,11 @@ const specs = computed(() => {
 .spec-item {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--spacing-xs);
 }
 
 .spec-label {
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--muted-foreground);
@@ -432,24 +433,24 @@ const specs = computed(() => {
 
 @media (max-width: 768px) {
   .product-details-page {
-    padding-top: 0rem;
+    padding-top: 0;
   }
 
   .product-title {
-    font-size: 1.75rem;
+    font-size: var(--text-3xl);
   }
 
   .amount {
-    font-size: 2rem;
+    font-size: var(--text-3xl);
   }
 
   .price-section-mobile {
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--spacing-sm);
   }
 
   .description {
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
+    font-size: var(--text-base);
+    margin-bottom: var(--spacing-lg);
   }
 
   .product-content {
@@ -457,7 +458,7 @@ const specs = computed(() => {
   }
 
   .product-content .row {
-    gap: 1.5rem;
+    gap: var(--spacing-lg);
   }
 
   .product-image {
@@ -467,7 +468,7 @@ const specs = computed(() => {
 
   .specs-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: var(--spacing-md);
   }
 }
 </style>

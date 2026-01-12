@@ -138,6 +138,7 @@ const copyToClipboard = async () => {
                   :disabled="loading"
                   @click="unlockReward"
                   class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2"
+                  :aria-label="loading ? 'Unlocking reward' : 'Unlock reward'"
                 >
                   <span
                     v-if="loading"
@@ -156,6 +157,7 @@ const copyToClipboard = async () => {
                       stroke-width="2"
                       stroke-linecap="round"
                       stroke-linejoin="round"
+                      aria-hidden="true"
                     >
                       <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
                       <path d="M7 11V7a5 5 0 0 1 9.9-1" />
@@ -178,7 +180,7 @@ const copyToClipboard = async () => {
       <div class="col-lg-10">
         <div class="tabs-container">
           <div class="row align-items-center justify-content-center gx-5">
-            <div class="col-lg-5 text-end">
+            <div class="col-lg-5">
               <div class="tabs-wrapper">
                 <div class="tabs-list mb-4">
                   <button
@@ -230,24 +232,20 @@ const copyToClipboard = async () => {
                 </div>
               </div>
 
-              <div
-                v-if="activeTab === 'store-1'"
-                class="store-image-wrapper fade-in d-flex justify-content-end"
-              >
+              <div class="store-image-wrapper">
                 <img
+                  v-if="activeTab === 'store-1'"
                   src="/images/store-1.webp"
                   alt="Sydney Store"
                   class="img-fluid shadow-sm store-img"
+                  key="store-1"
                 />
-              </div>
-              <div
-                v-if="activeTab === 'store-2'"
-                class="store-image-wrapper fade-in d-flex justify-content-end"
-              >
                 <img
+                  v-if="activeTab === 'store-2'"
                   src="/images/store-2.webp"
                   alt="HCMC Store"
                   class="img-fluid shadow-sm store-img"
+                  key="store-2"
                 />
               </div>
             </div>
@@ -349,45 +347,49 @@ const copyToClipboard = async () => {
 
 .tabs-wrapper {
   display: flex;
-  justify-content: flex-end;
-  width: 90%;
-  margin-left: auto;
+  justify-content: center;
+  width: 100%;
 }
 
 .tabs-list {
   display: inline-flex;
   background: var(--muted);
-  padding: 4px;
-  border-radius: 8px;
+  padding: var(--spacing-xs);
+  border-radius: 0;
   width: fit-content;
-  margin-left: auto;
-  margin-right: 0;
 }
 
 .tab-trigger {
   background: transparent;
   border: none;
   color: var(--muted-foreground);
-  padding: 8px 16px;
-  border-radius: 6px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 0;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base) ease;
 }
 
 .tab-trigger.active {
   background: var(--background);
   color: var(--foreground);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
 .store-img {
-  width: 90%;
+  width: 100%;
   height: auto;
   object-fit: cover;
   aspect-ratio: 1/1;
   border-radius: 0;
+}
+
+.store-image-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
 @media (max-width: 991px) {
@@ -398,11 +400,6 @@ const copyToClipboard = async () => {
   .tabs-wrapper {
     justify-content: center;
     width: 100%;
-    margin-left: 0;
-  }
-
-  .tabs-list {
-    margin-left: 0;
   }
 
   .store-image-wrapper {
@@ -415,16 +412,27 @@ const copyToClipboard = async () => {
   }
 
   .tabs-container .col-md-5:first-child {
-    margin-bottom: 2rem;
+    margin-bottom: var(--spacing-xl);
   }
 
   .tabs-container .col-lg-5:last-child h2 {
-    margin-top: 2rem;
+    margin-top: var(--spacing-xl);
   }
 }
 
-.store-image-wrapper {
-  animation: fadeIn 0.3s ease-in-out;
+.store-image-wrapper img {
+  animation: fadeInImage var(--transition-slow) ease-in-out;
+}
+
+@keyframes fadeInImage {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-xs));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .leading-relaxed {
@@ -434,7 +442,7 @@ const copyToClipboard = async () => {
 /* Easter Egg Styles */
 .easter-egg-card {
   border: 1px solid var(--border) !important;
-  transition: transform 0.3s ease;
+  transition: transform var(--transition-slow) ease;
   position: relative;
   overflow: hidden;
   background: transparent;
@@ -467,7 +475,6 @@ const copyToClipboard = async () => {
 }
 
 .gift-icon {
-  /* Optional: Add some animation or color filter */
   filter: drop-shadow(0 0 8px rgba(var(--primary), 0.3));
 }
 
@@ -477,7 +484,6 @@ const copyToClipboard = async () => {
   border-radius: 0;
 }
 
-/* Modal Styles reuse from Checkout */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -488,7 +494,7 @@ const copyToClipboard = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
+  z-index: var(--z-modal);
 }
 
 .modal-content {
@@ -507,7 +513,7 @@ const copyToClipboard = async () => {
 
 .input-icon {
   position: absolute;
-  left: 1rem;
+  left: var(--spacing-md);
   color: var(--muted-foreground);
   pointer-events: none;
   z-index: 10;
@@ -518,18 +524,18 @@ const copyToClipboard = async () => {
 
 .form-control-custom {
   width: 100%;
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--text-sm);
   background-color: color-mix(in srgb, var(--background), transparent 50%);
   border: 1px solid var(--input);
   border-radius: var(--radius);
   color: var(--foreground);
-  transition: all 0.2s;
+  transition: all var(--transition-base);
   outline: none;
 }
 
 .form-control-custom::placeholder {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 .form-control-custom:focus {
@@ -545,13 +551,13 @@ const copyToClipboard = async () => {
   transform: translateX(-50%);
   background-color: transparent;
   color: var(--primary);
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-xs);
   font-size: 0.75rem;
   font-weight: bold;
   pointer-events: none;
-  animation: fadeIn 0.3s ease-out;
-  margin-bottom: 8px;
+  animation: fadeIn var(--transition-slow) ease-out;
+  margin-bottom: var(--spacing-sm);
   white-space: nowrap;
 }
 
@@ -569,7 +575,7 @@ const copyToClipboard = async () => {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translate(-50%, 5px);
+    transform: translate(-50%, var(--spacing-xs));
   }
   to {
     opacity: 1;

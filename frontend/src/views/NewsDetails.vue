@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { formatDate } from "../utils/format";
 
 const route = useRoute();
 const router = useRouter();
@@ -41,11 +42,7 @@ const goBack = () => {
 
 const formattedDate = computed(() => {
   if (!newsItem.value?.published_date) return "";
-  return new Date(newsItem.value.published_date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  return formatDate(newsItem.value.published_date);
 });
 </script>
 
@@ -55,6 +52,7 @@ const formattedDate = computed(() => {
     <button
       @click="goBack"
       class="btn btn-link text-decoration-none mb-4 back-btn fade-in-up-none"
+      aria-label="Back to news"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -67,6 +65,7 @@ const formattedDate = computed(() => {
         stroke-linecap="round"
         stroke-linejoin="round"
         class="me-2"
+        aria-hidden="true"
       >
         <path d="m15 18-6-6 6-6" />
       </svg>
@@ -118,6 +117,7 @@ const formattedDate = computed(() => {
               stroke-linecap="round"
               stroke-linejoin="round"
               class="me-2"
+              aria-hidden="true"
             >
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
               <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -166,7 +166,7 @@ const formattedDate = computed(() => {
 
 <style scoped>
 .news-details-page {
-  padding-top: 2rem;
+  padding-top: var(--spacing-xl);
   padding-bottom: 4rem;
   max-width: 900px;
   margin: 0 auto;
@@ -174,7 +174,7 @@ const formattedDate = computed(() => {
 
 .back-btn {
   color: var(--muted-foreground);
-  transition: color 0.2s;
+  transition: color var(--transition-base);
 }
 
 .back-btn:hover {
@@ -182,7 +182,7 @@ const formattedDate = computed(() => {
 }
 
 .news-title {
-  font-size: 2.5rem;
+  font-size: var(--text-4xl);
   font-weight: 800;
   color: var(--foreground);
   line-height: 1.2;
@@ -207,15 +207,21 @@ const formattedDate = computed(() => {
 
 .content-text {
   white-space: pre-wrap;
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   line-height: 1.8;
   color: var(--foreground);
 }
 
+@media (min-width: 1024px) {
+  .content-text {
+    font-size: var(--text-base);
+  }
+}
+
 .source-link {
   border-top: 1px solid var(--border);
-  padding-top: 2rem;
-  font-size: 0.95rem;
+  padding-top: var(--spacing-xl);
+  font-size: var(--text-base);
 }
 
 .source-link a {
@@ -223,7 +229,7 @@ const formattedDate = computed(() => {
 }
 
 .source-link a:hover {
-  opacity: 0.8;
+  opacity: var(--opacity-hover);
 }
 
 @media (max-width: 768px) {
@@ -232,7 +238,7 @@ const formattedDate = computed(() => {
   }
 
   .news-title {
-    font-size: 1.75rem;
+    font-size: var(--text-3xl);
   }
 }
 </style>

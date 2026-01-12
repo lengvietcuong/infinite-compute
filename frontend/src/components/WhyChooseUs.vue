@@ -117,7 +117,7 @@ const icons = {
   position: absolute;
   width: 40rem;
   height: 40rem;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
   filter: blur(100px);
   opacity: 0.35;
@@ -143,23 +143,23 @@ body.light-mode .gradient-light {
 
 .section-title {
   text-align: center;
-  font-size: 2.5rem;
+  font-size: var(--text-4xl);
   font-weight: 700;
-  margin-bottom: 2rem;
+  margin-bottom: var(--spacing-xl);
   font-family: var(--font-mono);
 }
 
 @media (max-width: 768px) {
   .section-title {
-    font-size: 1.75rem;
-    margin-bottom: 1.5rem;
+    font-size: var(--text-3xl);
+    margin-bottom: var(--spacing-lg);
   }
 }
 
 .features-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
+  gap: var(--spacing-lg);
 }
 
 @media (min-width: 768px) {
@@ -177,7 +177,7 @@ body.light-mode .gradient-light {
 .feature-card {
   position: relative;
   border-radius: 0;
-  padding: 1.5rem;
+  padding: var(--spacing-lg);
   background-color: color-mix(in srgb, var(--card), transparent 80%);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -189,7 +189,7 @@ body.light-mode .gradient-light {
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--spacing-md);
   height: 100%;
 }
 
@@ -200,7 +200,7 @@ body.light-mode .gradient-light {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.25rem;
+  margin-bottom: var(--spacing-xs);
   color: var(--primary);
 }
 
@@ -210,14 +210,14 @@ body.light-mode .gradient-light {
 }
 
 .feature-title {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 700;
   font-family: var(--font-mono);
   margin: 0;
 }
 
 .feature-description {
-  font-size: 0.95rem;
+  font-size: var(--text-base);
   color: var(--muted-foreground);
   margin: 0;
   line-height: 1.6;

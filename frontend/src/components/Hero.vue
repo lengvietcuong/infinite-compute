@@ -151,32 +151,32 @@ onUnmounted(() => {
                 class="mt-5 d-flex gap-5 justify-content-center fade-in-up delay-300 opacity-75"
               >
                 <div class="text-center">
-                  <h2 class="mb-1 font-mono" style="font-size: 2.2rem">
+                  <h2 class="mb-1 font-mono" style="font-size: var(--text-4xl)">
                     {{ gpuCount }}+
                   </h2>
                   <small
                     class="text-muted text-uppercase"
-                    style="font-size: 0.8rem"
+                    style="font-size: var(--text-sm)"
                     >NVIDIA GPUs</small
                   >
                 </div>
                 <div class="text-center">
-                  <h2 class="mb-1 font-mono" style="font-size: 2.2rem">
+                  <h2 class="mb-1 font-mono" style="font-size: var(--text-4xl)">
                     {{ customerCount.toLocaleString() }}+
                   </h2>
                   <small
                     class="text-muted text-uppercase"
-                    style="font-size: 0.8rem"
+                    style="font-size: var(--text-sm)"
                     >Happy Customers</small
                   >
                 </div>
                 <div class="text-center">
-                  <h2 class="mb-1 font-mono" style="font-size: 2.2rem">
+                  <h2 class="mb-1 font-mono" style="font-size: var(--text-4xl)">
                     {{ countryCount }}+
                   </h2>
                   <small
                     class="text-muted text-uppercase"
-                    style="font-size: 0.8rem"
+                    style="font-size: var(--text-sm)"
                     >Countries</small
                   >
                 </div>
@@ -218,7 +218,7 @@ onUnmounted(() => {
   filter: blur(100px);
   top: -20%;
   left: -10%;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
 }
 
 body.light-mode .glow-effect {
@@ -230,7 +230,7 @@ body.light-mode .glow-effect {
   height: 600px;
   background: radial-gradient(circle, var(--primary) 0%, transparent 60%);
   position: absolute;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   filter: blur(120px);
   opacity: 0.25;
   top: -5%;
@@ -266,7 +266,7 @@ body.light-mode .moving-blob {
   height: 550px;
   background: radial-gradient(circle, var(--primary) 0%, transparent 60%);
   position: absolute;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   filter: blur(110px);
   opacity: 0.25;
   bottom: 5%;
@@ -324,11 +324,11 @@ body.light-mode .moving-blob-2 {
   );
   border-radius: var(--radius);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-lg);
 }
 
 .gpu-image {
-  transition: opacity 0.5s ease-in-out;
+  transition: opacity var(--transition-slower) ease-in-out;
 }
 
 .tech-line {
@@ -355,7 +355,7 @@ body.light-mode .moving-blob-2 {
 
 @media (max-width: 1279px) {
   .glass-card h2 {
-    font-size: 1.5rem !important;
+    font-size: var(--text-2xl) !important;
   }
 }
 </style>

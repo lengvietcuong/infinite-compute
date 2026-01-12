@@ -1,7 +1,8 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useCart } from "../composables/useCart";
+import { formatPrice } from "../utils/format";
 
 const router = useRouter();
 const { cartItemCount, toggleCart } = useCart();
@@ -78,7 +79,7 @@ const fetchSearchResults = async () => {
   try {
     const params = new URLSearchParams({
       search: searchQuery.value,
-      limit: 5, // Limit preview results
+      limit: 5,
     });
     const response = await fetch(
       `http://localhost:8000/products?${params.toString()}`
@@ -112,17 +113,9 @@ const selectResult = (id) => {
 };
 
 const closeDropdown = () => {
-  // Small delay to allow click event on result item to fire
   setTimeout(() => {
     showDropdown.value = false;
   }, 200);
-};
-
-const formatPrice = (price) => {
-  return parseFloat(price).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 };
 
 onMounted(() => {
@@ -142,7 +135,7 @@ onUnmounted(() => {
 
 <template>
   <header
-    class="app-header navbar navbar-expand-lg"
+    class="app-header navbar navbar-expand-xl"
     :class="{
       'navbar-hidden': !isVisible,
       'navbar-scrolled': isScrolled,
@@ -170,7 +163,7 @@ onUnmounted(() => {
           </svg>
           InfiniteCompute
         </router-link>
-        <nav class="nav-links d-none d-lg-flex gap-4 align-items-center">
+        <nav class="nav-links d-none d-xl-flex gap-4 align-items-center">
           <router-link class="nav-link text-foreground" to="/products"
             >Products</router-link
           >
@@ -233,7 +226,7 @@ onUnmounted(() => {
               >About</router-link
             >
           </li>
-          <li class="nav-item d-none d-lg-block">
+          <li class="nav-item d-none d-xl-block">
             <div class="search-wrapper">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -258,6 +251,7 @@ onUnmounted(() => {
                 @keyup.enter="handleSearch"
                 @focus="showDropdown = true"
                 @blur="closeDropdown"
+                aria-label="Search products"
               />
 
               <!-- Search Results Dropdown -->
@@ -296,7 +290,7 @@ onUnmounted(() => {
             </div>
           </li>
           <!-- Cart Icon -->
-          <li class="nav-item d-none d-lg-block cart-nav-item">
+          <li class="nav-item d-none d-xl-block cart-nav-item">
             <button
               class="btn btn-icon btn-ghost position-relative cart-icon-btn"
               @click="toggleCart"
@@ -422,12 +416,13 @@ onUnmounted(() => {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1000;
-  transition: transform 0.3s ease-in-out, background-color 0.3s ease,
-    backdrop-filter 0.3s ease;
+  z-index: var(--z-fixed);
+  transition: transform var(--transition-slow) ease-in-out,
+    background-color var(--transition-slow) ease,
+    backdrop-filter var(--transition-slow) ease;
   transform: translateY(0);
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
+  padding-top: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
 }
 
 .navbar-scrolled,
@@ -450,8 +445,8 @@ body.light-mode .navbar-expanded {
 
 .nav-link {
   font-family: var(--font-mono);
-  font-size: 0.9rem;
-  transition: color 0.2s;
+  font-size: var(--text-sm);
+  transition: color var(--transition-base);
   text-decoration: none;
   padding: 0;
 }
@@ -480,10 +475,10 @@ body.light-mode .navbar-expanded {
   border-radius: var(--radius);
   border: 1px solid var(--input);
   background: var(--background);
-  padding: 0.25rem 0.75rem 0.25rem 2.25rem;
+  padding: var(--spacing-xs) var(--spacing-sm) var(--spacing-xs) 2.25rem;
   font-size: 0.875rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  transition: color 0.2s, box-shadow 0.2s;
+  box-shadow: var(--shadow-sm);
+  transition: color var(--transition-base), box-shadow var(--transition-base);
   outline: none;
   color: var(--foreground);
 }
@@ -505,7 +500,7 @@ body.light-mode .navbar-expanded {
 .search-input:disabled {
   pointer-events: none;
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: var(--opacity-disabled);
 }
 
 .search-dropdown {
@@ -513,13 +508,12 @@ body.light-mode .navbar-expanded {
   top: 100%;
   left: 0;
   right: 0;
-  margin-top: 0.5rem;
+  margin-top: var(--spacing-sm);
   background: var(--background);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  z-index: 50;
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-dropdown);
   overflow: hidden;
   width: 300px;
   max-height: 400px;
@@ -535,11 +529,11 @@ body.light-mode .navbar-expanded {
 .search-result-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm);
   text-decoration: none;
   color: var(--foreground);
-  transition: background-color 0.2s;
+  transition: background-color var(--transition-base);
 }
 
 .search-result-item:not(:last-of-type) {
@@ -586,14 +580,14 @@ body.light-mode .navbar-expanded {
 }
 
 .dropdown-footer {
-  padding: 0.75rem;
+  padding: var(--spacing-sm);
   text-align: center;
   font-size: 0.875rem;
   color: var(--primary);
   cursor: pointer;
   background-color: color-mix(in srgb, var(--card), transparent 50%);
   border-top: 1px solid var(--border);
-  transition: background-color 0.2s;
+  transition: background-color var(--transition-base);
 }
 
 .dropdown-footer:hover {
@@ -664,13 +658,13 @@ body.light-mode .navbar-expanded {
   transform: translate(-50%, -50%);
   background-color: var(--primary);
   color: var(--primary-foreground);
-  font-size: 0.6rem;
+  font-size: var(--text-xs);
   min-width: 1.25rem;
   height: 1.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   padding: 0 0.35em;
 }
 
@@ -679,21 +673,21 @@ body.light-mode .navbar-expanded {
 }
 
 .nav-items-desktop > .nav-item {
-  margin-left: 0.75rem;
+  margin-left: var(--spacing-sm);
 }
 
 .cart-nav-item {
-  margin-left: 0.5rem !important;
+  margin-left: var(--spacing-sm) !important;
 }
 
 .auth-nav-group {
-  margin-left: 2.5rem !important;
+  margin-left: var(--spacing-xl) !important;
 }
 
-@media (max-width: 991px) {
+@media (max-width: 1279px) {
   .nav-items-desktop > .nav-item {
     margin-left: 0;
-    margin-bottom: 0.75rem;
+    margin-bottom: var(--spacing-sm);
   }
 
   .cart-nav-item,

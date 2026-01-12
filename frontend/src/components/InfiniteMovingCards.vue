@@ -166,7 +166,7 @@ blockquote {
 
 .quote-text {
   display: block;
-  font-size: 0.875rem; /* text-sm */
+  font-size: var(--text-sm);
   line-height: 1.6;
   font-weight: 400;
   color: var(--foreground);
@@ -203,7 +203,7 @@ blockquote {
 }
 
 .author-name {
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   line-height: 1.6;
   font-weight: 500;
   color: var(--primary);
