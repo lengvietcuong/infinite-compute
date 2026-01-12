@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from typing import List, Optional
 from database.database import get_db
-from database.models import Product, Review, User
+from database.models import Product, Review, User, OrderItem, Order, OrderStatus
 from schemas import ProductResponse, ProductCreate, ProductUpdate
 from auth import get_current_admin
 
@@ -51,6 +51,58 @@ async def list_products(
     query = query.offset(skip).limit(limit).order_by(Product.created_at.desc())
     result = await db.execute(query)
     products = result.scalars().all()
+    
+    # Add review statistics
+    products_with_stats = []
+    for product in products:
+        product_dict = ProductResponse.model_validate(product).model_dump()
+        
+        # Get average rating and review count
+        review_stats = await db.execute(
+            select(
+                func.avg(Review.rating).label('avg_rating'),
+                func.count(Review.id).label('review_count')
+            ).where(Review.product_id == product.id)
+        )
+        stats = review_stats.first()
+        
+        product_dict['average_rating'] = float(stats.avg_rating) if stats.avg_rating else None
+        product_dict['review_count'] = stats.review_count
+        
+        products_with_stats.append(ProductResponse(**product_dict))
+    
+    return products_with_stats
+
+
+@router.get("/top-selling", response_model=List[ProductResponse])
+async def get_top_selling_products(limit: int = 10, db: AsyncSession = Depends(get_db)):
+    """Get top selling products based on order quantities"""
+    query = (
+        select(Product)
+        .join(OrderItem, Product.id == OrderItem.product_id)
+        .join(Order, OrderItem.order_id == Order.id)
+        .where(Order.status != OrderStatus.CANCELLED)
+        .group_by(Product.id)
+        .order_by(func.sum(OrderItem.quantity).desc())
+        .limit(limit)
+    )
+    
+    result = await db.execute(query)
+    products = result.scalars().all()
+    
+    # If we don't have enough best sellers, fill with other products
+    if len(products) < limit:
+        existing_ids = [p.id for p in products]
+        remaining = limit - len(products)
+        
+        fallback_query = select(Product)
+        if existing_ids:
+            fallback_query = fallback_query.where(Product.id.not_in(existing_ids))
+            
+        fallback_query = fallback_query.order_by(Product.created_at.desc()).limit(remaining)
+        fallback_result = await db.execute(fallback_query)
+        fallback_products = fallback_result.scalars().all()
+        products.extend(fallback_products)
     
     # Add review statistics
     products_with_stats = []

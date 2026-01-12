@@ -1,6 +1,7 @@
 <script setup>
 import Hero from "../components/Hero.vue";
 import WhyChooseUs from "../components/WhyChooseUs.vue";
+import TopProducts from "../components/TopProducts.vue";
 import InfiniteMovingCards from "../components/InfiniteMovingCards.vue";
 
 const testimonials = [
@@ -44,6 +45,7 @@ const testimonials = [
 
 <template>
   <Hero />
+  <TopProducts />
   <WhyChooseUs />
 
   <section class="testimonials-section">
