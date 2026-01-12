@@ -75,7 +75,7 @@ const testimonials = [
 .section-title {
   font-size: 2.5rem;
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   background: linear-gradient(
     to right,
     var(--foreground),
@@ -84,6 +84,13 @@ const testimonials = [
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.75rem;
+    margin-bottom: 0.75rem;
+  }
 }
 
 .cards-container {

@@ -10,6 +10,7 @@ const shouldRender = ref(true);
 
 const currentIndex = ref(0);
 const visibleCount = ref(3);
+const transitionName = ref("slide-next");
 
 const updateVisibleCount = () => {
   if (window.innerWidth >= 1024) {
@@ -51,10 +52,12 @@ const visibleProducts = computed(() => {
 });
 
 const next = () => {
+  transitionName.value = "slide-next";
   currentIndex.value = (currentIndex.value + 1) % products.value.length;
 };
 
 const prev = () => {
+  transitionName.value = "slide-prev";
   currentIndex.value =
     (currentIndex.value - 1 + products.value.length) % products.value.length;
 };
@@ -123,7 +126,11 @@ const formatPrice = (price) => {
         </button>
 
         <div class="carousel-viewport">
-          <transition-group name="card" tag="div" class="carousel-track">
+          <transition-group
+            :name="transitionName"
+            tag="div"
+            class="carousel-track"
+          >
             <div
               v-for="product in visibleProducts"
               :key="product.id"
@@ -265,7 +272,7 @@ const formatPrice = (price) => {
 .section-title {
   font-size: 2.5rem;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
   background: linear-gradient(
     to right,
     var(--foreground),
@@ -278,17 +285,24 @@ const formatPrice = (price) => {
   z-index: 1;
 }
 
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.75rem;
+    margin-bottom: 0.75rem;
+  }
+}
+
 .carousel-container {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .carousel-viewport {
-  overflow: visible;
+  overflow: hidden;
   width: 100%;
-  margin: 0 0.5rem; /* Space for buttons */
+  margin: 0; /* Space for buttons */
 }
 
 .carousel-track {
@@ -317,7 +331,6 @@ const formatPrice = (price) => {
 
 .product-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
   border-color: var(--primary);
 }
 
@@ -440,6 +453,8 @@ const formatPrice = (price) => {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
   }
 
   .prev-btn {
@@ -456,21 +471,42 @@ const formatPrice = (price) => {
 }
 
 /* Card animations */
-.card-move, /* apply transition to moving elements */
-.card-enter-active,
-.card-leave-active {
+.slide-next-move,
+.slide-next-enter-active,
+.slide-next-leave-active,
+.slide-prev-move,
+.slide-prev-enter-active,
+.slide-prev-leave-active {
   transition: all 0.5s ease;
 }
 
-.card-enter-from,
-.card-leave-to {
-  opacity: 0;
-  transform: scale(0.9);
+.slide-next-leave-active {
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
-/* ensure leaving items are taken out of layout flow so that moving
-   items can be calculated correctly. */
-.card-leave-active {
+.slide-prev-leave-active {
   position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/* Slide Next */
+.slide-next-enter-from {
+  transform: translateX(100%);
+  opacity: 0;
+}
+.slide-next-leave-to {
+  transform: translateX(-100%);
+}
+
+/* Slide Prev */
+.slide-prev-enter-from {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+.slide-prev-leave-to {
+  transform: translateX(100%);
 }
 </style>

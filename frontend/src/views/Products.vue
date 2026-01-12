@@ -1,14 +1,15 @@
 <script setup>
 import { ref, watch, onMounted, computed } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 
 const router = useRouter();
+const route = useRoute();
 const products = ref([]);
 const loading = ref(false);
 const error = ref(null);
 
 // Filters
-const searchQuery = ref("");
+const searchQuery = ref(route.query.search || "");
 const sortBy = ref("latest"); // latest, price_asc, price_desc, most_reviews
 
 // Pagination (User asked for specific grid dimensions which implies 12 items per page: 4x3=12, 3x4=12, 2x6=12)
@@ -105,6 +106,12 @@ const debouncedFetch = () => {
 };
 
 watch(searchQuery, debouncedFetch);
+
+watch(() => route.query.search, (newSearch) => {
+  if (newSearch !== undefined && newSearch !== searchQuery.value) {
+    searchQuery.value = newSearch;
+  }
+});
 
 // Reset page when sort changes
 watch(sortBy, () => {

@@ -145,8 +145,15 @@ body.light-mode .gradient-light {
   text-align: center;
   font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   font-family: var(--font-mono);
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
 }
 
 .features-grid {
