@@ -1,9 +1,11 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useCart } from "../composables/useCart";
 
 const route = useRoute();
 const router = useRouter();
+const { addToCart } = useCart();
 const product = ref(null);
 const loading = ref(true);
 const error = ref(null);
@@ -177,6 +179,7 @@ const specs = computed(() => {
                 <button
                   class="btn btn-primary btn-lg d-flex align-items-center justify-content-center gap-2"
                   :disabled="product.stock_quantity <= 0"
+                  @click="addToCart(product)"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

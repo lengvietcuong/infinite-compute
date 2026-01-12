@@ -6,6 +6,8 @@ import Products from "../views/Products.vue";
 import ProductDetails from "../views/ProductDetails.vue";
 import SignIn from "../views/SignIn.vue";
 import SignUp from "../views/SignUp.vue";
+import Checkout from "../views/Checkout.vue";
+import OrderTracking from "../views/OrderTracking.vue";
 
 const routes = [
   {
@@ -42,6 +44,16 @@ const routes = [
     path: "/sign-up",
     name: "SignUp",
     component: SignUp,
+  },
+  {
+    path: "/checkout",
+    name: "Checkout",
+    component: Checkout,
+  },
+  {
+    path: "/track-order",
+    name: "OrderTracking",
+    component: OrderTracking,
   },
 ];
 

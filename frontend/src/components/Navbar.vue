@@ -1,6 +1,8 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
+import { useCart } from "../composables/useCart";
 
+const { cartItemCount, toggleCart } = useCart();
 const isVisible = ref(true);
 const isScrolled = ref(false);
 const isDarkMode = ref(true);
@@ -118,7 +120,7 @@ onUnmounted(() => {
         <div v-else class="menu-icon x-icon" aria-label="Close"></div>
       </button>
       <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-        <ul class="navbar-nav gap-3 align-items-center">
+        <ul class="navbar-nav align-items-center nav-items-desktop">
           <li class="nav-item d-lg-none mt-3">
             <router-link
               class="nav-link text-foreground"
@@ -164,7 +166,72 @@ onUnmounted(() => {
               />
             </div>
           </li>
-          <li class="nav-item">
+          <!-- Cart Icon -->
+          <li class="nav-item d-none d-lg-block cart-nav-item">
+            <button
+              class="btn btn-icon btn-ghost position-relative cart-icon-btn"
+              @click="toggleCart"
+              aria-label="Open Cart"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="8" cy="21" r="1" />
+                <circle cx="19" cy="21" r="1" />
+                <path
+                  d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
+                />
+              </svg>
+              <span
+                v-if="cartItemCount > 0"
+                class="cart-badge"
+              >
+                {{ cartItemCount }}
+                <span class="visually-hidden">items in cart</span>
+              </span>
+            </button>
+          </li>
+          <li class="nav-item d-lg-none">
+            <button
+              class="btn btn-icon btn-ghost position-relative cart-icon-btn"
+              @click="toggleCart"
+              aria-label="Open Cart"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="8" cy="21" r="1" />
+                <circle cx="19" cy="21" r="1" />
+                <path
+                  d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
+                />
+              </svg>
+              <span
+                v-if="cartItemCount > 0"
+                class="cart-badge"
+              >
+                {{ cartItemCount }}
+                <span class="visually-hidden">items in cart</span>
+              </span>
+            </button>
+          </li>
+          <li class="nav-item auth-nav-group">
             <router-link class="btn btn-sm btn-outline" to="/sign-in"
               >Login</router-link
             >
@@ -365,5 +432,58 @@ body.light-mode .navbar-expanded {
 
 .theme-toggle:hover {
   color: var(--primary);
+}
+
+.cart-icon-btn {
+  color: var(--foreground);
+}
+
+.cart-icon-btn:hover {
+  color: var(--primary);
+}
+
+.cart-badge {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  transform: translate(-50%, -50%);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.6rem;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0 0.35em;
+}
+
+.nav-items-desktop {
+  gap: 0;
+}
+
+.nav-items-desktop > .nav-item {
+  margin-left: 0.75rem;
+}
+
+.cart-nav-item {
+  margin-left: 0.5rem !important;
+}
+
+.auth-nav-group {
+  margin-left: 2.5rem !important;
+}
+
+@media (max-width: 991px) {
+  .nav-items-desktop > .nav-item {
+    margin-left: 0;
+    margin-bottom: 0.75rem;
+  }
+  
+  .cart-nav-item,
+  .auth-nav-group {
+    margin-left: 0 !important;
+  }
 }
 </style>
