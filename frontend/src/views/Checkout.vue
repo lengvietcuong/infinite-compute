@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watchEffect } from "vue";
+import { ref, onMounted, watchEffect, computed } from "vue";
 import { useCart } from "../composables/useCart";
 import { useAuth } from "../composables/useAuth";
 import { useRouter } from "vue-router";
@@ -20,6 +20,55 @@ const form = ref({
   expiry: "",
   cvc: "",
 });
+
+const discountApplied = ref(false);
+const discountPercent = ref(0);
+const discountError = ref(null);
+const discountSuccess = ref(null);
+const isCheckingDiscount = ref(false);
+
+const discountAmount = computed(() => {
+  return cartTotal.value * (discountPercent.value / 100);
+});
+
+const finalTotal = computed(() => {
+  return cartTotal.value - discountAmount.value;
+});
+
+const applyDiscount = async () => {
+  if (!form.value.discountCode) return;
+
+  isCheckingDiscount.value = true;
+  discountError.value = null;
+  discountSuccess.value = null;
+  
+  try {
+    const response = await fetch(`http://localhost:8000/orders/validate-coupon/${form.value.discountCode}`);
+    
+    if (!response.ok) {
+      throw new Error("Invalid discount code");
+    }
+
+    const data = await response.json();
+    discountPercent.value = parseFloat(data.discount_percent);
+    discountApplied.value = true;
+    discountSuccess.value = `Discount applied: ${data.discount_percent}% off`;
+  } catch (err) {
+    discountError.value = "Invalid discount code";
+    discountApplied.value = false;
+    discountPercent.value = 0;
+  } finally {
+    isCheckingDiscount.value = false;
+  }
+};
+
+const removeDiscount = () => {
+  form.value.discountCode = "";
+  discountApplied.value = false;
+  discountPercent.value = 0;
+  discountSuccess.value = null;
+  discountError.value = null;
+};
 
 // Auto-fill user data
 watchEffect(() => {
@@ -161,6 +210,13 @@ const handleOverlayClick = () => {
               <span class="summary-label">Subtotal</span>
               <span class="summary-value">${{ formatPrice(cartTotal) }}</span>
             </div>
+            <div
+              v-if="discountApplied"
+              class="d-flex justify-content-between mb-2 text-success"
+            >
+              <span class="summary-label">Discount ({{ discountPercent }}%)</span>
+              <span class="summary-value">-${{ formatPrice(discountAmount) }}</span>
+            </div>
             <div class="d-flex justify-content-between mb-2">
               <span class="summary-label">Shipping</span>
               <span class="summary-value">Free</span>
@@ -169,7 +225,7 @@ const handleOverlayClick = () => {
               class="d-flex justify-content-between fw-bold mt-3 fs-5 total-row"
             >
               <span>Total</span>
-              <span>${{ formatPrice(cartTotal) }}</span>
+              <span>${{ formatPrice(finalTotal) }}</span>
             </div>
           </div>
         </div>
@@ -259,8 +315,38 @@ const handleOverlayClick = () => {
                   type="text"
                   class="form-control"
                   placeholder="Enter discount code"
+                  :disabled="discountApplied"
+                  @keyup.enter="applyDiscount"
                 />
-                <button type="button" class="btn btn-outline">Apply</button>
+                <button
+                  v-if="!discountApplied"
+                  type="button"
+                  class="btn btn-outline"
+                  @click="applyDiscount"
+                  :disabled="isCheckingDiscount || !form.discountCode"
+                >
+                  <span
+                    v-if="isCheckingDiscount"
+                    class="spinner-border spinner-border-sm"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
+                  {{ isCheckingDiscount ? "Checking..." : "Apply" }}
+                </button>
+                <button
+                  v-else
+                  type="button"
+                  class="btn btn-outline-destructive"
+                  @click="removeDiscount"
+                >
+                  Remove
+                </button>
+              </div>
+              <div v-if="discountError" class="text-destructive mt-1 small">
+                {{ discountError }}
+              </div>
+              <div v-if="discountSuccess" class="text-primary mt-1 small">
+                {{ discountSuccess }}
               </div>
             </div>
           </div>
@@ -486,6 +572,28 @@ const handleOverlayClick = () => {
 
 .text-success {
   color: var(--success);
+}
+
+.text-destructive {
+  color: var(--destructive);
+}
+
+.btn-outline-destructive {
+  background-color: var(--background);
+  color: var(--destructive);
+  border: 1px solid var(--destructive);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-outline-destructive:hover {
+  background-color: color-mix(in srgb, var(--destructive), transparent 90%);
+  color: var(--destructive);
+}
+
+.btn-outline:disabled {
+  opacity: 1;
+  border-color: var(--border);
+  color: color-mix(in srgb, var(--foreground), transparent 50%);
 }
 
 .summary-title,

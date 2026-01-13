@@ -21,6 +21,8 @@ const orderToDelete = ref(null);
 const isDeleteModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const orderToEdit = ref(null);
+const orderToView = ref(null);
+const isViewModalOpen = ref(false);
 
 const formData = ref({
   user_id: null,
@@ -220,6 +222,16 @@ const openEditModal = (order) => {
 const closeEditModal = () => {
   isEditModalOpen.value = false;
   orderToEdit.value = null;
+};
+
+const openViewModal = (order) => {
+  orderToView.value = order;
+  isViewModalOpen.value = true;
+};
+
+const closeViewModal = () => {
+  isViewModalOpen.value = false;
+  orderToView.value = null;
 };
 
 const saveOrder = async () => {
@@ -692,6 +704,28 @@ const saveOrder = async () => {
             <TableCell class="text-right">
               <div class="flex justify-end gap-2">
                 <button
+                  @click="openViewModal(order)"
+                  class="action-btn"
+                  title="View Details"
+                  aria-label="View order details"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+                <button
                   @click="openEditModal(order)"
                   class="action-btn"
                   title="Edit"
@@ -930,6 +964,74 @@ const saveOrder = async () => {
         </div>
       </div>
     </Modal>
+
+    <Modal
+      :isOpen="isViewModalOpen"
+      title="Order Details"
+      @close="closeViewModal"
+    >
+      <div class="modal-content-padding">
+        <div v-if="orderToView" class="max-h-[70vh] overflow-y-auto">
+          <div>
+            <h4 class="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">Order Items</h4>
+            <div class="border border-color rounded-lg overflow-hidden">
+              <table class="w-full">
+                <thead class="bg-muted/50">
+                  <tr>
+                    <th class="text-left p-3 text-sm font-medium">Product</th>
+                    <th class="text-right p-3 text-sm font-medium">Quantity</th>
+                    <th class="text-right p-3 text-sm font-medium">Price</th>
+                    <th class="text-right p-3 text-sm font-medium">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="item in orderToView.items || []"
+                    :key="item.id"
+                    class="border-t border-color"
+                  >
+                    <td class="p-3 text-sm">
+                      {{ item.product_name || `Product #${item.product_id || 'N/A'}` }}
+                    </td>
+                    <td class="p-3 text-sm text-right">{{ item.quantity }}</td>
+                    <td class="p-3 text-sm text-right">${{ formatPrice(item.price_at_purchase) }}</td>
+                    <td class="p-3 text-sm text-right font-medium">
+                      ${{ formatPrice(item.price_at_purchase * item.quantity) }}
+                    </td>
+                  </tr>
+                  <tr v-if="!orderToView.items || orderToView.items.length === 0">
+                    <td colspan="4" class="p-3 text-sm text-center text-muted-foreground">
+                      No items found
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot class="bg-muted/50 border-t-2 border-color">
+                  <tr>
+                    <td colspan="3" class="p-3 text-sm font-semibold text-right">Total:</td>
+                    <td class="p-3 text-sm font-semibold text-right">
+                      ${{ formatPrice(orderToView.total_amount) }}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div class="shipping-address-section">
+            <h4 class="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">Shipping Address</h4>
+            <div class="border border-color rounded-lg p-4 bg-muted/50">
+              <pre class="text-sm whitespace-pre-wrap font-mono">{{ orderToView.shipping_address || 'No shipping address provided' }}</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button @click="closeViewModal" class="btn btn-outline">
+            Close
+          </button>
+        </div>
+      </div>
+    </Modal>
   </div>
 </template>
 
@@ -1115,6 +1217,10 @@ textarea.form-control {
   gap: var(--spacing-sm);
   margin-top: var(--spacing-md);
   padding-top: var(--spacing-md);
+}
+
+.shipping-address-section {
+  margin-top: var(--spacing-xl);
 }
 
 .header-row {

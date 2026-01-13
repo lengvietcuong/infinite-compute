@@ -55,6 +55,31 @@ async def build_order_response(db: AsyncSession, order: Order, customer_name: Op
     )
 
 
+@router.get("/validate-coupon/{code}", response_model=CouponResponse)
+async def validate_coupon(
+    code: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """Validate a discount coupon"""
+    result = await db.execute(
+        select(Coupon).where(
+            and_(
+                Coupon.code == code,
+                Coupon.is_active == True
+            )
+        )
+    )
+    coupon = result.scalar_one_or_none()
+    
+    if not coupon:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invalid discount code"
+        )
+        
+    return CouponResponse(code=coupon.code, discount_percent=coupon.discount_percent)
+
+
 @router.post("", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
 async def create_order(
     order_data: OrderCreate,

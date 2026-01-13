@@ -153,7 +153,7 @@ const copyToClipboard = async () => {
                       height="16"
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke="var(--background)"
+                      stroke="currentColor"
                       stroke-width="2"
                       stroke-linecap="round"
                       stroke-linejoin="round"
