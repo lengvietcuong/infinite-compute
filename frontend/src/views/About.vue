@@ -271,7 +271,10 @@ const copyToClipboard = async () => {
     <!-- Reward Modal -->
     <Teleport to="body">
       <div v-if="showModal" class="modal-overlay" @click="showModal = false">
-        <div class="modal-content glass-card p-5 text-center" @click.stop>
+        <div
+          class="modal-content glass-card p-5 text-center fade-in-up-slow"
+          @click.stop
+        >
           <div class="success-icon mb-4">
             <!-- Gift icon with primary color -->
             <svg

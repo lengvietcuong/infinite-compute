@@ -1,8 +1,10 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useAuth } from "../composables/useAuth";
 
 const router = useRouter();
+const { login } = useAuth();
 const email = ref("");
 const password = ref("");
 const showPassword = ref(false);
@@ -41,8 +43,16 @@ const handleLogin = async () => {
       throw new Error(data.detail || "Failed to login");
     }
 
-    localStorage.setItem("token", data.access_token);
-    router.push("/");
+    await login(data.access_token);
+    
+    // Check role and redirect
+    const { user } = useAuth();
+    if (user.value?.role === 'admin' || user.value?.role === 'staff') {
+      router.push("/dashboard");
+    } else {
+      const redirectPath = router.currentRoute.value.query.redirect || "/";
+      router.push(redirectPath);
+    }
   } catch (e) {
     error.value = e.message;
   } finally {
@@ -199,7 +209,9 @@ const handleLogin = async () => {
 
             <p class="text-center text-muted mb-0">
               Don't have an account?
-              <router-link to="/sign-up" class="text-primary text-decoration-none"
+              <router-link
+                to="/sign-up"
+                class="text-primary text-decoration-none"
                 >Sign up</router-link
               >
             </p>
@@ -217,7 +229,7 @@ const handleLogin = async () => {
 
 <style scoped>
 .auth-page {
-  height: 90vh;
+  height: 93vh;
   position: relative;
   overflow: hidden;
 }

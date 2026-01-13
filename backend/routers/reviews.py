@@ -5,7 +5,7 @@ from typing import List
 from database.database import get_db
 from database.models import Review, Product, User, Order, OrderItem, OrderStatus
 from schemas import ReviewCreate, ReviewResponse, ReviewUpdate
-from auth import get_current_user, get_current_admin
+from auth import get_current_user, get_current_admin, get_current_staff
 
 router = APIRouter(prefix="/reviews", tags=["Reviews"])
 
@@ -200,22 +200,54 @@ async def list_all_reviews(
     skip: int = 0,
     limit: int = 100,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_admin)
+    current_user: User = Depends(get_current_staff)
 ):
-    """List all reviews (Admin only)"""
+    """List all reviews (Staff/Admin)"""
     result = await db.execute(
-        select(Review, User.full_name)
+        select(Review, User.full_name, Product.name)
         .join(User, Review.user_id == User.id)
+        .join(Product, Review.product_id == Product.id)
         .offset(skip)
         .limit(limit)
         .order_by(Review.created_at.desc())
     )
-    reviews_with_names = result.all()
+    reviews_data = result.all()
     
     return [
         ReviewResponse(
             **review.__dict__,
-            user_name=user_name
+            user_name=user_name,
+            product_name=product_name
         )
-        for review, user_name in reviews_with_names
+        for review, user_name, product_name in reviews_data
     ]
+
+
+@router.get("/check-eligibility/{product_id}")
+async def check_review_eligibility(
+    product_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Check if user can review a product"""
+    # Check if user has already reviewed this product
+    result = await db.execute(
+        select(Review).where(
+            and_(
+                Review.user_id == current_user.id,
+                Review.product_id == product_id
+            )
+        )
+    )
+    existing_review = result.scalar_one_or_none()
+    
+    if existing_review:
+        return {"can_review": False, "reason": "already_reviewed"}
+
+    # Check if user has a shipped order with this product
+    can_review = await can_user_review_product(db, current_user.id, product_id)
+    
+    if not can_review:
+        return {"can_review": False, "reason": "no_purchase"}
+        
+    return {"can_review": True, "reason": None}

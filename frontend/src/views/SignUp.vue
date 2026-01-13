@@ -85,6 +85,9 @@ const handleSignUp = async () => {
         <div class="glass-card auth-card p-4 p-md-5">
           <div class="text-center mb-4">
             <h2 class="mb-2">Create Account</h2>
+            <p class="text-muted">
+              Create an account for discounts, faster checkouts, and more.
+            </p>
           </div>
 
           <form @submit.prevent="handleSignUp">
@@ -328,7 +331,9 @@ const handleSignUp = async () => {
 
             <p class="text-center text-muted mb-0">
               Already have an account?
-              <router-link to="/sign-in" class="text-primary text-decoration-none"
+              <router-link
+                to="/sign-in"
+                class="text-primary text-decoration-none"
                 >Sign in</router-link
               >
             </p>
@@ -346,7 +351,7 @@ const handleSignUp = async () => {
 
 <style scoped>
 .auth-page {
-  height: 90vh;
+  height: 93vh;
   position: relative;
   overflow: hidden;
 }

@@ -64,11 +64,12 @@ async def get_analytics(
         select(
             Product.id,
             Product.name,
+            Product.image_url,
             func.sum(OrderItem.quantity).label('units_sold')
         )
         .join(Product, OrderItem.product_id == Product.id)
         .where(OrderItem.order_id.in_(order_items_query))
-        .group_by(Product.id, Product.name)
+        .group_by(Product.id, Product.name, Product.image_url)
         .order_by(desc('units_sold'))
         .limit(5)
     )
@@ -76,6 +77,7 @@ async def get_analytics(
         {
             'product_id': row.id,
             'product_name': row.name,
+            'image_url': row.image_url,
             'units_sold': int(row.units_sold)
         }
         for row in top_units_result
@@ -86,11 +88,12 @@ async def get_analytics(
         select(
             Product.id,
             Product.name,
+            Product.image_url,
             func.sum(OrderItem.quantity * OrderItem.price_at_purchase).label('revenue')
         )
         .join(Product, OrderItem.product_id == Product.id)
         .where(OrderItem.order_id.in_(order_items_query))
-        .group_by(Product.id, Product.name)
+        .group_by(Product.id, Product.name, Product.image_url)
         .order_by(desc('revenue'))
         .limit(5)
     )
@@ -98,9 +101,39 @@ async def get_analytics(
         {
             'product_id': row.id,
             'product_name': row.name,
+            'image_url': row.image_url,
             'revenue': float(row.revenue)
         }
         for row in top_revenue_result
+    ]
+
+    # Get sales performance over time
+    trunc_unit = 'hour' if timeframe == 'today' else 'day'
+    date_trunc_col = func.date_trunc(trunc_unit, Order.created_at)
+    
+    performance_stmt = select(
+        date_trunc_col.label('date'),
+        func.sum(Order.total_amount).label('revenue'),
+        func.count(Order.id).label('orders')
+    )
+    
+    if date_filter:
+         if timeframe == "today":
+            performance_stmt = performance_stmt.where(func.date(Order.created_at) == date_filter)
+         else:
+            performance_stmt = performance_stmt.where(Order.created_at >= date_filter)
+            
+    performance_stmt = performance_stmt.group_by(date_trunc_col).order_by(date_trunc_col)
+    
+    performance_result = await db.execute(performance_stmt)
+    
+    sales_performance = [
+        {
+            'date': row.date,
+            'revenue': float(row.revenue) if row.revenue else 0,
+            'orders': int(row.orders) if row.orders else 0
+        }
+        for row in performance_result
     ]
     
     return AnalyticsResponse(
@@ -108,5 +141,6 @@ async def get_analytics(
         total_orders=total_orders,
         average_order_value=average_order_value,
         top_products_units=top_products_units,
-        top_products_revenue=top_products_revenue
+        top_products_revenue=top_products_revenue,
+        sales_performance=sales_performance
     )

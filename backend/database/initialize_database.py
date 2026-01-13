@@ -3,7 +3,7 @@ import csv
 import logging
 import random
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -106,19 +106,19 @@ async def create_test_users(session: AsyncSession):
     users = [
         User(
             email="customer@gmail.com",
-            password_hash=get_password_hash("test"),
+            password_hash=get_password_hash("testing"),
             full_name="Test Customer",
             role=UserRole.CUSTOMER
         ),
         User(
             email="staff@gmail.com",
-            password_hash=get_password_hash("test"),
+            password_hash=get_password_hash("testing"),
             full_name="Test Staff",
             role=UserRole.STAFF
         ),
         User(
             email="admin@gmail.com",
-            password_hash=get_password_hash("test"),
+            password_hash=get_password_hash("testing"),
             full_name="Test Admin",
             role=UserRole.ADMIN
         )
@@ -146,12 +146,19 @@ async def create_test_users(session: AsyncSession):
 
 
 async def create_orders(session: AsyncSession, users, products):
-    """Create realistic order history"""
+    """Create realistic order history following the Pareto principle (80/20 rule)"""
     orders = []
     order_items = []
     
     # Get customer users only
     customers = [u for u in users if u.role == UserRole.CUSTOMER]
+    
+    # Implement Pareto principle: top 20% of products generate 80% of revenue
+    num_products = len(products)
+    num_top_products = max(1, num_products // 5)
+    
+    top_products = products[:num_top_products]
+    remaining_products = products[num_top_products:]
     
     # Create 50-100 orders spread over the last 6 months
     num_orders = random.randint(50, 100)
@@ -159,7 +166,7 @@ async def create_orders(session: AsyncSession, users, products):
     for _ in range(num_orders):
         # Random date in the last 180 days
         days_ago = random.randint(0, 180)
-        order_date = datetime.utcnow() - timedelta(days=days_ago)
+        order_date = datetime.now(UTC) - timedelta(days=days_ago)
         
         # 70% authenticated, 30% guest
         is_guest = random.random() < 0.3
@@ -167,21 +174,38 @@ async def create_orders(session: AsyncSession, users, products):
         if is_guest:
             user_id = None
             guest_email = fake.email()
+            guest_name = fake.name()
         else:
             user = random.choice(customers)
             user_id = user.id
             guest_email = None
+            guest_name = user.full_name
         
-        # Select 1-3 random products
+        # Select products with heavy bias towards top 20%
         num_items = random.randint(1, 3)
-        selected_products = random.sample(products, min(num_items, len(products)))
+        selected_products = []
+        
+        for _ in range(num_items):
+            # 95% chance to select from top 20% products, 5% from remaining 80%
+            if random.random() < 0.95 and top_products:
+                product = random.choice(top_products)
+                # Top products have higher quantities (1-3 units)
+                quantity = random.randint(1, 3)
+            elif remaining_products:
+                product = random.choice(remaining_products)
+                # Remaining products have lower quantities (1-2 units)
+                quantity = random.randint(1, 2)
+            else:
+                product = random.choice(products)
+                quantity = random.randint(1, 2)
+            
+            selected_products.append((product, quantity))
         
         # Calculate total (with discount for authenticated users)
         total_amount = Decimal(0)
         items_for_order = []
         
-        for product in selected_products:
-            quantity = random.randint(1, 2)
+        for product, quantity in selected_products:
             price = product.price
             
             # Apply 10% discount for authenticated users
@@ -212,13 +236,20 @@ async def create_orders(session: AsyncSession, users, products):
                 weights=[0.4, 0.5, 0.1]
             )[0]
         
+        # Generate tracking number in format ORD-xxxxxx (6 random alphanumeric characters)
+        random_chars = ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=6))
+        
+        # Format shipping address with customer name on first line (matching checkout page format)
+        address_parts = fake.address().split('\n')
+        shipping_address = f"{guest_name}\n{', '.join(address_parts)}"
+        
         order = Order(
             user_id=user_id,
             guest_email=guest_email,
             status=status,
             total_amount=total_amount,
-            shipping_address=fake.address().replace('\n', ', '),
-            tracking_number=f"INF{fake.hexify(text='^^^^^^^^^^^^', upper=True)}",
+            shipping_address=shipping_address,
+            tracking_number=f"ORD-{random_chars}",
             created_at=order_date,
             updated_at=order_date
         )
@@ -241,7 +272,22 @@ async def create_orders(session: AsyncSession, users, products):
     session.add_all(order_items)
     await session.commit()
     
+    # Calculate actual revenue distribution for verification
+    product_revenue = {}
+    for order_item in order_items:
+        product_id = order_item.product_id
+        revenue = order_item.price_at_purchase * order_item.quantity
+        product_revenue[product_id] = product_revenue.get(product_id, Decimal(0)) + revenue
+    
+    total_revenue = sum(product_revenue.values())
+    top_product_ids = {p.id for p in top_products}
+    top_revenue = sum(rev for pid, rev in product_revenue.items() if pid in top_product_ids)
+    
+    top_revenue_percentage = (top_revenue / total_revenue * 100) if total_revenue > 0 else 0
+    
     logger.info(f"Created {len(orders)} orders with {len(order_items)} order items")
+    logger.info(f"Top 20% products ({num_top_products} products) generated {top_revenue_percentage:.1f}% of revenue")
+    logger.info(f"Remaining 80% products ({len(remaining_products)} products) generated {100 - top_revenue_percentage:.1f}% of revenue")
     return orders
 
 
@@ -363,7 +409,7 @@ async def create_chat_sessions(session: AsyncSession, users):
         num_sessions = random.randint(1, 3)
         
         for _ in range(num_sessions):
-            session_date = datetime.utcnow() - timedelta(days=random.randint(0, 180))
+            session_date = datetime.now(UTC) - timedelta(days=random.randint(0, 180))
             
             chat_session = ChatSession(
                 user_id=customer.id,
@@ -455,9 +501,9 @@ async def initialize_database():
     logger.info("Database initialization completed successfully!")
     logger.info("\n" + "="*60)
     logger.info("TEST ACCOUNTS:")
-    logger.info("  Customer: customer@gmail.com / test")
-    logger.info("  Staff:    staff@gmail.com / test")
-    logger.info("  Admin:    admin@gmail.com / test")
+    logger.info("  Customer: customer@gmail.com / testing")
+    logger.info("  Staff:    staff@gmail.com / testing")
+    logger.info("  Admin:    admin@gmail.com / testing")
     logger.info("="*60)
 
 

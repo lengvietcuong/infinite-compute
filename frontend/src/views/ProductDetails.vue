@@ -1,17 +1,99 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useCart } from "../composables/useCart";
+import { useAuth } from "../composables/useAuth";
 import { formatPrice } from "../utils/format";
 
 const route = useRoute();
 const router = useRouter();
 const { addToCart } = useCart();
+const { user, isAuthenticated, token } = useAuth();
 const product = ref(null);
 const loading = ref(true);
 const error = ref(null);
 const reviews = ref([]);
 const reviewsLoading = ref(true);
+
+// Review Logic
+const showReviewModal = ref(false);
+const reviewEligibility = ref({ can_review: false, reason: null });
+const checkingEligibility = ref(false);
+const reviewForm = ref({
+  rating: 5,
+  comment: "",
+});
+const reviewSubmitting = ref(false);
+const reviewError = ref("");
+
+const checkEligibility = async () => {
+  if (!isAuthenticated.value) return;
+
+  checkingEligibility.value = true;
+  try {
+    const response = await fetch(
+      `http://localhost:8000/reviews/check-eligibility/${route.params.id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token.value}`,
+        },
+      }
+    );
+    if (response.ok) {
+      reviewEligibility.value = await response.json();
+    }
+  } catch (e) {
+    console.error("Failed to check eligibility", e);
+  } finally {
+    checkingEligibility.value = false;
+  }
+};
+
+const openReviewModal = () => {
+  showReviewModal.value = true;
+  if (isAuthenticated.value) {
+    checkEligibility();
+  }
+};
+
+const closeReviewModal = () => {
+  showReviewModal.value = false;
+  reviewError.value = "";
+  reviewForm.value = { rating: 5, comment: "" };
+};
+
+const submitReview = async () => {
+  reviewSubmitting.value = true;
+  reviewError.value = "";
+
+  try {
+    const response = await fetch("http://localhost:8000/reviews", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token.value}`,
+      },
+      body: JSON.stringify({
+        product_id: parseInt(route.params.id),
+        rating: reviewForm.value.rating,
+        comment: reviewForm.value.comment,
+      }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.detail || "Failed to submit review");
+    }
+
+    // Success
+    closeReviewModal();
+    fetchReviews(); // Refresh reviews
+  } catch (e) {
+    reviewError.value = e.message;
+  } finally {
+    reviewSubmitting.value = false;
+  }
+};
 
 const fetchProduct = async () => {
   loading.value = true;
@@ -241,8 +323,25 @@ const specs = computed(() => {
               class="h5 mb-3 fw-bold pb-2 d-flex align-items-center gap-2"
               style="border-bottom: 1px solid var(--border)"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="text-primary"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
               </svg>
               Technical Specs
             </h3>
@@ -264,15 +363,51 @@ const specs = computed(() => {
       <div class="row g-5 mt-1">
         <div class="col-12">
           <div class="reviews-section glass-card p-4">
-            <h3
-              class="h5 mb-4 fw-bold pb-2 d-flex align-items-center gap-2"
+            <div
+              class="d-flex justify-content-between align-items-center mb-4 pb-2"
               style="border-bottom: 1px solid var(--border)"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-                <path d="M16.051 12.616a1 1 0 0 1 1.909.024l.737 1.452a1 1 0 0 0 .737.535l1.634.256a1 1 0 0 1 .588 1.806l-1.172 1.168a1 1 0 0 0-.282.866l.259 1.613a1 1 0 0 1-1.541 1.134l-1.465-.75a1 1 0 0 0-.912 0l-1.465.75a1 1 0 0 1-1.539-1.133l.258-1.613a1 1 0 0 0-.282-.866l-1.156-1.153a1 1 0 0 1 .572-1.822l1.633-.256a1 1 0 0 0 .737-.535z"/><path d="M8 15H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/>
-              </svg>
-              Customer Reviews
-            </h3>
+              <h3 class="h5 m-0 fw-bold d-flex align-items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="text-primary"
+                >
+                  <path
+                    d="M16.051 12.616a1 1 0 0 1 1.909.024l.737 1.452a1 1 0 0 0 .737.535l1.634.256a1 1 0 0 1 .588 1.806l-1.172 1.168a1 1 0 0 0-.282.866l.259 1.613a1 1 0 0 1-1.541 1.134l-1.465-.75a1 1 0 0 0-.912 0l-1.465.75a1 1 0 0 1-1.539-1.133l.258-1.613a1 1 0 0 0-.282-.866l-1.156-1.153a1 1 0 0 1 .572-1.822l1.633-.256a1 1 0 0 0 .737-.535z"
+                  />
+                  <path d="M8 15H7a4 4 0 0 0-4 4v2" />
+                  <circle cx="10" cy="7" r="4" />
+                </svg>
+                Customer Reviews
+              </h3>
+              <button
+                class="btn btn-primary btn-sm d-flex align-items-center gap-2"
+                @click="openReviewModal"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                </svg>
+                <span class="d-none d-sm-inline">Write a Review</span>
+              </button>
+            </div>
             <div v-if="reviewsLoading" class="text-center py-4">
               <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading reviews...</span>
@@ -288,8 +423,16 @@ const specs = computed(() => {
               <div
                 v-for="(review, index) in reviews"
                 :key="review.id"
-                :class="index !== reviews.length - 1 ? 'review-item mb-4 pb-4' : 'review-item'"
-                :style="index !== reviews.length - 1 ? 'border-bottom: 1px solid var(--border)' : ''"
+                :class="
+                  index !== reviews.length - 1
+                    ? 'review-item mb-4 pb-4'
+                    : 'review-item'
+                "
+                :style="
+                  index !== reviews.length - 1
+                    ? 'border-bottom: 1px solid var(--border)'
+                    : ''
+                "
               >
                 <div
                   class="d-flex justify-content-between align-items-center mb-2"
@@ -305,9 +448,11 @@ const specs = computed(() => {
                           width="16"
                           height="16"
                           viewBox="0 0 24 24"
-                          fill="currentColor"
+                          :fill="i <= review.rating ? 'currentColor' : 'var(--muted)'"
                           stroke="none"
-                          :class="i <= review.rating ? 'text-warning' : 'text-muted'"
+                          :class="
+                            i <= review.rating ? 'text-warning' : 'text-muted'
+                          "
                         >
                           <polygon
                             points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
@@ -326,6 +471,142 @@ const specs = computed(() => {
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Review Modal -->
+  <div
+    v-if="showReviewModal"
+    class="modal-overlay"
+    @click.self="closeReviewModal"
+  >
+    <div
+      class="modal-content glass-card p-4 fade-in-up-fast"
+      style="max-width: 500px; width: 100%"
+    >
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="h4 mb-0">Write a Review</h3>
+        <button class="btn btn-icon btn-ghost" @click="closeReviewModal">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div v-if="!isAuthenticated" class="text-center py-4">
+        <p class="mb-3">You need to be logged in to write a review.</p>
+        <router-link to="/sign-in" class="btn btn-primary">Log In</router-link>
+      </div>
+
+      <div v-else-if="checkingEligibility" class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Checking eligibility...</span>
+        </div>
+      </div>
+
+      <div v-else-if="!reviewEligibility.can_review" class="text-center py-4">
+        <div class="mb-3 text-destructive">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+            />
+            <path d="M12 9v4" />
+            <path d="M12 17h.01" />
+          </svg>
+        </div>
+        <p v-if="reviewEligibility.reason === 'already_reviewed'">
+          You have already reviewed this product.
+        </p>
+        <p v-else-if="reviewEligibility.reason === 'no_purchase'">
+          You can only review products that you have purchased and received.
+        </p>
+        <p v-else>You are not eligible to review this product.</p>
+      </div>
+
+      <form v-else @submit.prevent="submitReview">
+        <div class="mb-3">
+          <label class="form-label">Rating</label>
+          <div class="d-flex gap-2">
+            <button
+              type="button"
+              v-for="star in 5"
+              :key="star"
+              class="btn btn-icon btn-ghost p-1"
+              @click="reviewForm.rating = star"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                :fill="star <= reviewForm.rating ? 'currentColor' : 'none'"
+                :class="
+                  star <= reviewForm.rating ? 'text-warning' : 'text-muted'
+                "
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                ></polygon>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="review-comment" class="form-label">Comment</label>
+          <textarea
+            id="review-comment"
+            v-model="reviewForm.comment"
+            class="form-control-custom w-100"
+            rows="4"
+            placeholder="Share your thoughts..."
+            required
+          ></textarea>
+        </div>
+
+        <div v-if="reviewError" class="alert alert-danger">
+          {{ reviewError }}
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-primary w-100"
+          :disabled="reviewSubmitting"
+        >
+          <span
+            v-if="reviewSubmitting"
+            class="spinner-border spinner-border-sm me-2"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          Submit Review
+        </button>
+      </form>
     </div>
   </div>
 </template>
@@ -470,5 +751,24 @@ const specs = computed(() => {
     grid-template-columns: repeat(2, 1fr);
     gap: var(--spacing-md);
   }
+}
+</style>
+
+<style scoped>
+/* Add styling to match sign up inputs */
+.form-control-custom {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--text-sm);
+  background-color: color-mix(in srgb, var(--background), transparent 50%);
+  border: 1px solid var(--input);
+  border-radius: var(--radius);
+  color: var(--foreground);
+  transition: all var(--transition-base);
+  outline: none;
+}
+
+.form-control-custom:focus {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring), transparent 70%);
 }
 </style>

@@ -9,6 +9,8 @@ import SignUp from "../views/SignUp.vue";
 import Checkout from "../views/Checkout.vue";
 import OrderTracking from "../views/OrderTracking.vue";
 import About from "../views/About.vue";
+import Dashboard from "../views/Dashboard.vue";
+import { useAuth } from "../composables/useAuth";
 
 const routes = [
   {
@@ -61,11 +63,41 @@ const routes = [
     name: "About",
     component: About,
   },
+  {
+    path: "/dashboard",
+    name: "Dashboard",
+    component: Dashboard,
+    meta: { requiresAuth: true, requiresAdminOrStaff: true },
+  },
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    } else {
+      return { top: 0 };
+    }
+  },
+});
+
+router.beforeEach(async (to, from, next) => {
+  const { isAuthenticated, isAdmin, fetchUser, user } = useAuth();
+  
+  // Wait for user to be fetched if we have a token but no user data yet
+  if (localStorage.getItem("token") && !user.value) {
+    await fetchUser();
+  }
+
+  if (to.meta.requiresAuth && !isAuthenticated.value) {
+    next({ name: "SignIn", query: { redirect: to.fullPath } });
+  } else if (to.meta.requiresAdminOrStaff && !isAdmin.value) {
+    next({ name: "Home" });
+  } else {
+    next();
+  }
 });
 
 export default router;

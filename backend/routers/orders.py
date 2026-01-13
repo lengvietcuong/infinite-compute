@@ -5,8 +5,8 @@ from typing import List, Optional
 from decimal import Decimal
 from database.database import get_db
 from database.models import Order, OrderItem, Product, User, OrderStatus, Coupon
-from schemas import OrderCreate, OrderResponse, OrderItemResponse, OrderUpdateStatus, OrderTrackingRequest, CouponCreate, CouponResponse
-from auth import get_current_user, get_current_user_optional, get_current_staff
+from schemas import OrderCreate, OrderResponse, OrderItemResponse, OrderUpdateStatus, OrderUpdate, OrderTrackingRequest, CouponCreate, CouponResponse
+from auth import get_current_user, get_current_user_optional, get_current_staff, get_current_admin
 import secrets
 import random
 
@@ -14,11 +14,13 @@ router = APIRouter(prefix="/orders", tags=["Orders"])
 
 
 def generate_tracking_number() -> str:
-    """Generate a unique tracking number"""
-    return f"INF{secrets.token_hex(6).upper()}"
+    """Generate a unique tracking number in format ORD-xxxxxx where x is A-Z or 0-9"""
+    characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    random_part = "".join(random.choice(characters) for _ in range(6))
+    return f"ORD-{random_part}"
 
 
-async def build_order_response(db: AsyncSession, order: Order) -> OrderResponse:
+async def build_order_response(db: AsyncSession, order: Order, customer_name: Optional[str] = None) -> OrderResponse:
     """Helper function to build OrderResponse with loaded items"""
     result = await db.execute(
         select(OrderItem, Product.name)
@@ -42,6 +44,7 @@ async def build_order_response(db: AsyncSession, order: Order) -> OrderResponse:
         id=order.id,
         user_id=order.user_id,
         guest_email=order.guest_email,
+        customer_name=customer_name,
         status=order.status,
         total_amount=order.total_amount,
         shipping_address=order.shipping_address,
@@ -182,46 +185,31 @@ async def track_orders(
     """Track orders by order ID, email, or tracking number"""
     identifier = tracking_data.identifier.strip()
     
-    # Try to find orders by different criteria
-    query = select(Order)
+    # Build conditions based on identifier
+    conditions = []
     
-    # If authenticated, check user's email first
-    if current_user:
-        query = query.where(
-            or_(
-                Order.user_id == current_user.id,
-                Order.guest_email == identifier,
-                Order.tracking_number == identifier
-            )
-        )
-        # Try to parse as order ID
-        if identifier.isdigit():
-            query = query.where(
-                or_(
-                    Order.id == int(identifier),
-                    Order.user_id == current_user.id,
-                    Order.guest_email == identifier,
-                    Order.tracking_number == identifier
-                )
-            )
-    else:
-        # For guests, only search by email or tracking number
-        conditions = [
-            Order.guest_email == identifier,
-            Order.tracking_number == identifier
-        ]
-        # Try to parse as order ID
-        if identifier.isdigit():
-            conditions.append(Order.id == int(identifier))
-        
-        query = query.where(or_(*conditions))
+    # Check if it's a number (could be order ID)
+    if identifier.isdigit():
+        conditions.append(Order.id == int(identifier))
     
-    query = query.order_by(Order.created_at.desc())
+    # Check tracking number (order number in ORD-xxxx format)
+    conditions.append(Order.tracking_number == identifier)
+    
+    # Check guest email
+    conditions.append(Order.guest_email == identifier)
+    
+    # Check if identifier is an email that matches a registered user
+    result = await db.execute(select(User).where(User.email == identifier))
+    user_by_email = result.scalar_one_or_none()
+    if user_by_email:
+        conditions.append(Order.user_id == user_by_email.id)
+    
+    query = select(Order).where(or_(*conditions)).order_by(Order.created_at.desc())
     result = await db.execute(query)
     orders = result.scalars().all()
-    
+
     if not orders:
-        raise HTTPException(
+         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No orders found with the provided information"
         )
@@ -243,19 +231,32 @@ async def list_all_orders(
     current_user: User = Depends(get_current_staff)
 ):
     """List all orders (Staff/Admin only)"""
-    query = select(Order)
+    # Join with User to get customer name
+    query = select(Order, User.full_name).join(User, Order.user_id == User.id, isouter=True)
     
     if status:
         query = query.where(Order.status == status)
     
     query = query.offset(skip).limit(limit).order_by(Order.created_at.desc())
     result = await db.execute(query)
-    orders = result.scalars().all()
+    orders_with_names = result.all()
     
     # Build response for each order
     orders_response = []
-    for order in orders:
-        orders_response.append(await build_order_response(db, order))
+    for order, full_name in orders_with_names:
+        # Use full_name if available
+        customer_name = full_name
+        
+        # If not available, try to get from shipping_address (first line)
+        if not customer_name:
+            if order.shipping_address and '\n' in order.shipping_address:
+                customer_name = order.shipping_address.split('\n')[0]
+        
+        # Fallback to guest email or "Guest"
+        if not customer_name:
+             customer_name = order.guest_email or "Guest"
+             
+        orders_response.append(await build_order_response(db, order, customer_name))
     
     return orders_response
 
@@ -282,6 +283,86 @@ async def update_order_status(
     await db.refresh(order)
     
     return await build_order_response(db, order)
+
+
+@router.patch("/{order_id}", response_model=OrderResponse)
+async def update_order(
+    order_id: int,
+    order_data: OrderUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_staff)
+):
+    """Update order details (Staff/Admin only)"""
+    result = await db.execute(select(Order).where(Order.id == order_id))
+    order = result.scalar_one_or_none()
+    
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found"
+        )
+    
+    update_data = order_data.model_dump(exclude_unset=True)
+    
+    if 'user_id' in update_data and update_data['user_id'] is not None:
+        user_result = await db.execute(select(User).where(User.id == update_data['user_id']))
+        user = user_result.scalar_one_or_none()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User with ID {update_data['user_id']} not found"
+            )
+        order.user_id = update_data['user_id']
+        order.guest_email = None
+    
+    if 'guest_email' in update_data:
+        order.guest_email = update_data['guest_email']
+        if update_data['guest_email'] is not None:
+            order.user_id = None
+    
+    if 'status' in update_data:
+        order.status = update_data['status']
+    
+    if 'total_amount' in update_data:
+        order.total_amount = update_data['total_amount']
+    
+    if 'shipping_address' in update_data:
+        if not update_data['shipping_address'] or not update_data['shipping_address'].strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Shipping address cannot be empty"
+            )
+        order.shipping_address = update_data['shipping_address']
+    
+    if 'tracking_number' in update_data:
+        order.tracking_number = update_data['tracking_number']
+    
+    await db.commit()
+    await db.refresh(order)
+    
+    return await build_order_response(db, order)
+
+
+@router.delete("/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_order(
+    order_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    """Delete an order (Admin only)"""
+    result = await db.execute(select(Order).where(Order.id == order_id))
+    order = result.scalar_one_or_none()
+    
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found"
+        )
+    
+    await db.delete(order)
+    await db.commit()
+    
+    return None
 
 
 @router.post("/coupon/generate", response_model=CouponResponse)

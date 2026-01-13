@@ -57,7 +57,7 @@ const handleCheckout = () => {
     <div class="cart-body">
       <div v-if="cart.length === 0" class="empty-cart">
         <p>Your cart is empty.</p>
-        <button class="btn btn-outline-primary btn-sm mt-3" @click="toggleCart">
+        <button class="btn btn-primary btn-sm mt-3" @click="toggleCart">
           Continue Shopping
         </button>
       </div>
@@ -279,7 +279,7 @@ const handleCheckout = () => {
 .remove-btn {
   background: none;
   border: none;
-  color: var(--error);
+  color: var(--destructive);
   font-size: var(--text-sm);
   cursor: pointer;
   padding: 0;

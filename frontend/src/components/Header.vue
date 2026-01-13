@@ -2,10 +2,12 @@
 import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useCart } from "../composables/useCart";
+import { useAuth } from "../composables/useAuth";
 import { formatPrice } from "../utils/format";
 
 const router = useRouter();
 const { cartItemCount, toggleCart } = useCart();
+const { isAuthenticated, user, isAdmin, logout } = useAuth();
 const isVisible = ref(true);
 const isScrolled = ref(false);
 const isDarkMode = ref(true);
@@ -289,6 +291,37 @@ onUnmounted(() => {
               </div>
             </div>
           </li>
+          <!-- Dashboard Icon (Admin/Staff) -->
+          <li
+            class="nav-item d-none d-xl-block"
+            v-if="isAuthenticated && isAdmin"
+          >
+            <router-link
+              class="nav-icon-btn d-flex align-items-center gap-2 text-decoration-none"
+              to="/dashboard"
+              aria-label="Dashboard"
+              title="Dashboard"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect width="7" height="9" x="3" y="3" rx="1" />
+                <rect width="7" height="5" x="14" y="3" rx="1" />
+                <rect width="7" height="9" x="14" y="12" rx="1" />
+                <rect width="7" height="5" x="3" y="16" rx="1" />
+              </svg>
+              <span class="d-none d-xxl-inline dashboard-text">Dashboard</span>
+            </router-link>
+          </li>
+
           <!-- Cart Icon -->
           <li class="nav-item d-none d-xl-block cart-nav-item">
             <button
@@ -319,46 +352,9 @@ onUnmounted(() => {
               </span>
             </button>
           </li>
-          <li class="nav-item d-lg-none">
-            <button
-              class="btn btn-icon btn-ghost position-relative cart-icon-btn"
-              @click="toggleCart"
-              aria-label="Open Cart"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <circle cx="8" cy="21" r="1" />
-                <circle cx="19" cy="21" r="1" />
-                <path
-                  d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
-                />
-              </svg>
-              <span v-if="cartItemCount > 0" class="cart-badge">
-                {{ cartItemCount }}
-                <span class="visually-hidden">items in cart</span>
-              </span>
-            </button>
-          </li>
-          <li class="nav-item auth-nav-group">
-            <router-link class="btn btn-sm btn-outline" to="/sign-in"
-              >Login</router-link
-            >
-          </li>
-          <li class="nav-item mb-3 mb-lg-0">
-            <router-link class="btn btn-sm btn-primary" to="/sign-up"
-              >Sign Up</router-link
-            >
-          </li>
-          <li class="nav-item">
+
+          <!-- Theme Toggle (Moved here) -->
+          <li class="nav-item d-none d-xl-block">
             <button
               class="btn btn-sm btn-icon btn-ghost theme-toggle"
               @click="toggleTheme"
@@ -404,6 +400,172 @@ onUnmounted(() => {
               </svg>
             </button>
           </li>
+
+          <!-- Mobile Cart (Visible only on lg and below) -->
+          <li class="nav-item d-lg-none">
+            <button
+              class="btn btn-icon btn-ghost position-relative cart-icon-btn"
+              @click="toggleCart"
+              aria-label="Open Cart"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="8" cy="21" r="1" />
+                <circle cx="19" cy="21" r="1" />
+                <path
+                  d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
+                />
+              </svg>
+              <span v-if="cartItemCount > 0" class="cart-badge">
+                {{ cartItemCount }}
+                <span class="visually-hidden">items in cart</span>
+              </span>
+            </button>
+          </li>
+
+          <!-- Mobile Theme Toggle (Visible only on lg and below, right next to cart) -->
+          <li class="nav-item d-lg-none">
+            <button
+              class="btn btn-sm btn-icon btn-ghost theme-toggle"
+              @click="toggleTheme"
+              :aria-label="
+                isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'
+              "
+            >
+              <svg
+                v-if="isDarkMode"
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2" />
+                <path d="M12 20v2" />
+                <path d="m4.93 4.93 1.41 1.41" />
+                <path d="m17.66 17.66 1.41 1.41" />
+                <path d="M2 12h2" />
+                <path d="M20 12h2" />
+                <path d="m6.34 17.66-1.41 1.41" />
+                <path d="m19.07 4.93-1.41 1.41" />
+              </svg>
+              <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+              </svg>
+            </button>
+          </li>
+
+          <!-- Auth Section -->
+          <li class="nav-item auth-nav-group" v-if="!isAuthenticated">
+            <router-link class="btn btn-sm btn-outline" to="/sign-in"
+              >Login</router-link
+            >
+          </li>
+          <li class="nav-item mb-3 mb-lg-0" v-if="!isAuthenticated">
+            <router-link class="btn btn-sm btn-primary" to="/sign-up"
+              >Sign Up</router-link
+            >
+          </li>
+
+          <!-- Mobile Logout Button (Visible only on lg and below when authenticated) -->
+          <li class="nav-item d-lg-none" v-if="isAuthenticated">
+            <button
+              class="btn btn-sm btn-icon btn-ghost logout-icon-btn"
+              @click="logout"
+              aria-label="Log Out"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" x2="9" y1="12" y2="12" />
+              </svg>
+            </button>
+          </li>
+
+          <!-- User Dropdown (Desktop only - hidden on mobile/tablet) -->
+          <li class="nav-item dropdown d-none d-xl-block" v-if="isAuthenticated">
+            <button
+              class="btn btn-icon btn-ghost nav-icon-btn user-icon-btn"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu">
+              <li>
+                <button
+                  class="dropdown-item d-flex align-items-center gap-2 text-destructive logout-item"
+                  @click="logout"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" x2="9" y1="12" y2="12" />
+                  </svg>
+                  Log Out
+                </button>
+              </li>
+            </ul>
+          </li>
+
         </ul>
       </div>
     </div>
@@ -538,6 +700,7 @@ body.light-mode .navbar-expanded {
 
 .search-result-item:not(:last-of-type) {
   border-bottom: 1px solid var(--border);
+  border-color: var(--border);
 }
 
 .search-result-item:hover {
@@ -651,6 +814,40 @@ body.light-mode .navbar-expanded {
   color: var(--primary);
 }
 
+.logout-icon-btn {
+  color: var(--foreground);
+}
+
+.logout-icon-btn:hover {
+  color: var(--primary);
+}
+
+.nav-icon-btn {
+  color: var(--foreground);
+  transition: color var(--transition-base);
+  padding: 0.5rem;
+}
+
+.nav-icon-btn:hover {
+  color: var(--primary);
+}
+
+.user-icon-btn {
+  transition: background-color var(--transition-base),
+    color var(--transition-base);
+}
+
+.user-icon-btn:hover {
+  background-color: var(--muted);
+}
+
+.user-icon-btn:focus,
+.user-icon-btn:focus-visible {
+  box-shadow: none;
+  border-color: transparent;
+  outline: none;
+}
+
 .cart-badge {
   position: absolute;
   top: 0;
@@ -694,5 +891,9 @@ body.light-mode .navbar-expanded {
   .auth-nav-group {
     margin-left: 0 !important;
   }
+}
+
+.dashboard-text {
+  font-size: var(--text-sm);
 }
 </style>

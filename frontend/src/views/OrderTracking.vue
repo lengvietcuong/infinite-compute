@@ -17,17 +17,26 @@ const trackOrder = async () => {
   searched.value = true;
 
   try {
+    const token = localStorage.getItem("token");
+    const headers = {
+      "Content-Type": "application/json",
+    };
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch("http://localhost:8000/orders/track", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: headers,
       body: JSON.stringify({ identifier: identifier.value }),
     });
 
     if (!response.ok) {
       if (response.status === 404) {
-        throw new Error("No orders found with that information.");
+        error.value = null;
+        searched.value = true;
+        return;
       }
       throw new Error("Failed to track order. Please try again.");
     }
@@ -68,7 +77,7 @@ const trackOrder = async () => {
         Track Your Order
       </h1>
       <p class="text-muted">
-        Enter your email or order ID to check the status of your order.
+        Enter your email or tracking number to check the status of your order.
       </p>
     </div>
 
@@ -82,9 +91,9 @@ const trackOrder = async () => {
             v-model="identifier"
             type="text"
             class="form-control form-control-lg rounded-0"
-            placeholder="Email or Order ID"
+            placeholder="Email or Tracking Number (e.g. ORD-ABC123)"
             required
-            aria-label="Email or Order ID"
+            aria-label="Email or Tracking Number"
           />
           <button
             type="submit"
@@ -99,20 +108,20 @@ const trackOrder = async () => {
 
     <!-- Results -->
     <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status">
+      <div class="spinner-border spinner-primary" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
     </div>
 
-    <div v-else-if="error" class="text-center py-5 text-danger fade-in-up">
+    <div v-else-if="error" class="text-center py-5 error-message">
       {{ error }}
     </div>
 
     <div
       v-else-if="searched && orders.length === 0"
-      class="text-center py-5 text-muted fade-in-up"
+      class="text-center py-5 no-results-message"
     >
-      No orders found.
+      No orders found. Please double check your input.
     </div>
 
     <div v-else class="orders-list fade-in-up">
@@ -122,49 +131,51 @@ const trackOrder = async () => {
             class="d-flex justify-content-between align-items-center flex-wrap gap-3"
           >
             <div>
-              <span class="text-muted small d-block"
-                >Order #{{ order.id }}</span
-              >
-              <span class="fw-bold" v-if="order.tracking_number">
-                Tracking: {{ order.tracking_number }}
-              </span>
+              <span class="text-muted-foreground small d-block">Status</span>
+              <span class="text-foreground fw-bold">{{ order.status }}</span>
             </div>
             <div>
-              <span class="text-muted small d-block">Placed On</span>
-              <span class="fw-bold">{{ formatDate(order.created_at) }}</span>
-            </div>
-            <div>
-              <span class="text-muted small d-block">Total</span>
-              <span class="fw-bold"
+              <span class="text-muted-foreground small d-block">Total</span>
+              <span class="text-foreground fw-bold"
                 >${{ formatPrice(order.total_amount) }}</span
               >
             </div>
             <div>
-              <span
-                class="badge rounded-pill"
-                :class="{
-                  'bg-success': order.status === 'DELIVERED',
-                  'bg-info': order.status === 'SHIPPED',
-                  'bg-primary': order.status === 'PAID',
-                  'bg-secondary': order.status === 'PENDING',
-                  'bg-danger': order.status === 'CANCELLED',
-                }"
-              >
-                {{ order.status }}
-              </span>
+              <span class="text-muted-foreground small d-block">Placed On</span>
+              <span class="text-foreground fw-bold">{{
+                formatDate(order.created_at)
+              }}</span>
             </div>
           </div>
         </div>
         <div class="card-body p-4">
-          <h5 class="mb-3">Items</h5>
-          <div class="table-responsive">
-            <table class="table table-borderless">
+          <div class="table-container">
+            <table class="order-table">
+              <thead>
+                <tr class="table-header-row">
+                  <th class="table-head">Product</th>
+                  <th class="table-head text-center">Quantity</th>
+                  <th class="table-head text-end">Price</th>
+                  <th class="table-head text-end">Total</th>
+                </tr>
+              </thead>
               <tbody>
-                <tr v-for="item in order.items" :key="item.id">
-                  <td>{{ item.product_name }}</td>
-                  <td class="text-end">x{{ item.quantity }}</td>
-                  <td class="text-end">
+                <tr
+                  v-for="item in order.items"
+                  :key="item.id"
+                  class="table-row"
+                >
+                  <td class="table-cell text-foreground">
+                    {{ item.product_name }}
+                  </td>
+                  <td class="table-cell text-center text-foreground">
+                    {{ item.quantity }}
+                  </td>
+                  <td class="table-cell text-end text-foreground">
                     ${{ formatPrice(item.price_at_purchase) }}
+                  </td>
+                  <td class="table-cell text-end text-foreground">
+                    ${{ formatPrice(item.price_at_purchase * item.quantity) }}
                   </td>
                 </tr>
               </tbody>
@@ -246,5 +257,90 @@ const trackOrder = async () => {
 :deep(.btn-lg) {
   padding: var(--spacing-sm) var(--spacing-md);
   height: auto;
+}
+
+.spinner-primary {
+  color: var(--primary);
+}
+
+.error-message {
+  color: var(--foreground);
+}
+
+.no-results-message {
+  color: var(--foreground);
+}
+
+/* Table Styles */
+.table-container {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.order-table {
+  width: 100%;
+  font-size: var(--text-sm);
+  border-collapse: collapse;
+}
+
+.table-header-row {
+  border-bottom: 1px solid var(--border);
+}
+
+.table-head {
+  color: var(--foreground);
+  height: 2.5rem;
+  padding: 0.5rem;
+  text-align: left;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.table-row {
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.2s;
+}
+
+.table-row:hover {
+  background-color: color-mix(in srgb, var(--muted), transparent 50%);
+}
+
+.table-row:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.table-cell {
+  padding: 0.5rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-end {
+  text-align: right;
+}
+
+.text-foreground {
+  color: var(--foreground);
+}
+
+.text-muted-foreground {
+  color: var(--muted-foreground);
+}
+
+.card-header {
+  border-color: var(--border) !important;
+}
+
+.orders-list {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.table-row:last-child {
+  border-bottom: 0;
 }
 </style>

@@ -5,7 +5,7 @@ from typing import List, Optional
 from database.database import get_db
 from database.models import Product, Review, User, OrderItem, Order, OrderStatus
 from schemas import ProductResponse, ProductCreate, ProductUpdate
-from auth import get_current_admin
+from auth import get_current_admin, get_current_staff
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -188,9 +188,9 @@ async def update_product(
     product_id: int,
     product_data: ProductUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_admin)
+    current_user: User = Depends(get_current_staff)
 ):
-    """Update a product (Admin only)"""
+    """Update a product (Staff/Admin)"""
     result = await db.execute(select(Product).where(Product.id == product_id))
     product = result.scalar_one_or_none()
     

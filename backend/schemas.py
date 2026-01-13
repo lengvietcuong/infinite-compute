@@ -171,10 +171,20 @@ class OrderUpdateStatus(BaseModel):
     status: OrderStatus
 
 
+class OrderUpdate(BaseModel):
+    user_id: Optional[int] = None
+    guest_email: Optional[EmailStr] = None
+    status: Optional[OrderStatus] = None
+    total_amount: Optional[Decimal] = Field(None, ge=0)
+    shipping_address: Optional[str] = None
+    tracking_number: Optional[str] = None
+
+
 class OrderResponse(BaseModel):
     id: int
     user_id: Optional[int]
     guest_email: Optional[str]
+    customer_name: Optional[str] = None
     status: OrderStatus
     total_amount: Decimal
     shipping_address: str
@@ -208,6 +218,7 @@ class ReviewResponse(ReviewBase):
     created_at: datetime
     updated_at: datetime
     user_name: Optional[str] = None
+    product_name: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -243,6 +254,7 @@ class AnalyticsResponse(BaseModel):
     average_order_value: Decimal
     top_products_units: List[dict]
     top_products_revenue: List[dict]
+    sales_performance: List[dict]
 
 
 # ==================== Order Tracking Schema ====================

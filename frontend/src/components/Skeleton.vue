@@ -6,22 +6,25 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  rounded: {
+    type: Boolean,
+    default: true,
+  },
 });
 </script>
 
 <template>
-  <div :class="['skeleton', props.class]" v-bind="$attrs"></div>
+  <div :class="['skeleton', { 'skeleton-rounded': props.rounded }, props.class]" v-bind="$attrs"></div>
 </template>
 
 <style scoped>
 .skeleton {
-  background-color: var(--muted);
+  background-color: var(--accent);
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  border-radius: 0;
 }
 
-.dark .skeleton {
-  background-color: var(--muted);
+.skeleton-rounded {
+  border-radius: 0.375rem;
 }
 
 @keyframes pulse {

@@ -1,10 +1,12 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, watchEffect } from "vue";
 import { useCart } from "../composables/useCart";
+import { useAuth } from "../composables/useAuth";
 import { useRouter } from "vue-router";
 import { formatPrice } from "../utils/format";
 
 const { cart, cartTotal, clearCart } = useCart();
+const { user, isAuthenticated } = useAuth();
 const router = useRouter();
 
 const form = ref({
@@ -19,9 +21,18 @@ const form = ref({
   cvc: "",
 });
 
+// Auto-fill user data
+watchEffect(() => {
+  if (user.value) {
+    form.value.email = user.value.email || "";
+    form.value.name = user.value.full_name || "";
+  }
+});
+
 const isProcessing = ref(false);
 const showModal = ref(false);
 const orderId = ref(null);
+const error = ref(null);
 
 const formatExpiry = (e) => {
   let value = e.target.value.replace(/\D/g, "");
@@ -48,13 +59,49 @@ const formatExpiry = (e) => {
 
 const placeOrder = async () => {
   isProcessing.value = true;
+  error.value = null;
 
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  try {
+    const orderData = {
+      guest_email: isAuthenticated.value ? null : form.value.email,
+      shipping_address: `${form.value.name}\n${form.value.address}, ${form.value.city}, ${form.value.zip}`,
+      items: cart.value.map((item) => ({
+        product_id: item.id,
+        quantity: item.quantity,
+      })),
+      discount_code: form.value.discountCode || null,
+    };
 
-  isProcessing.value = false;
-  showModal.value = true;
-  orderId.value = "ORD-" + Math.floor(Math.random() * 1000000);
-  clearCart();
+    const token = localStorage.getItem("token");
+    const headers = {
+      "Content-Type": "application/json",
+    };
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const response = await fetch("http://localhost:8000/orders", {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(orderData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Failed to place order");
+    }
+
+    const order = await response.json();
+    orderId.value = order.tracking_number;
+    showModal.value = true;
+    clearCart();
+  } catch (err) {
+    error.value = err.message;
+    console.error("Order placement error:", err);
+  } finally {
+    isProcessing.value = false;
+  }
 };
 
 const handleOverlayClick = () => {
@@ -65,7 +112,7 @@ const handleOverlayClick = () => {
 <template>
   <div class="checkout-page container">
     <h1
-      class="page-title mb-5 fade-in-up d-flex align-items-center justify-content-center gap-3"
+      class="page-title mb-5 d-flex align-items-center justify-content-center gap-3"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -89,7 +136,7 @@ const handleOverlayClick = () => {
 
     <!-- Modal will be added at bottom -->
 
-    <div class="row g-5 fade-in-up delay-100">
+    <div class="row g-5">
       <!-- Order Summary -->
       <div class="col-lg-5 order-lg-2">
         <div class="card glass-card p-4">
@@ -263,6 +310,11 @@ const handleOverlayClick = () => {
             </div>
           </div>
 
+          <!-- Error Message -->
+          <div v-if="error" class="alert alert-danger mt-3" role="alert">
+            {{ error }}
+          </div>
+
           <button
             class="btn btn-primary btn-lg w-100 checkout-submit-btn mt-4"
             type="submit"
@@ -282,10 +334,7 @@ const handleOverlayClick = () => {
 
     <!-- Success Modal -->
     <div v-if="showModal" class="modal-overlay" @click="handleOverlayClick">
-      <div
-        class="modal-content glass-card p-5 text-center fade-in-up"
-        @click.stop
-      >
+      <div class="modal-content glass-card p-5 text-center" @click.stop>
         <div class="success-icon mb-4">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -306,30 +355,58 @@ const handleOverlayClick = () => {
         <h2 class="h3 mb-3">Order Placed Successfully!</h2>
         <p class="text-muted mb-2">Thank you for your purchase.</p>
         <p class="text-muted mb-4">
-          Your order ID is <strong>{{ orderId }}</strong
-          >.
+          Your Tracking Number: <strong>{{ orderId }}</strong>
         </p>
-        <router-link
-          to="/"
-          class="btn btn-primary d-inline-flex align-items-center gap-2"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="home-icon"
+        <div class="d-flex gap-2 justify-content-center">
+          <router-link
+            to="/track-order"
+            class="btn btn-outline d-inline-flex align-items-center gap-2"
           >
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-          </svg>
-          Back to Home
-        </router-link>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"
+              />
+              <circle cx="7" cy="18" r="2" />
+              <path d="M15 18H9" />
+              <path
+                d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.63l-1.02-1.53a1 1 0 0 0-.84-.37H14"
+              />
+              <circle cx="17" cy="18" r="2" />
+            </svg>
+            Track Order
+          </router-link>
+          <router-link
+            to="/"
+            class="btn btn-primary d-inline-flex align-items-center gap-2"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="home-icon"
+            >
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            Back to Home
+          </router-link>
+        </div>
       </div>
     </div>
   </div>
@@ -393,6 +470,7 @@ const handleOverlayClick = () => {
   color: var(--foreground);
   padding: var(--spacing-sm) var(--spacing-sm);
   height: auto;
+  font-size: 0.875rem;
 }
 
 .form-control::placeholder {
@@ -484,5 +562,13 @@ body.light-mode .section-icon {
 
 .home-icon {
   color: inherit;
+}
+
+.alert-danger {
+  color: var(--error);
+  background-color: color-mix(in srgb, var(--error), transparent 90%);
+  border: 1px solid color-mix(in srgb, var(--error), transparent 80%);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius);
 }
 </style>
