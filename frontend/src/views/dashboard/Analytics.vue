@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { useAuth } from "../../composables/useAuth";
 import { formatPrice } from "../../utils/format";
 import {
@@ -84,10 +84,36 @@ const getComputedFontSize = (variable) => {
   return parseInt(remValue.replace("rem", "")) * 16;
 };
 
+const isLightMode = ref(document.body.classList.contains("light-mode"));
+
+const updateTheme = () => {
+  isLightMode.value = document.body.classList.contains("light-mode");
+};
+
+let themeObserver = null;
+
+onMounted(() => {
+  themeObserver = new MutationObserver(updateTheme);
+  themeObserver.observe(document.body, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+});
+
+onUnmounted(() => {
+  if (themeObserver) {
+    themeObserver.disconnect();
+  }
+});
+
 const chartOptions = computed(() => {
   const mutedForeground = getComputedColor("--muted-foreground");
   const borderColor = getComputedColor("--border");
   const fontSize = getComputedFontSize("--text-sm");
+  
+  const gridLineColor = isLightMode.value 
+    ? "rgba(0, 0, 0, 0.15)"
+    : borderColor;
 
   return {
     responsive: true,
@@ -127,7 +153,7 @@ const chartOptions = computed(() => {
           },
         },
         grid: {
-          color: borderColor,
+          color: gridLineColor,
           drawBorder: true,
           borderColor: borderColor,
         },
@@ -153,7 +179,7 @@ const chartOptions = computed(() => {
           },
         },
         grid: {
-          color: borderColor,
+          color: gridLineColor,
           drawBorder: true,
           borderColor: borderColor,
         },

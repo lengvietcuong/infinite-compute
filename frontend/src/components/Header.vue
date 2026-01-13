@@ -196,7 +196,7 @@ onUnmounted(() => {
       </button>
       <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
         <ul class="navbar-nav align-items-center nav-items-desktop">
-          <li class="nav-item d-lg-none mt-3">
+          <li class="nav-item d-xl-none mt-3">
             <router-link
               class="nav-link text-foreground"
               to="/products"
@@ -204,7 +204,7 @@ onUnmounted(() => {
               >Products</router-link
             >
           </li>
-          <li class="nav-item d-lg-none">
+          <li class="nav-item d-xl-none">
             <router-link
               class="nav-link text-foreground"
               to="/track-order"
@@ -212,7 +212,7 @@ onUnmounted(() => {
               >Track Order</router-link
             >
           </li>
-          <li class="nav-item d-lg-none">
+          <li class="nav-item d-xl-none">
             <router-link
               class="nav-link text-foreground"
               to="/news"
@@ -220,7 +220,7 @@ onUnmounted(() => {
               >News</router-link
             >
           </li>
-          <li class="nav-item d-lg-none mb-3">
+          <li class="nav-item d-xl-none mb-3">
             <router-link
               class="nav-link text-foreground"
               to="/about"
@@ -401,8 +401,8 @@ onUnmounted(() => {
             </button>
           </li>
 
-          <!-- Mobile Cart (Visible only on lg and below) -->
-          <li class="nav-item d-lg-none">
+          <!-- Mobile Cart (Visible only on xl and below) -->
+          <li class="nav-item d-xl-none">
             <button
               class="btn btn-icon btn-ghost position-relative cart-icon-btn"
               @click="toggleCart"
@@ -432,8 +432,8 @@ onUnmounted(() => {
             </button>
           </li>
 
-          <!-- Mobile Theme Toggle (Visible only on lg and below, right next to cart) -->
-          <li class="nav-item d-lg-none">
+          <!-- Mobile Theme Toggle (Visible only on xl and below, right next to cart) -->
+          <li class="nav-item d-xl-none">
             <button
               class="btn btn-sm btn-icon btn-ghost theme-toggle"
               @click="toggleTheme"
@@ -486,14 +486,14 @@ onUnmounted(() => {
               >Login</router-link
             >
           </li>
-          <li class="nav-item mb-3 mb-lg-0" v-if="!isAuthenticated">
+          <li class="nav-item mb-3 mb-xl-0" v-if="!isAuthenticated">
             <router-link class="btn btn-sm btn-primary" to="/sign-up"
               >Sign Up</router-link
             >
           </li>
 
-          <!-- Mobile Logout Button (Visible only on lg and below when authenticated) -->
-          <li class="nav-item d-lg-none" v-if="isAuthenticated">
+          <!-- Mobile Logout Button (Visible only on xl and below when authenticated) -->
+          <li class="nav-item d-xl-none" v-if="isAuthenticated">
             <button
               class="btn btn-sm btn-icon btn-ghost logout-icon-btn"
               @click="logout"
