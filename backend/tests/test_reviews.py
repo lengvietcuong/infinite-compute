@@ -77,6 +77,51 @@ class TestReviews:
         assert data["comment"] == "Excellent GPU! Works perfectly."
         assert data["product_id"] == product_id
     
+    async def test_create_review_with_delivered_order(self, client: AsyncClient, customer_token: str, staff_token: str):
+        """Test full review workflow: order -> deliver -> review"""
+        # 1. Get a product
+        response = await client.get("/products?skip=2&limit=1")
+        products = response.json()
+        if not products:
+            pytest.skip("Not enough products")
+        product_id = products[0]["id"]
+        
+        # 2. Create order as customer
+        response = await client.post(
+            "/orders",
+            headers=get_auth_headers(customer_token),
+            json={
+                "shipping_address": "456 Delivered Test Ave",
+                "items": [{"product_id": product_id, "quantity": 1}]
+            }
+        )
+        assert response.status_code == 201
+        order_id = response.json()["id"]
+        
+        # 3. Update order to DELIVERED as staff
+        response = await client.patch(
+            f"/orders/{order_id}/status",
+            headers=get_auth_headers(staff_token),
+            json={"status": "DELIVERED"}
+        )
+        assert response.status_code == 200
+        
+        # 4. Create review
+        response = await client.post(
+            "/reviews",
+            headers=get_auth_headers(customer_token),
+            json={
+                "product_id": product_id,
+                "rating": 4,
+                "comment": "Great product, delivered on time!"
+            }
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert data["rating"] == 4
+        assert data["comment"] == "Great product, delivered on time!"
+        assert data["product_id"] == product_id
+    
     async def test_create_duplicate_review(self, client: AsyncClient, customer_token: str):
         """Test creating duplicate review for same product (should fail)"""
         # Get a product with existing review

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, or_
 from typing import List
 from database.database import get_db
 from database.models import Review, Product, User, Order, OrderItem, OrderStatus
@@ -11,7 +11,7 @@ router = APIRouter(prefix="/reviews", tags=["Reviews"])
 
 
 async def can_user_review_product(db: AsyncSession, user_id: int, product_id: int) -> bool:
-    """Check if user has a shipped order containing the product"""
+    """Check if user has a shipped or delivered order containing the product"""
     result = await db.execute(
         select(Order)
         .join(OrderItem, Order.id == OrderItem.order_id)
@@ -19,7 +19,7 @@ async def can_user_review_product(db: AsyncSession, user_id: int, product_id: in
             and_(
                 Order.user_id == user_id,
                 OrderItem.product_id == product_id,
-                Order.status == OrderStatus.SHIPPED
+                or_(Order.status == OrderStatus.SHIPPED, Order.status == OrderStatus.DELIVERED)
             )
         )
         .limit(1)
@@ -106,7 +106,7 @@ async def create_review(
     if not can_review:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only review products from your shipped orders"
+            detail="You can only review products from your shipped or delivered orders"
         )
     
     # Create review

@@ -83,6 +83,84 @@ const showModal = ref(false);
 const orderId = ref(null);
 const error = ref(null);
 
+const validationErrors = ref({
+  name: null,
+  email: null,
+  expiry: null,
+  cvc: null,
+});
+
+const validateName = () => {
+  if (!form.value.name.trim()) {
+    validationErrors.value.name = null;
+    return true;
+  }
+  const hasNumbers = /\d/.test(form.value.name);
+  if (hasNumbers) {
+    validationErrors.value.name = "Name cannot contain numbers";
+    return false;
+  }
+  validationErrors.value.name = null;
+  return true;
+};
+
+const validateEmail = () => {
+  if (!form.value.email.trim()) {
+    validationErrors.value.email = null;
+    return true;
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(form.value.email)) {
+    validationErrors.value.email = "Please enter a valid email address";
+    return false;
+  }
+  validationErrors.value.email = null;
+  return true;
+};
+
+const validateExpiry = () => {
+  if (!form.value.expiry.trim()) {
+    validationErrors.value.expiry = null;
+    return true;
+  }
+  const digitsOnly = form.value.expiry.replace(/\D/g, "");
+  if (digitsOnly.length !== 4) {
+    validationErrors.value.expiry = "Expiry date must have 4 digits (MM/YY)";
+    return false;
+  }
+  validationErrors.value.expiry = null;
+  return true;
+};
+
+const validateCvc = () => {
+  if (!form.value.cvc.trim()) {
+    validationErrors.value.cvc = null;
+    return true;
+  }
+  const digitsOnly = form.value.cvc.replace(/\D/g, "");
+  if (digitsOnly.length !== 3) {
+    validationErrors.value.cvc = "CVC must have 3 digits";
+    return false;
+  }
+  validationErrors.value.cvc = null;
+  return true;
+};
+
+const formatCvc = (e) => {
+  const value = e.target.value.replace(/\D/g, "").slice(0, 3);
+  e.target.value = value;
+  form.value.cvc = value;
+};
+
+const validateForm = () => {
+  const isNameValid = validateName();
+  const isEmailValid = validateEmail();
+  const isExpiryValid = validateExpiry();
+  const isCvcValid = validateCvc();
+  
+  return isNameValid && isEmailValid && isExpiryValid && isCvcValid;
+};
+
 const formatExpiry = (e) => {
   let value = e.target.value.replace(/\D/g, "");
   const isDeleting =
@@ -107,6 +185,11 @@ const formatExpiry = (e) => {
 };
 
 const placeOrder = async () => {
+  if (!validateForm()) {
+    error.value = "Please fix the validation errors before submitting";
+    return;
+  }
+
   isProcessing.value = true;
   error.value = null;
 
@@ -251,9 +334,14 @@ const handleOverlayClick = () => {
                 v-model="form.name"
                 type="text"
                 class="form-control"
+                :class="{ 'is-invalid': validationErrors.name }"
                 placeholder="John Doe"
                 required
+                @blur="validateName"
               />
+              <div v-if="validationErrors.name" class="text-destructive mt-1 small">
+                {{ validationErrors.name }}
+              </div>
             </div>
             <div class="col-sm-6">
               <label class="form-label">Email</label>
@@ -261,9 +349,14 @@ const handleOverlayClick = () => {
                 v-model="form.email"
                 type="email"
                 class="form-control"
+                :class="{ 'is-invalid': validationErrors.email }"
                 placeholder="john@example.com"
                 required
+                @blur="validateEmail"
               />
+              <div v-if="validationErrors.email" class="text-destructive mt-1 small">
+                {{ validationErrors.email }}
+              </div>
             </div>
             <div class="col-12">
               <label class="form-label">Address</label>
@@ -379,20 +472,32 @@ const handleOverlayClick = () => {
                 @input="formatExpiry"
                 type="text"
                 class="form-control"
+                :class="{ 'is-invalid': validationErrors.expiry }"
                 placeholder="MM/YY"
                 maxlength="5"
                 required
+                @blur="validateExpiry"
               />
+              <div v-if="validationErrors.expiry" class="text-destructive mt-1 small">
+                {{ validationErrors.expiry }}
+              </div>
             </div>
             <div class="col-md-6">
               <label class="form-label">CVC</label>
               <input
-                v-model="form.cvc"
+                :value="form.cvc"
+                @input="formatCvc"
                 type="text"
                 class="form-control"
+                :class="{ 'is-invalid': validationErrors.cvc }"
                 placeholder="123"
+                maxlength="3"
                 required
+                @blur="validateCvc"
               />
+              <div v-if="validationErrors.cvc" class="text-destructive mt-1 small">
+                {{ validationErrors.cvc }}
+              </div>
             </div>
           </div>
 
@@ -568,6 +673,15 @@ const handleOverlayClick = () => {
   background: var(--background);
   border-color: var(--primary);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary), transparent 80%);
+}
+
+.form-control.is-invalid {
+  border-color: var(--destructive);
+}
+
+.form-control.is-invalid:focus {
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--destructive), transparent 80%);
 }
 
 .text-success {

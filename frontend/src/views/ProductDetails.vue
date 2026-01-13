@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useCart } from "../composables/useCart";
 import { useAuth } from "../composables/useAuth";
 import { formatPrice } from "../utils/format";
+import Modal from "../components/ui/Modal.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -23,8 +24,11 @@ const reviewForm = ref({
   rating: 5,
   comment: "",
 });
+const hoverRating = ref(0);
 const reviewSubmitting = ref(false);
 const reviewError = ref("");
+const isDeleteModalOpen = ref(false);
+const reviewToDelete = ref(null);
 
 const checkEligibility = async () => {
   if (!isAuthenticated.value) return;
@@ -60,6 +64,7 @@ const closeReviewModal = () => {
   showReviewModal.value = false;
   reviewError.value = "";
   reviewForm.value = { rating: 5, comment: "" };
+  hoverRating.value = 0;
 };
 
 const submitReview = async () => {
@@ -133,6 +138,43 @@ const fetchReviews = async () => {
     console.error("Failed to fetch reviews:", error);
   } finally {
     reviewsLoading.value = false;
+  }
+};
+
+const openDeleteModal = (review) => {
+  reviewToDelete.value = review;
+  isDeleteModalOpen.value = true;
+};
+
+const closeDeleteModal = () => {
+  isDeleteModalOpen.value = false;
+  reviewToDelete.value = null;
+};
+
+const deleteReview = async () => {
+  if (!reviewToDelete.value) return;
+
+  try {
+    const response = await fetch(
+      `http://localhost:8000/reviews/${reviewToDelete.value.id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token.value}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.detail || "Failed to delete review");
+    }
+
+    closeDeleteModal();
+    fetchReviews();
+  } catch (e) {
+    console.error("Failed to delete review:", e);
+    alert(e.message || "Failed to delete review");
   }
 };
 
@@ -425,7 +467,7 @@ const specs = computed(() => {
                 :key="review.id"
                 :class="
                   index !== reviews.length - 1
-                    ? 'review-item mb-4 pb-4'
+                    ? 'review-item mb-3 pb-3'
                     : 'review-item'
                 "
                 :style="
@@ -460,6 +502,32 @@ const specs = computed(() => {
                         </svg>
                       </span>
                     </div>
+                    <button
+                      v-if="isAuthenticated && user && review.user_id === user.id"
+                      type="button"
+                      class="btn btn-icon btn-ghost btn-sm p-1 delete-review-btn ms-2"
+                      @click="openDeleteModal(review)"
+                      title="Delete review"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="delete-review-icon"
+                      >
+                        <path d="M3 6h18" />
+                        <path
+                          d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"
+                        />
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                      </svg>
+                    </button>
                   </div>
                   <span class="text-muted small">{{
                     new Date(review.created_at).toLocaleDateString()
@@ -546,23 +614,31 @@ const specs = computed(() => {
 
       <form v-else @submit.prevent="submitReview">
         <div class="mb-3">
-          <label class="form-label">Rating</label>
-          <div class="d-flex gap-2">
+          <label class="form-label rating-label">Rating</label>
+          <div class="stars-container">
             <button
               type="button"
               v-for="star in 5"
               :key="star"
-              class="btn btn-icon btn-ghost p-1"
+              class="btn btn-icon btn-ghost p-0 star-button"
               @click="reviewForm.rating = star"
+              @mouseenter="hoverRating = star"
+              @mouseleave="hoverRating = 0"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
                 height="24"
                 viewBox="0 0 24 24"
-                :fill="star <= reviewForm.rating ? 'currentColor' : 'none'"
+                :fill="
+                  star <= (hoverRating || reviewForm.rating)
+                    ? 'currentColor'
+                    : 'none'
+                "
                 :class="
-                  star <= reviewForm.rating ? 'text-warning' : 'text-muted'
+                  star <= (hoverRating || reviewForm.rating)
+                    ? 'text-warning'
+                    : 'text-muted'
                 "
                 stroke="currentColor"
                 stroke-width="2"
@@ -600,15 +676,38 @@ const specs = computed(() => {
         >
           <span
             v-if="reviewSubmitting"
-            class="spinner-border spinner-border-sm me-2"
+            class="spinner-border spinner-border-sm me-1"
             role="status"
             aria-hidden="true"
           ></span>
-          Submit Review
+          <span v-if="reviewSubmitting">Submitting...</span>
+          <span v-else>Submit Review</span>
         </button>
       </form>
     </div>
   </div>
+
+  <!-- Delete Review Modal -->
+  <Modal
+    :isOpen="isDeleteModalOpen"
+    title="Delete Review"
+    @close="closeDeleteModal"
+  >
+    <div class="modal-content-padding">
+      <p>
+        Are you sure you want to delete this review? This action cannot be
+        undone.
+      </p>
+      <div class="modal-actions">
+        <button @click="closeDeleteModal" class="btn btn-outline">
+          Cancel
+        </button>
+        <button @click="deleteReview" class="btn btn-destructive">
+          Delete
+        </button>
+      </div>
+    </div>
+  </Modal>
 </template>
 
 <style scoped>
@@ -770,5 +869,44 @@ const specs = computed(() => {
 .form-control-custom:focus {
   border-color: var(--ring);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring), transparent 70%);
+}
+
+.rating-label {
+  margin-bottom: 0.1rem;
+}
+
+.stars-container {
+  display: flex;
+  gap: 0.05rem;
+  align-items: center;
+}
+
+.star-button {
+  margin: 0;
+  line-height: 1;
+}
+
+.delete-review-icon {
+  color: var(--muted-foreground);
+  transition: color var(--transition-base);
+}
+
+.delete-review-btn:hover .delete-review-icon {
+  color: var(--destructive);
+}
+
+.delete-review-btn:hover {
+  background-color: color-mix(in srgb, var(--destructive), transparent 90%);
+}
+
+.modal-content-padding {
+  padding: 0 var(--spacing-lg) var(--spacing-lg) var(--spacing-lg);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
 }
 </style>
