@@ -1,18 +1,20 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from config import settings
+
+from config import CORS_ORIGINS
 from routers import auth, users, products, news, orders, reviews, analytics
+
 
 app = FastAPI(
     title="InfiniteCompute API",
     description="AI-powered e-commerce platform for NVIDIA GPUs",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -34,7 +36,7 @@ async def root():
     return {
         "message": "Welcome to InfiniteCompute API",
         "status": "operational",
-        "version": "1.0.0"
+        "version": "1.0.0",
     }
 
 
@@ -46,4 +48,5 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

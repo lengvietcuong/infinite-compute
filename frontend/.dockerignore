@@ -1,0 +1,310 @@
+# ============================================================================
+# Created by https://dockerignore.com/
+# COMPREHENSIVE FRAMEWORK TEMPLATE for Vue Js
+# Website: https://dockerignore.com/
+# ============================================================================
+# ============================================================================
+# VUE.JS FRAMEWORK TEMPLATE - Comprehensive Implementation
+# ============================================================================
+# This template provides comprehensive .dockerignore patterns for Vue.js projects.
+# security patterns for complete protection.
+#
+# It includes Vue.js-specific patterns, Node.js language patterns, and essential
+# TEMPLATE TYPE: Framework (self-contained)
+# USAGE: Use this single template for Vue.js projects
+# COMBINE WITH: Optional IDE/OS templates if needed
+# SECURITY: Security patterns included (do NOT combine with common/security.dockerignore)
+# SOURCES: Vue.js official documentation, Node.js community patterns
+
+# WEBSITE: https://dockerignore.com/
+# ============================================================================
+# TEMPLATE OVERVIEW & USAGE NOTES
+# ============================================================================
+# • TEMPLATE TYPE: Comprehensive Framework Template
+# • DESIGN PHILOSOPHY: Self-contained with all necessary patterns
+# • COMBINATION: Use standalone - no need to combine with other templates
+
+# • BEST PRACTICES: Follow technology-specific security guidelines
+# ============================================================================
+# SECURITY & SENSITIVE DATA PROTECTION (ALWAYS FIRST!)
+# ============================================================================
+# CRITICAL: Protect sensitive data from accidental inclusion in Docker images
+
+# Security patterns should always be placed first for maximum protection
+# ••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+# ENVIRONMENT VARIABLES & CONFIGURATION FILES
+# ••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+# and other secrets that should never be included in Docker images
+
+# Environment files often contain sensitive API keys, database credentials,
+.env
+.env.*
+.env.*.local
+
+# ••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+# APPLICATION SECRETS & CREDENTIALS
+# ••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+
+# Application secrets, credentials, and sensitive configuration files
+**/config/credentials.*
+**/config/secrets.*
+**/keys/
+**/passwords/
+**/private/
+**/secrets/
+*.auth
+*.authz
+*.password
+*.secret
+*.secrets
+*.token
+*_tokens
+*password*
+apikeys.*
+appsettings.Development.json
+appsettings.Local.json
+appsettings.Staging.json
+connectionstrings.config
+credentials
+database.ini
+database.yml
+dbconfig.xml
+secrets.json
+secrets.yaml
+secrets.yml
+tokens.*
+
+# ••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+# DEPENDENCY MANAGEMENT & PACKAGE CACHE
+# ••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+# for reproducible builds. Only exclude them if you have specific reasons.
+
+# IMPORTANT: Lock files (package-lock.json, yarn.lock, etc.) should generally be tracked
+# Modern package managers
+**/.bun/
+**/.bun/cache/
+**/.bun/install/
+**/.deno/
+**/.deno_cache/
+**/.deno_dir/
+**/.nx/
+**/.nx/cache/
+**/.pnpm-store/
+**/.pnpm/
+**/.turbo/
+
+# Traditional package managers
+**/.npm/
+**/.npm/_logs/
+**/.yarn/
+**/.yarn/cache/
+**/.yarn/install-state.gz/
+**/.yarn/releases/
+**/.yarn/unplugged/
+**/.yarn/versions/
+**/bower_components/
+**/node_modules/
+
+# Lock files and configuration
+.npmignore
+.npmrc
+.npmrc.*
+.yarnrc
+.yarnrc.yml
+bun-debug.log*
+bun.lockb
+deno.lock
+npm-debug.log*
+npm-shrinkwrap.json
+package-lock.json
+pnpm-debug.log*
+pnpm-lock.yaml
+pnpm-workspace.yaml
+yarn-error.log
+yarn.lock
+
+# ••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+# BUILD ARTIFACTS & DISTRIBUTION PACKAGES
+# ••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+
+# Compiled code, build outputs, and distribution packages
+**/.astro/
+**/.build/
+**/.gatsby/
+**/.next/
+**/.next/cache/
+**/.nuxt/
+**/.nuxt/components/
+**/.nuxt/dist/
+**/.output/
+**/.svelte-kit/
+**/_build/
+**/_site/
+**/build/
+**/dist/
+**/lib/
+**/libs/
+**/out/
+**/public/_next/
+**/public/static/chunks/
+**/public/static/css/
+**/public/static/media/
+**/storybook-static/
+
+# •••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+# VUE.JS SPECIFIC PATTERNS
+**/.vite/
+**/.vue/
+**/.vuepress/
+**/.vuepress/dist/
+**/vue.config.*.local.*
+vue.config.local.*
+
+# •••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+# DEVELOPMENT & RUNTIME ARTIFACTS
+**/.cache/
+**/.eslintcache
+**/.idea/
+**/.static/
+**/.storybook/
+**/.stylelintcache
+**/.tmp/
+**/.vs/
+**/.vscode/
+**/temp/
+**/tmp/
+*.log
+*.pid
+*.sock
+
+# •••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+# TESTING & QUALITY ASSURANCE ARTIFACTS
+**/.coverage_html/
+**/.nyc_output/
+**/.pytest_cache/
+**/.spec/
+**/.ssg/
+**/.ssr/
+**/.tests/
+**/coverage/
+**/coverage_html/
+**/test-reports/
+**/test-results/
+.coverage
+.coverage.*
+junit.xml
+test-results.xml
+
+# •••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+# CONFIGURATION & CUSTOMIZATION
+**/config/development.*
+**/config/local.*
+**/config/production.*
+**/config/staging.*
+**/config/test.*
+**/settings/development.*
+**/settings/local.*
+**/settings/production.*
+**/settings/staging.*
+**/settings/test.*
+
+vite.config.local.*
+webpack.config.local.*
+
+**/migrations/local/
+**/seeds/local/
+database.local.*
+db.local.*
+redis.local.*
+
+docker-compose.local.*
+docker-compose.override.*
+docker-compose.dev.*
+docker-compose.test.*
+terraform.tfvars.local
+terraform.auto.tfvars.local
+**/.terraform/local/
+
+.eslintrc.local.*
+.prettierrc.local.*
+.stylelintrc.local.*
+tsconfig.local.*
+jest.config.local.*
+vitest.config.local.*
+cypress.config.local.*
+
+# •••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+# MODERN DEVELOPMENT TOOLS & FRAMEWORKS
+**/.esbuild/
+**/.parcel-cache/
+**/.rollup.cache/
+**/.swc/
+**/.webpack/
+**/bazel-*
+**/bazel-bin/
+**/bazel-out/
+**/bazel-testlogs/
+**/buck-out/
+**/dist-newstyle/
+**/elm-stuff/
+**/pkg/
+
+**/.blitz/
+**/.docusaurus/
+**/.expo/
+**/.hydrogen/
+**/.keystone/
+**/.qwik/
+**/.redwood/
+**/.remix/
+**/.sanity/
+**/.sapper/
+**/.solid-start/
+**/.tina/
+
+**/.devcontainer/
+**/.devpod/
+**/.firebase/
+**/.functions/
+**/.netlify/
+**/.serverless/
+**/.vercel/
+**/.wrangler/
+**/functions/
+
+**/.allure/
+**/.cypress/
+**/.jest/
+**/.playwright/
+**/.puppeteer/
+**/.testcontainers/
+**/.vitest/
+**/allure-results/
+**/cypress/videos/
+**/cypress/screenshots/
+**/playwright-report/
+
+# •••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+# OPERATING SYSTEM SPECIFIC FILES
+# Windows
+**/$RECYCLE.BIN/
+*.lnk
+*.msm
+*.msp
+*.scc
+Desktop.ini
+Thumbs.db
+ehthumbs.db
+thumbs.db
+
+# macOS
+*.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+.Trash-*/
+
+# Linux
+*~
+.directory

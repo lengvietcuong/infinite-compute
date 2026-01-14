@@ -1,7 +1,9 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
 from typing import Optional, List
 from datetime import datetime, date
 from decimal import Decimal
+
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
+
 from database.models import UserRole, OrderStatus, ChatRole
 
 
@@ -239,7 +241,6 @@ class ChatMessageResponse(BaseModel):
 
 class ChatSessionResponse(BaseModel):
     id: int
-    title: Optional[str]
     created_at: datetime
     updated_at: datetime
     messages: List[ChatMessageResponse] = []
@@ -259,4 +260,4 @@ class AnalyticsResponse(BaseModel):
 
 # ==================== Order Tracking Schema ====================
 class OrderTrackingRequest(BaseModel):
-    identifier: str  # Can be order ID or email
+    identifier: str

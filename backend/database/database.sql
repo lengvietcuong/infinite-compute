@@ -1,4 +1,6 @@
--- InfiniteCompute Database Schema
+-- Enable pgvector extension for vector similarity search
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- Enums for Role and Order Status
 CREATE TYPE user_role AS ENUM ('customer', 'staff', 'admin');
@@ -89,10 +91,9 @@ CREATE TABLE reviews (
 
 -- Chat Sessions Table
 -- Only for signed-in users. Guests use LocalStorage.
-CREATE TABLE chat_sessions (
+CREATE TABLE chat (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    title VARCHAR(255), -- Auto-generated summary of conversation
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
@@ -100,7 +101,7 @@ CREATE TABLE chat_sessions (
 -- Chat Messages Table
 CREATE TABLE chat_messages (
     id SERIAL PRIMARY KEY,
-    session_id INTEGER REFERENCES chat_sessions(id) ON DELETE CASCADE,
+    session_id INTEGER REFERENCES chat(id) ON DELETE CASCADE,
     role VARCHAR(50) NOT NULL CHECK (role IN ('user', 'assistant')),
     content TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -115,10 +116,40 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+-- Document Chunks Table (for RAG system)
+CREATE TABLE document_chunks (
+    id SERIAL PRIMARY KEY,
+    content TEXT NOT NULL CHECK (length(content) > 0),
+    embedding vector(1536) NOT NULL,
+    source_file VARCHAR(255) NOT NULL CHECK (length(source_file) > 0),
+    chunk_index INTEGER NOT NULL,
+    sha256_hash BYTEA GENERATED ALWAYS AS (digest(content, 'sha256')) STORED NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- HNSW index for vector similarity search on document_chunks
+CREATE INDEX idx_embedding_hnsw ON document_chunks 
+USING hnsw (embedding vector_cosine_ops)
+WITH (m = 16, ef_construction = 64);
+
+-- Documents Table (for RAG system)
+CREATE TABLE documents (
+    id SERIAL PRIMARY KEY,
+    content TEXT NOT NULL CHECK (length(content) > 0),
+    topic TEXT NOT NULL CHECK (length(topic) > 0),
+    source_file VARCHAR(255) NOT NULL CHECK (length(source_file) > 0) UNIQUE,
+    sha256_hash BYTEA GENERATED ALWAYS AS (digest(content, 'sha256')) STORED NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Triggers to apply the update function
 CREATE TRIGGER update_users_modtime BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_products_modtime BEFORE UPDATE ON products FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_news_modtime BEFORE UPDATE ON news FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_orders_modtime BEFORE UPDATE ON orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_reviews_modtime BEFORE UPDATE ON reviews FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_chat_sessions_modtime BEFORE UPDATE ON chat_sessions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_chat_modtime BEFORE UPDATE ON chat FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_document_chunks_modtime BEFORE UPDATE ON document_chunks FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_documents_modtime BEFORE UPDATE ON documents FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
