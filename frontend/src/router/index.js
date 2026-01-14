@@ -1,15 +1,15 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Home from "../views/Home.vue";
-import News from "../views/News.vue";
-import NewsDetails from "../views/NewsDetails.vue";
-import Products from "../views/Products.vue";
-import ProductDetails from "../views/ProductDetails.vue";
-import SignIn from "../views/SignIn.vue";
-import SignUp from "../views/SignUp.vue";
+import News from "../views/news/index.vue";
+import NewsDetails from "../views/news/NewsDetails.vue";
+import Products from "../views/products/index.vue";
+import ProductDetails from "../views/products/ProductDetails.vue";
+import SignIn from "../views/auth/SignIn.vue";
+import SignUp from "../views/auth/SignUp.vue";
 import Checkout from "../views/Checkout.vue";
 import OrderTracking from "../views/OrderTracking.vue";
 import About from "../views/About.vue";
-import Dashboard from "../views/Dashboard.vue";
+import Dashboard from "../views/dashboard/index.vue";
 import { useAuth } from "../composables/useAuth";
 
 const routes = [
@@ -85,7 +85,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const { isAuthenticated, isAdmin, fetchUser, user } = useAuth();
-  
+
   // Wait for user to be fetched if we have a token but no user data yet
   if (localStorage.getItem("token") && !user.value) {
     await fetchUser();

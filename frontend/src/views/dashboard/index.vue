@@ -1,52 +1,54 @@
 <script setup>
 import { ref, computed, watch } from "vue";
-import { useAuth } from "../composables/useAuth";
+import { useAuth } from "../../composables/useAuth";
 import { useRouter } from "vue-router";
-import Analytics from "./dashboard/Analytics.vue";
-import Products from "./dashboard/Products.vue";
-import Users from "./dashboard/Users.vue";
-import Orders from "./dashboard/Orders.vue";
-import Reviews from "./dashboard/Reviews.vue";
-import Toast from "../components/ui/Toast.vue";
+import Analytics from "./Analytics.vue";
+import Products from "./Products.vue";
+import Users from "./Users.vue";
+import Orders from "./Orders.vue";
+import Reviews from "./Reviews.vue";
+import Toast from "../../components/ui/Toast.vue";
 
-const { user, logout, isAdmin } = useAuth();
+const { user } = useAuth();
 const router = useRouter();
 
 const tabs = computed(() => {
-  if (user.value?.role === 'admin') {
+  if (user.value?.role === "admin") {
     return ["Analytics", "Users", "Products", "Orders", "Reviews"];
   }
   return ["Products", "Orders", "Reviews"];
 });
 
-const getTabIcon = (tab) => {
-  switch (tab) {
-    case "Analytics": return "/icons/dashboard.svg";
-    case "Users": return "/icons/user.svg";
-    case "Products": return "/icons/packages.svg";
-    case "Orders": return "/icons/cart.svg";
-    case "Reviews": return "/icons/write.svg"; // Or star/comment icon if available
-    default: return "/icons/dashboard.svg";
-  }
-};
-
 const activeTab = ref("Analytics");
 
-watch(user, (newUser) => {
-  if (newUser?.role !== 'admin' && (activeTab.value === 'Analytics' || activeTab.value === 'Users')) {
-    activeTab.value = 'Products';
-  }
-}, { immediate: true });
+watch(
+  user,
+  (newUser) => {
+    if (
+      newUser?.role !== "admin" &&
+      (activeTab.value === "Analytics" || activeTab.value === "Users")
+    ) {
+      activeTab.value = "Products";
+    }
+  },
+  { immediate: true }
+);
 
 const currentTabComponent = computed(() => {
-    switch (activeTab.value) {
-        case 'Analytics': return Analytics;
-        case 'Users': return Users;
-        case 'Products': return Products;
-        case 'Orders': return Orders;
-        case 'Reviews': return Reviews;
-        default: return Products;
-    }
+  switch (activeTab.value) {
+    case "Analytics":
+      return Analytics;
+    case "Users":
+      return Users;
+    case "Products":
+      return Products;
+    case "Orders":
+      return Orders;
+    case "Reviews":
+      return Reviews;
+    default:
+      return Products;
+  }
 });
 </script>
 
@@ -55,8 +57,8 @@ const currentTabComponent = computed(() => {
     <!-- Mobile/Tablet Select Menu -->
     <div class="mobile-nav-select">
       <div class="nav-select-wrapper">
-        <div 
-          class="nav-select-icon" 
+        <div
+          class="nav-select-icon"
           :class="`nav-icon-${activeTab.toLowerCase()}`"
         ></div>
         <select
@@ -64,17 +66,24 @@ const currentTabComponent = computed(() => {
           class="nav-select"
           aria-label="Select dashboard section"
         >
-          <option
-            v-for="tab in tabs"
-            :key="tab"
-            :value="tab"
-          >
+          <option v-for="tab in tabs" :key="tab" :value="tab">
             {{ tab }}
           </option>
         </select>
         <div class="nav-select-arrow">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="m6 9 6 6 6-6"/>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m6 9 6 6 6-6" />
           </svg>
         </div>
       </div>
@@ -92,7 +101,7 @@ const currentTabComponent = computed(() => {
           :class="{ active: activeTab === tab }"
           :aria-current="activeTab === tab ? 'page' : undefined"
         >
-          <div 
+          <div
             class="nav-icon"
             :class="`nav-icon-${tab.toLowerCase()}`"
             aria-hidden="true"
@@ -101,8 +110,12 @@ const currentTabComponent = computed(() => {
         </a>
       </nav>
       <div class="sidebar-footer">
-        <button @click="router.push('/')" class="btn btn-outline w-100 mb-2 gap-2" aria-label="Return to home page">
-          <div 
+        <button
+          @click="router.push('/')"
+          class="btn btn-outline w-100 mb-2 gap-2"
+          aria-label="Return to home page"
+        >
+          <div
             class="icon-sm bg-foreground nav-icon-home"
             aria-hidden="true"
           ></div>
@@ -115,7 +128,7 @@ const currentTabComponent = computed(() => {
     <main class="main-content">
       <component :is="currentTabComponent" />
     </main>
-    
+
     <!-- Toast Notifications -->
     <Toast />
   </div>
@@ -164,39 +177,40 @@ const currentTabComponent = computed(() => {
 }
 
 .nav-icon-analytics {
-  -webkit-mask-image: url('/icons/dashboard.svg');
-  mask-image: url('/icons/dashboard.svg');
+  -webkit-mask-image: url("/icons/dashboard.svg");
+  mask-image: url("/icons/dashboard.svg");
 }
 
 .nav-icon-users {
-  -webkit-mask-image: url('/icons/user.svg');
-  mask-image: url('/icons/user.svg');
+  -webkit-mask-image: url("/icons/user.svg");
+  mask-image: url("/icons/user.svg");
 }
 
 .nav-icon-products {
-  -webkit-mask-image: url('/icons/packages.svg');
-  mask-image: url('/icons/packages.svg');
+  -webkit-mask-image: url("/icons/packages.svg");
+  mask-image: url("/icons/packages.svg");
 }
 
 .nav-icon-orders {
-  -webkit-mask-image: url('/icons/cart.svg');
-  mask-image: url('/icons/cart.svg');
+  -webkit-mask-image: url("/icons/cart.svg");
+  mask-image: url("/icons/cart.svg");
 }
 
 .nav-icon-reviews {
-  -webkit-mask-image: url('/icons/write.svg');
-  mask-image: url('/icons/write.svg');
+  -webkit-mask-image: url("/icons/write.svg");
+  mask-image: url("/icons/write.svg");
 }
 
 .nav-icon-home {
-  -webkit-mask-image: url('/icons/home.svg');
-  mask-image: url('/icons/home.svg');
+  -webkit-mask-image: url("/icons/home.svg");
+  mask-image: url("/icons/home.svg");
 }
 
 .nav-select {
   width: 100%;
   height: 2.625rem;
-  padding: 0 calc(var(--spacing-xl) + var(--spacing-md)) 0 calc(var(--spacing-xl) + var(--spacing-md));
+  padding: 0 calc(var(--spacing-xl) + var(--spacing-md)) 0
+    calc(var(--spacing-xl) + var(--spacing-md));
   border: 1px solid var(--border);
   background-color: var(--background);
   color: var(--foreground);
@@ -278,24 +292,24 @@ const currentTabComponent = computed(() => {
 }
 
 .nav-icon {
-    width: var(--spacing-md);
-    height: var(--spacing-md);
-    background-color: var(--muted-foreground);
-    -webkit-mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    mask-size: contain;
-    mask-repeat: no-repeat;
-    mask-position: center;
-    transition: background-color var(--transition-base);
+  width: var(--spacing-md);
+  height: var(--spacing-md);
+  background-color: var(--muted-foreground);
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  transition: background-color var(--transition-base);
 }
 
 .nav-item:hover .nav-icon {
-    background-color: var(--foreground);
+  background-color: var(--foreground);
 }
 
 .nav-item.active .nav-icon {
-    background-color: var(--primary);
+  background-color: var(--primary);
 }
 
 .sidebar-footer {
@@ -304,18 +318,18 @@ const currentTabComponent = computed(() => {
 }
 
 .icon-sm {
-    width: var(--spacing-md);
-    height: var(--spacing-md);
-    -webkit-mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    mask-size: contain;
-    mask-repeat: no-repeat;
-    mask-position: center;
+  width: var(--spacing-md);
+  height: var(--spacing-md);
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
 }
 
 .bg-foreground {
-    background-color: var(--foreground);
+  background-color: var(--foreground);
 }
 
 .main-content {

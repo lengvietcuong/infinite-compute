@@ -1,10 +1,10 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useCart } from "../composables/useCart";
-import { useAuth } from "../composables/useAuth";
-import { formatPrice } from "../utils/format";
-import Modal from "../components/ui/Modal.vue";
+import { useCart } from "../../composables/useCart";
+import { useAuth } from "../../composables/useAuth";
+import { formatPrice } from "../../utils/format";
+import Modal from "../../components/ui/Modal.vue";
 
 const route = useRoute();
 const router = useRouter();

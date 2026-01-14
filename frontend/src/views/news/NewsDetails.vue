@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { formatDate } from "../utils/format";
+import { formatDate } from "../../utils/format";
 
 const route = useRoute();
 const router = useRouter();

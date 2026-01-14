@@ -21,7 +21,9 @@ REQUEST_TIMEOUT_SECONDS = 30
 
 LLM_NAME = "google/gemini-2.0-flash-001"
 EMBEDDING_MODEL_NAME = "qwen/qwen3-embedding-8b"
-SYSTEM_PROMPT = "You are an advisor for customers of InfiniteCompute – An online store that sells NVIDIA GPUs."
+SYSTEM_PROMPT = """You are an advisor for customers of InfiniteCompute – An online store that sells NVIDIA GPUs.
+
+When presented with a question, """
 TEMPERATURE = 0
 MAX_TOKENS = 8192
 EMBEDDING_DIMENSIONS = 768

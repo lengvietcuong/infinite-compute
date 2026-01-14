@@ -1,72 +1,41 @@
 <script setup>
-import { ref, watch, onMounted, computed } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { formatPrice } from "../utils/format";
-import Skeleton from "../components/Skeleton.vue";
+import Skeleton from "../../components/Skeleton.vue";
 
 const router = useRouter();
 const route = useRoute();
-const products = ref([]);
+const news = ref([]);
 const loading = ref(false);
 const error = ref(null);
 
+// Initialize state from URL
 const searchQuery = ref(route.query.search || "");
-const sortBy = ref(route.query.sort_by || "latest");
-
+const sortBy = ref(route.query.sort_by || "recent");
+const startDate = ref(route.query.start_date || "");
+const endDate = ref(route.query.end_date || "");
 const page = ref(parseInt(route.query.page) || 1);
-const pageSize = 12;
-const totalProducts = ref(0);
-const allFetchedProducts = ref([]);
 
-const filteredAndSortedProducts = computed(() => {
-  let result = [...allFetchedProducts.value];
+const pageSize = 6;
+const totalPages = ref(0);
+const totalCount = ref(0);
 
-  switch (sortBy.value) {
-    case "price_asc":
-      result.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-      break;
-    case "price_desc":
-      result.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-      break;
-    case "most_reviews":
-      result.sort((a, b) => (b.review_count || 0) - (a.review_count || 0));
-      break;
-    case "latest":
-    default:
-      // Handle potential missing dates safely
-      result.sort((a, b) => {
-        const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
-        const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
-        return dateB - dateA;
-      });
-      break;
-  }
-  return result;
-});
-
-const paginatedProducts = computed(() => {
-  const start = (page.value - 1) * pageSize;
-  const end = start + pageSize;
-  return filteredAndSortedProducts.value.slice(start, end);
-});
-
-const totalPages = computed(
-  () => Math.ceil(filteredAndSortedProducts.value.length / pageSize) || 1
-);
-
-const fetchProducts = async () => {
+const fetchNews = async () => {
   loading.value = true;
   error.value = null;
   try {
     const params = new URLSearchParams({
-      skip: 0,
-      limit: 100,
+      skip: (page.value - 1) * pageSize,
+      limit: pageSize,
+      sort_by: sortBy.value,
     });
 
     if (searchQuery.value) params.append("search", searchQuery.value);
+    if (startDate.value) params.append("start_date", startDate.value);
+    if (endDate.value) params.append("end_date", endDate.value);
 
     const response = await fetch(
-      `http://localhost:8000/products?${params.toString()}`
+      `http://localhost:8000/news?${params.toString()}`
     );
 
     if (!response.ok) {
@@ -74,82 +43,81 @@ const fetchProducts = async () => {
     }
 
     const data = await response.json();
-    allFetchedProducts.value = data;
-    totalProducts.value = data.length;
+    news.value = data.items;
+    totalPages.value = data.total_pages;
+    totalCount.value = data.total;
   } catch (err) {
-    console.error("Failed to fetch products:", err);
-    error.value = "Failed to load products. Please try again later.";
+    console.error("Failed to fetch news:", err);
+    error.value = "Failed to load news. Please try again later.";
   } finally {
     loading.value = false;
   }
 };
 
-// URL Syncing
 const updateURL = () => {
   const query = {
     page: page.value,
     sort_by: sortBy.value,
   };
-  if (searchQuery.value) {
-    query.search = searchQuery.value;
-  }
-  router.replace({ query }).catch(() => {});
+  if (searchQuery.value) query.search = searchQuery.value;
+  if (startDate.value) query.start_date = startDate.value;
+  if (endDate.value) query.end_date = endDate.value;
+
+  // Use replace to avoid polluting history for every small change,
+  // or push for significant ones?
+  // Let's use push for pagination to allow "Back" to work.
+  // But for typing search, replace is better.
+  router.push({ query }).catch(() => {});
 };
 
 // Watchers
+let debounceTimeout;
 watch(searchQuery, () => {
-  page.value = 1; // Reset to page 1 on search
-  // Debounce fetch handled by separate watcher or logic if needed,
-  // but here we just fetch immediately or via debounced function.
-  debouncedFetch();
+  clearTimeout(debounceTimeout);
+  debounceTimeout = setTimeout(() => {
+    page.value = 1;
+    updateURL();
+    fetchNews();
+  }, 500);
 });
 
-let timeout;
-const debouncedFetch = () => {
-  clearTimeout(timeout);
-  timeout = setTimeout(() => {
-    updateURL();
-    fetchProducts();
-  }, 500);
-};
-
-watch(sortBy, () => {
+watch([sortBy, startDate, endDate], () => {
   page.value = 1;
   updateURL();
+  fetchNews();
 });
 
 watch(page, () => {
   updateURL();
+  fetchNews();
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
-// React to route changes (Back/Forward buttons)
+// Sync from URL (Handling Back/Forward)
 watch(
   () => route.query,
   (newQuery) => {
     const newPage = parseInt(newQuery.page) || 1;
     if (page.value !== newPage) {
       page.value = newPage;
+      // fetchNews will be triggered by page watcher
     }
 
-    if (newQuery.search !== searchQuery.value) {
-      searchQuery.value = newQuery.search || "";
-      // Fetch will be triggered by searchQuery watcher?
-      // No, searchQuery watcher calls debouncedFetch.
-      // But if it comes from URL, we might want immediate fetch?
-      // Let's rely on searchQuery watcher for now.
-    }
-
-    if (newQuery.sort_by !== sortBy.value && newQuery.sort_by) {
+    // Handle other params if needed (e.g. shared link)
+    if (newQuery.sort_by && newQuery.sort_by !== sortBy.value) {
       sortBy.value = newQuery.sort_by;
     }
+    // ... similarly for others
   }
 );
 
 onMounted(() => {
-  // Initial fetch
-  fetchProducts();
+  fetchNews();
 });
+
+const navigateToNewsDetails = (id) => {
+  router.push({ name: "NewsDetails", params: { id } });
+};
 
 const goToFirstPage = () => {
   if (page.value !== 1) page.value = 1;
@@ -166,19 +134,13 @@ const nextPage = () => {
 const prevPage = () => {
   if (page.value > 1) page.value--;
 };
-
-const navigateToProduct = (id) => {
-  router.push(`/products/${id}`);
-};
 </script>
 
 <template>
-  <div class="products-page container">
-    <h1 class="page-title mb-4">
+  <div class="news-page container">
+    <h1 class="page-title mb-5">
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        width="48"
-        height="48"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -187,15 +149,14 @@ const navigateToProduct = (id) => {
         stroke-linejoin="round"
         class="title-icon"
       >
-        <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7" />
-        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-        <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4" />
-        <path d="M2 7h20" />
         <path
-          d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7"
+          d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"
         />
+        <path d="M18 14h-8" />
+        <path d="M15 18h-5" />
+        <path d="M10 6h8v4h-8V6Z" />
       </svg>
-      Products
+      News
     </h1>
 
     <!-- Filters -->
@@ -221,9 +182,9 @@ const navigateToProduct = (id) => {
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search products..."
+          placeholder="Search by title, content, category..."
           class="form-input"
-          aria-label="Search products"
+          aria-label="Search news articles"
         />
       </div>
 
@@ -241,23 +202,78 @@ const navigateToProduct = (id) => {
           stroke-linejoin="round"
           class="select-icon"
         >
-          <path d="m3 16 4 4 4-4" />
-          <path d="M7 20V4" />
-          <path d="m21 8-4-4-4 4" />
-          <path d="M17 4v16" />
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
         </svg>
-        <select v-model="sortBy" class="form-select" aria-label="Sort products">
-          <option value="latest">Newest</option>
-          <option value="price_asc">Price: Low to High</option>
-          <option value="price_desc">Price: High to Low</option>
-          <option value="most_reviews">Most Reviews</option>
+        <select
+          v-model="sortBy"
+          class="form-select"
+          aria-label="Sort news articles"
+        >
+          <option value="recent">Most Recent</option>
+          <option value="oldest">Oldest</option>
         </select>
+      </div>
+
+      <!-- Date Range Start -->
+      <div class="date-input-wrapper">
+        <label class="date-label">Start Date</label>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="date-icon"
+        >
+          <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+          <line x1="16" x2="16" y1="2" y2="6" />
+          <line x1="8" x2="8" y1="2" y2="6" />
+          <line x1="3" x2="21" y1="10" y2="10" />
+        </svg>
+        <input
+          v-model="startDate"
+          type="date"
+          class="form-input date-input"
+          aria-label="Start Date"
+        />
+      </div>
+
+      <!-- Date Range End -->
+      <div class="date-input-wrapper">
+        <label class="date-label">End Date</label>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="date-icon"
+        >
+          <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+          <line x1="16" x2="16" y1="2" y2="6" />
+          <line x1="8" x2="8" y1="2" y2="6" />
+          <line x1="3" x2="21" y1="10" y2="10" />
+        </svg>
+        <input
+          v-model="endDate"
+          type="date"
+          class="form-input date-input"
+          aria-label="End Date"
+        />
       </div>
     </div>
 
     <!-- Loading/Error -->
-    <div v-if="loading" class="products-grid">
-      <div v-for="n in pageSize" :key="n" class="product-card glass-card">
+    <div v-if="loading" class="news-grid">
+      <div v-for="n in pageSize" :key="n" class="news-card glass-card">
         <div class="card-image">
           <Skeleton class="w-full h-full" />
         </div>
@@ -266,8 +282,8 @@ const navigateToProduct = (id) => {
             <Skeleton class="w-1/3 h-4" />
             <Skeleton class="w-1/4 h-4" />
           </div>
-          <Skeleton class="w-3/4 h-6 mb-2" />
-          <Skeleton class="w-full h-12" />
+          <Skeleton class="w-3/4 h-6 mb-4" />
+          <Skeleton class="w-full h-16" />
         </div>
       </div>
     </div>
@@ -276,55 +292,72 @@ const navigateToProduct = (id) => {
     </div>
 
     <!-- Grid -->
-    <div v-else class="products-grid">
+    <div v-else class="news-grid">
       <article
-        v-for="product in paginatedProducts"
-        :key="product.id"
-        class="product-card glass-card"
-        @click="navigateToProduct(product.id)"
+        v-for="item in news"
+        :key="item.id"
+        class="news-card glass-card"
+        @click="navigateToNewsDetails(item.id)"
       >
         <div class="card-image">
           <img
-            :src="product.image_url || '/images/default-product.webp'"
-            :alt="product.name"
+            :src="item.image_url || '/images/default-news.webp'"
+            :alt="item.title"
             loading="lazy"
             @error="
               $event.target.src =
-                'https://placehold.co/600x400/1a1a1a/FFF?text=Product'
+                'https://placehold.co/600x400/1a1a1a/FFF?text=News'
             "
           />
-          <div class="price-tag">${{ formatPrice(product.price) }}</div>
         </div>
         <div class="card-content">
           <div class="card-meta">
-            <span class="architecture" v-if="product.architecture">
-              {{ product.architecture }}
-            </span>
-            <span class="rating" v-if="product.average_rating">
+            <span class="date">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="14"
                 height="14"
                 viewBox="0 0 24 24"
-                fill="currentColor"
-                stroke="none"
-                class="text-warning"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
               >
-                <polygon
-                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
-                />
+                <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                <line x1="16" x2="16" y1="2" y2="6" />
+                <line x1="8" x2="8" y1="2" y2="6" />
+                <line x1="3" x2="21" y1="10" y2="10" />
               </svg>
-              {{ product.average_rating.toFixed(1) }} ({{
-                product.review_count
-              }})
+              {{ new Date(item.published_date).toLocaleDateString() }}
+            </span>
+            <span v-if="item.category" class="category">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"
+                />
+                <path d="M7 7h.01" />
+              </svg>
+              {{ item.category }}
             </span>
           </div>
-          <h3 class="card-title">{{ product.name }}</h3>
+          <h3 class="card-title">
+            {{ item.title }}
+          </h3>
           <p class="card-excerpt">
             {{
-              product.description
-                ? product.description.substring(0, 80) + "..."
-                : ""
+              item.summary ||
+              (item.content ? item.content.substring(0, 120) + "..." : "")
             }}
           </p>
         </div>
@@ -333,16 +366,16 @@ const navigateToProduct = (id) => {
 
     <!-- Empty State -->
     <div
-      v-if="!loading && !error && allFetchedProducts.length === 0"
+      v-if="!loading && !error && news.length === 0"
       class="text-center py-5 text-muted"
     >
-      No products found matching your criteria.
+      No news articles found matching your criteria.
     </div>
 
     <!-- Pagination -->
     <div
-      class="pagination mt-5 d-flex justify-content-center gap-2"
-      v-if="filteredAndSortedProducts.length > pageSize"
+      class="pagination mt-5 d-flex justify-content-center gap-2 fade-in-up-fast delay-300-fast"
+      v-if="news.length > 0 || page > 1"
     >
       <button
         @click="goToFirstPage"
@@ -434,7 +467,7 @@ const navigateToProduct = (id) => {
 </template>
 
 <style scoped>
-.products-page {
+.news-page {
   padding-top: var(--spacing-xl);
   padding-bottom: var(--spacing-2xl);
 }
@@ -449,6 +482,7 @@ const navigateToProduct = (id) => {
   align-items: center;
   justify-content: center;
   gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg) !important;
 }
 
 .title-icon {
@@ -458,9 +492,10 @@ const navigateToProduct = (id) => {
   stroke: var(--primary);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .page-title {
     font-size: var(--text-3xl);
+    margin-bottom: var(--spacing-md) !important;
   }
 
   .title-icon {
@@ -469,58 +504,64 @@ const navigateToProduct = (id) => {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .page-title {
     font-size: var(--text-2xl);
+    margin-bottom: var(--spacing-md) !important;
   }
 
   .title-icon {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
   }
 }
 
 .filters-row {
   display: grid;
-  grid-template-columns: 300px 180px;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: var(--spacing-md);
   align-items: center;
-  justify-content: center;
-  max-width: 800px;
-  margin: 0 auto 3rem auto;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 1024px) {
   .filters-row {
     grid-template-columns: 1fr 1fr;
   }
 }
 
-.search-box,
+@media (max-width: 640px) {
+  .filters-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.search-box {
+  position: relative;
+  width: 100%;
+}
+
+.search-box .form-input {
+  width: 100%;
+  padding-left: 2.5rem;
+}
+
+.search-box .search-icon {
+  position: absolute;
+  left: var(--spacing-md);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+  pointer-events: none;
+  display: flex;
+  z-index: 1;
+}
+
 .select-with-icon {
   position: relative;
   width: 100%;
 }
 
-.form-input,
-.form-select {
-  width: 100%;
-  padding-left: 2.5rem;
-  background: color-mix(in srgb, var(--background), transparent 50%);
-  border: 1px solid var(--border);
-  color: var(--foreground);
-  padding-top: var(--spacing-sm);
-  padding-bottom: var(--spacing-sm);
-  padding-right: var(--spacing-md);
-  border-radius: var(--radius);
-  outline: none;
-  font-family: var(--font-sans);
-  transition: all var(--transition-base);
-  font-size: var(--text-sm);
-}
-
-.search-icon,
-.select-icon {
+.select-with-icon .select-icon {
   position: absolute;
   left: var(--spacing-md);
   top: 50%;
@@ -530,31 +571,88 @@ const navigateToProduct = (id) => {
   z-index: 1;
 }
 
+.select-with-icon .form-select {
+  width: 100%;
+  padding-left: 2.5rem;
+}
+
+.date-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.date-input-wrapper .date-label {
+  position: absolute;
+  left: 0.75rem;
+  top: -0.65rem;
+  background: var(--background);
+  padding: 0 0.25rem;
+  font-size: var(--text-xs);
+  color: var(--muted-foreground);
+  font-family: var(--font-sans);
+  z-index: 2;
+}
+
+.date-input-wrapper .date-icon {
+  position: absolute;
+  left: var(--spacing-md);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.date-input-wrapper .date-input {
+  width: 100%;
+  padding-left: 2.5rem;
+}
+
+.filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.form-input,
+.form-select {
+  background: color-mix(in srgb, var(--background), transparent 50%);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius);
+  outline: none;
+  font-family: var(--font-sans);
+  transition: all var(--transition-base);
+  font-size: var(--text-sm);
+}
+
 .form-input:focus,
 .form-select:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary), transparent 80%);
 }
 
-.products-grid {
+.news-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-xl);
 }
 
 @media (min-width: 768px) {
-  .products-grid {
+  .news-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (min-width: 1024px) {
-  .products-grid {
+  .news-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-.product-card {
+.news-card {
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -563,11 +661,9 @@ const navigateToProduct = (id) => {
     border-color var(--transition-slow) ease;
   height: 100%;
   cursor: pointer;
-  background: color-mix(in srgb, var(--card), transparent 80%);
-  border: 1px solid var(--border);
 }
 
-.product-card:hover {
+.news-card:hover {
   transform: translateY(-5px);
   box-shadow: var(--shadow-xl);
   border-color: var(--primary);
@@ -587,25 +683,12 @@ const navigateToProduct = (id) => {
   transition: transform var(--transition-slower) ease;
 }
 
-.product-card:hover .card-image img {
+.news-card:hover .card-image img {
   transform: scale(1.05);
 }
 
-.price-tag {
-  position: absolute;
-  bottom: var(--spacing-sm);
-  right: var(--spacing-sm);
-  background: var(--primary);
-  color: var(--primary-foreground);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  font-weight: 700;
-  font-family: var(--font-mono);
-  border-radius: var(--radius);
-  font-size: var(--text-sm);
-}
-
 .card-content {
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -616,43 +699,47 @@ const navigateToProduct = (id) => {
   justify-content: space-between;
   align-items: center;
   gap: var(--spacing-sm);
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--muted-foreground);
   margin-bottom: var(--spacing-sm);
   font-family: var(--font-mono);
 }
 
-.rating {
+.card-meta .date,
+.card-meta .category {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
 }
 
-.text-warning {
-  color: var(--warning);
+.card-meta svg {
+  flex-shrink: 0;
 }
 
 .card-title {
-  font-size: var(--text-lg);
-  margin-bottom: var(--spacing-sm);
-  line-height: 1.3;
+  font-size: var(--text-xl);
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.4;
   font-weight: 600;
   color: var(--foreground);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .card-excerpt {
   font-size: var(--text-sm);
   color: var(--muted-foreground);
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 0;
   flex: 1;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: var(--opacity-hover);
+  cursor: pointer;
 }
 
 .btn-pagination {
