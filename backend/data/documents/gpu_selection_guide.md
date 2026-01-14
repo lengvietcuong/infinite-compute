@@ -1,6 +1,7 @@
 # Choosing the Appropriate GPU for Training and Running AI Models
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Understanding GPU Categories](#understanding-gpu-categories)
 3. [Key Specifications and Metrics](#key-specifications-and-metrics)
@@ -27,6 +28,7 @@ The GPU landscape has evolved dramatically, with options ranging from consumer g
 Consumer GPUs, originally designed for gaming, have become increasingly viable for AI work. The RTX 4090 represents the pinnacle of consumer GPU performance for AI applications.
 
 **Characteristics:**
+
 - Lower VRAM compared to data center GPUs (typically 12-24GB)
 - No ECC memory (error correction)
 - Excellent single-GPU performance per dollar
@@ -39,17 +41,20 @@ Consumer GPUs, originally designed for gaming, have become increasingly viable f
 ### Professional Data Center GPUs
 
 **NVIDIA Offerings:**
+
 - **A100** (Ampere architecture): 40GB or 80GB HBM2e memory, mature, cost-effective for many workloads
 - **H100** (Hopper architecture): 80GB HBM3 memory, ~3x FP32 performance of A100, better memory bandwidth
 - **H200** (Hopper variant): 141GB HBM3e memory, nearly double the memory of H100, optimized for large model training
 - **B200** (Blackwell architecture): 192GB HBM3e memory, dual-die design, 4th-generation Tensor Cores, state-of-the-art performance
 
 **AMD Offerings:**
+
 - **MI300X**: 192GB HBM3 memory, 5.3 TB/s bandwidth, competitive with H100 in many workloads
 - **MI325X**: 256GB HBM3e memory, improved performance-to-power ratio
 - **MI355X**: 288GB HBM3e memory, first CDNA 4 chip, FP6 support for ultra-low precision inference
 
 **Characteristics:**
+
 - Massive VRAM (80-288GB depending on model)
 - NVLink or high-speed interconnect for multi-GPU scaling
 - ECC memory for enterprise reliability
@@ -66,6 +71,7 @@ Consumer GPUs, originally designed for gaming, have become increasingly viable f
 These GPUs prioritize latency and throughput efficiency for serving already-trained models.
 
 **Characteristics:**
+
 - Lower memory requirements relative to performance
 - Optimized for batch processing and low latency
 - Cost-effective for inference-heavy deployments
@@ -81,6 +87,7 @@ These GPUs prioritize latency and throughput efficiency for serving already-trai
 **Capacity:** The absolute amount of GPU memory available, measured in GB.
 
 Memory is often the primary constraint when selecting a GPU. The required memory depends on:
+
 - Model size (weights)
 - Batch size
 - Precision (FP32 requires 4 bytes per parameter, FP16 requires 2 bytes)
@@ -94,6 +101,7 @@ Memory is often the primary constraint when selecting a GPU. The required memory
 **Definition:** The rate at which data can be transferred between VRAM and the GPU cores, measured in TB/s.
 
 Higher bandwidth enables faster processing of large batches and longer sequences. For example:
+
 - A100: ~2 TB/s
 - H100: ~3.35 TB/s
 - H200: ~4.8 TB/s
@@ -125,6 +133,7 @@ More cores enable higher throughput for compute-bound workloads. Newer generatio
 ### NVLink and Interconnect
 
 **NVLink:** NVIDIA's high-speed GPU-to-GPU interconnect.
+
 - NVLink 3.0 (A100): 600 GB/s per pair
 - NVLink 4.0 (H100): 900 GB/s per pair
 - NVLink 5.0 (B200): 1.8 TB/s per pair
@@ -150,12 +159,14 @@ More cores enable higher throughput for compute-bound workloads. Newer generatio
 Training requires **high throughput** and **large memory capacity**.
 
 **Memory requirements increase with:**
+
 - Model size
 - Batch size (larger batches improve convergence but require more memory)
 - Sequence length (especially critical for NLP/vision transformers)
 - Optimizer complexity (Adam uses more memory than SGD)
 
 **Performance priorities:**
+
 1. **Memory capacity:** Can the GPU hold the model + activations + optimizer states?
 2. **Throughput:** How many samples can be processed per second?
 3. **Scalability:** Can multiple GPUs work together efficiently?
@@ -166,6 +177,7 @@ Training requires **high throughput** and **large memory capacity**.
 Inference prioritizes **latency** and **throughput-per-dollar**.
 
 **Key differences:**
+
 - No backpropagation needed (saves ~50% of training memory)
 - No optimizer state management
 - Can use aggressively quantized models (INT8, INT4)
@@ -174,6 +186,7 @@ Inference prioritizes **latency** and **throughput-per-dollar**.
 - Often run on cheaper, less powerful GPUs than those used for training
 
 **Performance priorities:**
+
 1. **Latency:** Response time per request
 2. **Throughput:** Requests processed per second
 3. **Cost efficiency:** Cost per inference
@@ -200,6 +213,7 @@ Using a training GPU for inference is often wasteful—you pay for compute power
 **Models:** ResNet, VGG, LSTM, GRU, transformers for smaller tasks
 
 **Examples:**
+
 - **BERT-Base** (110M parameters): 12-16GB for training, 4-8GB for inference
 - **BERT-Large** (340M parameters): 24-32GB for training, 8-12GB for inference
 
@@ -212,6 +226,7 @@ Using a training GPU for inference is often wasteful—you pay for compute power
 **Models:** GPT-2 (1.5B), Llama 2 7B, Mistral 7B
 
 **Memory breakdown for 7B model in FP16:**
+
 - Model weights: 14GB
 - Activations: 8-12GB
 - Optimizer states (Adam): 14GB
@@ -225,6 +240,7 @@ Using a training GPU for inference is often wasteful—you pay for compute power
 **Models:** Llama 2 13B-70B, GPT-3 (175B with distributed training)
 
 **Memory breakdown for 70B model in FP16:**
+
 - Model weights: 140GB
 - **Requires:** Multiple H100 80GB GPUs or single H200 141GB
 - **With quantization:** May fit on H100 or A100 80GB
@@ -249,7 +265,8 @@ When VRAM is insufficient for your needs:
 
 **Gradient Accumulation:** Process smaller batches and accumulate gradients before updates. Mimics larger effective batch size without proportional memory increase.
 
-**Parameter-Efficient Fine-Tuning (PEFT):** 
+**Parameter-Efficient Fine-Tuning (PEFT):**
+
 - **LoRA:** Only update low-rank decomposition of weight matrices (~0.1% of parameters)
 - **QLoRA:** Quantized LoRA, enabling fine-tuning of 7B models on 4GB GPUs
 
@@ -261,20 +278,21 @@ When VRAM is insufficient for your needs:
 
 ### Direct Comparisons: Key Models
 
-| **GPU** | **VRAM** | **Memory BW** | **FP32 TFLOPS** | **FP8 TFLOPS** | **Cost** | **Best For** |
-|---------|----------|---------------|-----------------|-----------------|---------|-------------|
-| **RTX 4090** | 24GB | 1.01 TB/s | 82.6 | 661 | $1,600 | Fine-tuning, consumer AI, inference |
-| **A100 80GB** | 80GB | 2.0 TB/s | 19.5 | 156 | $7,500-12,000 | Training, established option |
-| **H100** | 80GB | 3.35 TB/s | 60 | 480 | $15,000-20,000 | Large model training, enterprise |
-| **H200** | 141GB | 4.8 TB/s | 67 | 536 | $25,000-30,000 | Frontier models, long sequences |
-| **B200** | 192GB | 8.0 TB/s | 90 | 1,440 | $30,000-40,000 | State-of-the-art training, FP4 support |
-| **MI300X** | 192GB | 5.3 TB/s | 105 | 840 | $15,000-18,000 | Inference, memory-intensive workloads |
-| **T4** | 16GB | 0.3 TB/s | 8.1 | 65 | $2,000-3,000 | Budget inference |
-| **L4** | 24GB | 0.2 TB/s | 29 | 232 | $5,000-7,000 | Inference, video processing |
+| **GPU**       | **VRAM** | **Memory BW** | **FP32 TFLOPS** | **FP8 TFLOPS** | **Cost**       | **Best For**                           |
+| ------------- | -------- | ------------- | --------------- | -------------- | -------------- | -------------------------------------- |
+| **RTX 4090**  | 24GB     | 1.01 TB/s     | 82.6            | 661            | $1,600         | Fine-tuning, consumer AI, inference    |
+| **A100 80GB** | 80GB     | 2.0 TB/s      | 19.5            | 156            | $7,500-12,000  | Training, established option           |
+| **H100**      | 80GB     | 3.35 TB/s     | 60              | 480            | $15,000-20,000 | Large model training, enterprise       |
+| **H200**      | 141GB    | 4.8 TB/s      | 67              | 536            | $25,000-30,000 | Frontier models, long sequences        |
+| **B200**      | 192GB    | 8.0 TB/s      | 90              | 1,440          | $30,000-40,000 | State-of-the-art training, FP4 support |
+| **MI300X**    | 192GB    | 5.3 TB/s      | 105             | 840            | $15,000-18,000 | Inference, memory-intensive workloads  |
+| **T4**        | 16GB     | 0.3 TB/s      | 8.1             | 65             | $2,000-3,000   | Budget inference                       |
+| **L4**        | 24GB     | 0.2 TB/s      | 29              | 232            | $5,000-7,000   | Inference, video processing            |
 
 ### NVIDIA H100 vs. H200 vs. B200
 
 **H100 vs. H200:**
+
 - H200 has nearly **double the memory** (141GB vs. 80GB)
 - H200 has **50% higher bandwidth** (4.8 vs. 3.35 TB/s)
 - Similar compute performance
@@ -282,6 +300,7 @@ When VRAM is insufficient for your needs:
 - Cost premium: ~$10,000 for substantially more capacity
 
 **H100 vs. B200:**
+
 - B200 has **2.4x more memory** (192GB)
 - B200 has **2.4x higher bandwidth** (8.0 TB/s)
 - B200 features FP4 support (3x FP8 performance)
@@ -292,26 +311,28 @@ When VRAM is insufficient for your needs:
 
 ### NVIDIA vs. AMD: H100 vs. MI300X
 
-| **Aspect** | **H100** | **MI300X** | **Winner** |
-|-----------|---------|-----------|----------|
-| **Memory** | 80GB | 192GB | AMD (140% more) |
-| **Bandwidth** | 3.35 TB/s | 5.3 TB/s | AMD (58% higher) |
-| **Software Maturity** | Mature CUDA ecosystem | Growing ROCm support | NVIDIA |
-| **Training Performance** | Excellent with CUDA libraries | Strong but software gap | NVIDIA (optimization) |
-| **Inference Performance** | Good | Excellent for large models | AMD |
-| **Cost Efficiency** | Lower per-unit cost | Better memory-to-cost | Comparable |
-| **Adoption Rate** | Industry standard | Growing adoption | NVIDIA |
+| **Aspect**                | **H100**                      | **MI300X**                 | **Winner**            |
+| ------------------------- | ----------------------------- | -------------------------- | --------------------- |
+| **Memory**                | 80GB                          | 192GB                      | AMD (140% more)       |
+| **Bandwidth**             | 3.35 TB/s                     | 5.3 TB/s                   | AMD (58% higher)      |
+| **Software Maturity**     | Mature CUDA ecosystem         | Growing ROCm support       | NVIDIA                |
+| **Training Performance**  | Excellent with CUDA libraries | Strong but software gap    | NVIDIA (optimization) |
+| **Inference Performance** | Good                          | Excellent for large models | AMD                   |
+| **Cost Efficiency**       | Lower per-unit cost           | Better memory-to-cost      | Comparable            |
+| **Adoption Rate**         | Industry standard             | Growing adoption           | NVIDIA                |
 
 **Recommendation:** Choose NVIDIA for training workflows where software maturity and CUDA optimization matter most. Consider AMD MI300X or MI325X for inference-heavy workloads, especially those requiring 100B+ parameter models.
 
 ### Consumer vs. Enterprise GPU Economics
 
 **RTX 4090 (Consumer, $1,600):**
+
 - Per-GB cost: $67/GB
 - Single-GPU throughput: Competitive with A100 on many tasks
 - Multi-GPU: Limited by PCIe bandwidth, no NVLink
 
 **H100 (Enterprise, $15,000):**
+
 - Per-GB cost: $188/GB
 - NVLink enables efficient scaling
 - Enterprise features (ECC memory, dedicated support)
@@ -328,6 +349,7 @@ When VRAM is insufficient for your needs:
 **Operational costs:** Electricity, maintenance, personnel, cloud rental fees
 
 For cloud GPU rental (e.g., Lambda Labs, Vast.AI):
+
 - RTX 4090: ~$0.44/hour
 - A100 80GB: ~$2.40/hour
 - H100: ~$4.00/hour
@@ -336,11 +358,13 @@ For cloud GPU rental (e.g., Lambda Labs, Vast.AI):
 ### Training from Scratch vs. Fine-Tuning
 
 **Training from scratch:**
+
 - 7B parameter model: ~$500,000 - $1,000,000 (1 trillion tokens, 8 A100 GPUs, ~30 days)
 - 70B model: $500,000 - $1,000,000+
 - Requires sustained high-performance compute over weeks/months
 
 **Fine-tuning a 7B model:**
+
 - Full fine-tuning: $240-360 for 10-15 hours on 8x H100
 - LoRA fine-tuning: $50-200 on single H100
 - QLoRA fine-tuning: $5-50 on RTX 4090
@@ -362,10 +386,12 @@ For cloud GPU rental (e.g., Lambda Labs, Vast.AI):
 ### Step 1: Define Your Workload
 
 **Question 1:** Are you training or running inference?
+
 - **Training:** Proceed to Step 2
 - **Inference:** Go to Step 4
 
 **Question 2:** What is your model size and type?
+
 - **Small (<1B parameters):** Use consumer GPUs or lightweight data center options
 - **Medium (1-20B parameters):** RTX 4090, A100, or A30
 - **Large (20-70B parameters):** H100, H200, or MI300X
@@ -374,6 +400,7 @@ For cloud GPU rental (e.g., Lambda Labs, Vast.AI):
 ### Step 2: Estimate Memory Requirements
 
 **For training in FP16:**
+
 1. Identify model parameter count (in billions)
 2. Multiply by 2 (FP16 uses 2 bytes per parameter)
 3. Multiply by 4 (accounts for gradients, optimizer states, activations)
@@ -382,6 +409,7 @@ For cloud GPU rental (e.g., Lambda Labs, Vast.AI):
 **Example:** 7B parameter model = 7 × 2 × 4 = 56GB needed
 
 **For inference in INT8:**
+
 1. Multiply by 1 (INT8 uses 1 byte per parameter)
 2. Add 2-3GB buffer for intermediate activations
 3. Result = approximate VRAM needed in GB
@@ -391,11 +419,13 @@ For cloud GPU rental (e.g., Lambda Labs, Vast.AI):
 ### Step 3: Evaluate Alternatives
 
 **If memory is insufficient:**
+
 - Apply optimization techniques (mixed precision, quantization, PEFT)
 - Use multiple GPUs with sharding
 - Reduce batch size (impacts speed but not feasibility)
 
 **If cost is primary concern:**
+
 - Use cloud rentals instead of purchasing
 - Leverage spot/preemptible instances (cheaper, less reliable)
 - Use consumer GPUs for development, rent enterprise GPUs for production
@@ -403,12 +433,14 @@ For cloud GPU rental (e.g., Lambda Labs, Vast.AI):
 ### Step 4: Check Software Compatibility
 
 **NVIDIA ecosystem:**
+
 - PyTorch: Excellent native support
 - TensorFlow: Full support with cuDNN
 - JAX: Comprehensive CUDA support
 - Specialized libraries: TensorRT, cuML, NeMo all mature
 
 **AMD ecosystem:**
+
 - PyTorch: Good ROCm support, growing ecosystem
 - TensorFlow: ROCm support available but less optimized
 - JAX: Experimental ROCm support
@@ -419,17 +451,20 @@ For cloud GPU rental (e.g., Lambda Labs, Vast.AI):
 ### Step 5: Consider Scalability
 
 **Single GPU training:**
+
 - VRAM is primary constraint
 - Batch size limited by memory
 - Focus on optimizing per-GPU throughput
 
 **Multi-GPU training:**
+
 - Communication overhead becomes significant
 - NVLink (NVIDIA) or high-speed interconnect essential
 - Choose GPUs with good distributed training support
 - H100 with NVLink 4.0 shows 50% improvement over NVLink 3.0 (A100)
 
 **Cluster training (8+ GPUs):**
+
 - Network bandwidth critical
 - Consider specialized cluster configurations
 - Use established frameworks (PyTorch DistributedDataParallel, DeepSpeed)
@@ -441,6 +476,7 @@ For cloud GPU rental (e.g., Lambda Labs, Vast.AI):
 **Process:** Use FP16 for forward/backward passes, FP32 for gradient accumulation and weight updates.
 
 **Benefits:**
+
 - ~50% memory reduction
 - 2-3x faster computation on GPUs with Tensor Cores
 - Minimal accuracy impact when done correctly
@@ -452,6 +488,7 @@ For cloud GPU rental (e.g., Lambda Labs, Vast.AI):
 **Process:** Discard intermediate activations during forward pass, recompute during backward pass.
 
 **Benefits:**
+
 - 20-40% memory reduction
 - Slight computational overhead (recomputation)
 - Effective for very deep models
@@ -473,6 +510,7 @@ For cloud GPU rental (e.g., Lambda Labs, Vast.AI):
 **Process:** Fine-tune only low-rank decomposition of weight matrices, freeze original weights.
 
 **Benefits:**
+
 - Reduces trainable parameters from 100% to ~0.1%
 - 10-100x memory reduction for fine-tuning
 - Can fine-tune 7B models on 16GB GPUs
@@ -485,6 +523,7 @@ For cloud GPU rental (e.g., Lambda Labs, Vast.AI):
 **Process:** Process multiple small batches, accumulate gradients, update weights less frequently.
 
 **Benefits:**
+
 - Simulates larger effective batch size without proportional memory increase
 - 2-4x memory reduction (trade-off: training slower)
 - Improved training stability with larger effective batches
@@ -518,6 +557,7 @@ For cloud GPU rental (e.g., Lambda Labs, Vast.AI):
 **Emerging challenge:** Models with 100K+ context windows (e.g., Phi-3, DeepSeek-R1) require exponential memory for attention computation.
 
 **Solutions emerging:**
+
 - Sparse attention mechanisms
 - Efficient attention algorithms (FlashAttention)
 - Extended memory-optimized architectures
@@ -528,7 +568,8 @@ For cloud GPU rental (e.g., Lambda Labs, Vast.AI):
 
 **FP4 training:** NVIDIA's NVFP4 shows promise for maintaining accuracy at extreme compression
 
-**Implications:** 
+**Implications:**
+
 - 2-4x computational benefit over FP8
 - Reduces memory proportionally
 - Requires careful implementation

@@ -156,11 +156,13 @@ For persistent driver issues, perform a clean uninstall:
 
 1. **Download DDU (Display Driver Uninstaller)** from wagnardsoft.com
 2. **Boot into Safe Mode**:
+
    - Hold Shift while clicking Restart
    - Navigate to Troubleshoot → Advanced Options → Startup Settings
    - Select Restart and press F4 for Safe Mode
 
 3. **Run DDU**:
+
    - Select your GPU manufacturer and model
    - Check "Remove driver software" option
    - Click Clean and Restart
@@ -236,6 +238,7 @@ ps aux | grep cuda  # Find CUDA-related processes
 **Cause 1: Insufficient GPU Memory for Task**
 
 Solution:
+
 ```python
 # Reduce batch size in your code
 batch_size = 32  # Instead of 64
@@ -252,6 +255,7 @@ with autocast():
 **Cause 2: Memory Leaks from Previous Processes**
 
 Solution:
+
 ```bash
 # Kill all GPU processes
 sudo fuser -k /dev/nvidia*  # Linux
@@ -269,6 +273,7 @@ torch.cuda.reset_peak_memory_stats()
 **Cause 3: GPU Visibility Issue on Multi-GPU Systems**
 
 Solution:
+
 ```bash
 # Check which GPUs are visible
 nvidia-smi
@@ -283,6 +288,7 @@ export CUDA_VISIBLE_DEVICES=""  # Run on CPU instead
 **Cause 4: Memory Fragmentation**
 
 Solution:
+
 ```bash
 # Restart NVIDIA persistence daemon
 sudo systemctl restart nvidia-persistenced
@@ -325,13 +331,13 @@ nvidia-smi --query-gpu=timestamp,temperature.gpu --format=csv -f temp_log.csv -l
 
 ### Temperature Thresholds
 
-| Temperature | Status | Action |
-|------------|--------|--------|
-| < 70°C | Normal | No action needed |
-| 70-85°C | Warm | Monitor, ensure cooling is adequate |
-| 85-95°C | Hot | Performance throttling may occur |
-| > 95°C | Critical | Thermal throttling active, risk of damage |
-| > 105°C (memory) | Severe | Immediate action required |
+| Temperature      | Status   | Action                                    |
+| ---------------- | -------- | ----------------------------------------- |
+| < 70°C           | Normal   | No action needed                          |
+| 70-85°C          | Warm     | Monitor, ensure cooling is adequate       |
+| 85-95°C          | Hot      | Performance throttling may occur          |
+| > 95°C           | Critical | Thermal throttling active, risk of damage |
+| > 105°C (memory) | Severe   | Immediate action required                 |
 
 ### Overheating Solutions
 
@@ -511,13 +517,13 @@ cuda-gdb ./mykernel
 
 ### Common CUDA Errors
 
-| Error | Cause | Solution |
-|-------|-------|----------|
-| `cudaErrorInvalidDevice` | Device ID invalid | Check `CUDA_VISIBLE_DEVICES` |
-| `cudaErrorInsufficientDriver` | Driver too old | Update NVIDIA driver |
-| `cudaErrorInvalidPtx` | Compiled for wrong GPU | Recompile with correct compute capability |
-| `cudaErrorLaunchOutOfResources` | Too many threads/registers | Reduce grid/block dimensions |
-| `cudaErrorMemoryAllocation` | Out of GPU memory | Reduce allocation size |
+| Error                           | Cause                      | Solution                                  |
+| ------------------------------- | -------------------------- | ----------------------------------------- |
+| `cudaErrorInvalidDevice`        | Device ID invalid          | Check `CUDA_VISIBLE_DEVICES`              |
+| `cudaErrorInsufficientDriver`   | Driver too old             | Update NVIDIA driver                      |
+| `cudaErrorInvalidPtx`           | Compiled for wrong GPU     | Recompile with correct compute capability |
+| `cudaErrorLaunchOutOfResources` | Too many threads/registers | Reduce grid/block dimensions              |
+| `cudaErrorMemoryAllocation`     | Out of GPU memory          | Reduce allocation size                    |
 
 ---
 
@@ -544,10 +550,11 @@ nvidia-smi --query-gpu=clocks_throttle_reasons.active --format=csv
 
 1. **Reduce Temperature** (see Thermal Issues section)
 2. **Increase Power Limit** (if safe):
+
    ```bash
    # Check current and max power limits
    nvidia-smi -q -d POWER
-   
+
    # Increase limit (requires adequate PSU)
    sudo nvidia-smi -pl 400  # Set to 400W (adjust based on GPU)
    ```
@@ -579,20 +586,20 @@ sudo nvidia-smi -pm 1
 
 ### Common Xid Errors and Solutions
 
-| Xid | Description | Action |
-|-----|-------------|--------|
-| 13 | Graphics Engine Exception | Run DCGM diagnostics; debug application; check HW |
-| 31 | Suspected Hardware Problems | Contact hardware vendor for diagnostics |
-| 45 | Robust Channel Preemptive Removal | Informational only; can be ignored safely |
-| 48 | Double Bit ECC Error | Reset GPU; drain workloads; consider RMA |
-| 61 | PMU Breakpoint | Report issue; reset GPU |
-| 62 | PMU Halt Error | Report issue; reset GPU |
-| 63 | Single Bit ECC Error (corrected) | Monitor; reboot when convenient |
-| 74 | NVLink Error | Check mechanical connections; reseat GPUs; run diagnostics |
-| 79 | GPU has fallen off the bus | Immediate action; GPU may be unrecoverable |
-| 92 | High single-bit ECC error rate | Run diagnostics; consider RMA |
-| 94 | Contained ECC error | Restart application; reset GPU when convenient |
-| 95 | Uncontained ECC error | Reboot immediately; drain work if using MIG |
+| Xid | Description                       | Action                                                     |
+| --- | --------------------------------- | ---------------------------------------------------------- |
+| 13  | Graphics Engine Exception         | Run DCGM diagnostics; debug application; check HW          |
+| 31  | Suspected Hardware Problems       | Contact hardware vendor for diagnostics                    |
+| 45  | Robust Channel Preemptive Removal | Informational only; can be ignored safely                  |
+| 48  | Double Bit ECC Error              | Reset GPU; drain workloads; consider RMA                   |
+| 61  | PMU Breakpoint                    | Report issue; reset GPU                                    |
+| 62  | PMU Halt Error                    | Report issue; reset GPU                                    |
+| 63  | Single Bit ECC Error (corrected)  | Monitor; reboot when convenient                            |
+| 74  | NVLink Error                      | Check mechanical connections; reseat GPUs; run diagnostics |
+| 79  | GPU has fallen off the bus        | Immediate action; GPU may be unrecoverable                 |
+| 92  | High single-bit ECC error rate    | Run diagnostics; consider RMA                              |
+| 94  | Contained ECC error               | Restart application; reset GPU when convenient             |
+| 95  | Uncontained ECC error             | Reboot immediately; drain work if using MIG                |
 
 ### Checking for Xid Errors
 
@@ -610,16 +617,19 @@ sudo dmesg | grep -A 5 -B 5 "Xid"
 ### Response to Xid Errors
 
 **For Xid 79** (GPU fallen off bus):
+
 - Immediate GPU reset required: `sudo nvidia-smi --gpu-reset`
 - May indicate loose connection or hardware failure
 - Reseat GPU and power cables before reset
 
 **For Xid 48** (Double Bit ECC Error):
+
 - If followed by Xid 63 or 64: Drain workloads and reset GPU
 - May indicate memory corruption
 - RMA required if errors persist
 
 **For Xid 63/64** (ECC Errors):
+
 - Log errors; monitor for increasing frequency
 - Reset GPU if needed
 - Consider row remapping if available
@@ -703,18 +713,21 @@ tail -f /var/log/fabricmanager.log
 ### Prevention and Maintenance
 
 **Regular Monitoring**:
+
 - Set up periodic DCGM diagnostics (weekly for servers)
 - Monitor temperature, power, and clock speeds
 - Log Xid errors and investigate immediately
 - Track performance baselines for anomaly detection
 
 **Preventive Maintenance**:
+
 - Clean GPU and surrounding components every 3-6 months
 - Update BIOS and drivers quarterly
 - Test with standard benchmarks monthly
 - Archive system logs for historical analysis
 
 **Configuration Management**:
+
 - Document GPU BIOS settings
 - Record baseline performance metrics
 - Maintain detailed change logs
@@ -767,6 +780,7 @@ exit 0
 ### When to Contact Support
 
 Escalate to NVIDIA support with:
+
 - Output of `nvidia-bug-report.sh`
 - DCGM diagnostic logs
 - Xid error messages and timestamps
@@ -778,15 +792,15 @@ Escalate to NVIDIA support with:
 
 ## Summary Table: Quick Troubleshooting Reference
 
-| Problem | First Action | Second Action | Escalation |
-|---------|-------------|---------------|-----------|
-| GPU not detected | Check `lspci` | Reseat GPU | Run DCGM diag |
-| Out of memory | Reduce batch size | Clear cache (`torch.cuda.empty_cache`) | Check for leaks |
-| Overheating | Clean heatsink | Increase fan speed | Replace thermal paste |
-| Driver crash | Update driver | Clean reinstall with DDU | Rollback version |
-| Low performance | Check throttling | Reduce thermal load | Profile application |
-| Xid error | Check `dmesg` | Identify error code | Reset GPU |
-| Application hangs | Use cuda-gdb | Add error checking | Review CUDA code |
+| Problem           | First Action      | Second Action                          | Escalation            |
+| ----------------- | ----------------- | -------------------------------------- | --------------------- |
+| GPU not detected  | Check `lspci`     | Reseat GPU                             | Run DCGM diag         |
+| Out of memory     | Reduce batch size | Clear cache (`torch.cuda.empty_cache`) | Check for leaks       |
+| Overheating       | Clean heatsink    | Increase fan speed                     | Replace thermal paste |
+| Driver crash      | Update driver     | Clean reinstall with DDU               | Rollback version      |
+| Low performance   | Check throttling  | Reduce thermal load                    | Profile application   |
+| Xid error         | Check `dmesg`     | Identify error code                    | Reset GPU             |
+| Application hangs | Use cuda-gdb      | Add error checking                     | Review CUDA code      |
 
 ---
 
@@ -797,4 +811,3 @@ Escalate to NVIDIA support with:
 - NVIDIA System Management Interface: nvidia-smi user guide
 - DCGM Documentation: Advanced health monitoring
 - NVIDIA Developer Forums: Community support and solutions
-

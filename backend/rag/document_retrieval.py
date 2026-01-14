@@ -3,7 +3,6 @@ Document-level retrieval functions for listing and reading document topics, docu
 """
 
 import logging
-from collections import defaultdict
 from typing import List, Set
 
 import mistune
@@ -20,7 +19,7 @@ from database.models import Document
 logger = logging.getLogger(__name__)
 
 
-async def list_documents(topics: List[str]) -> str:
+async def list_documents() -> str:
     """
     List all documents from the database filtered by topics.
 
@@ -30,37 +29,23 @@ async def list_documents(topics: List[str]) -> str:
     Returns:
         str: Formatted string with documents organized by topic
     """
-    logger.debug(f"Listing documents for topics: {topics}")
+    logger.debug("Listing documents")
 
     async with AsyncSessionLocal() as session:
         result = await session.execute(
-            select(Document.topic, Document.source_file)
-            .where(Document.topic.in_(topics))
-            .order_by(Document.topic, Document.source_file)
+            select(Document.source_file)
+            .order_by(Document.source_file)
         )
         rows = result.fetchall()
 
-    if not rows:
-        raise ValueError("Invalid topic(s).")
-
-    # Group documents by topic
-    topic_documents = defaultdict(list)
-    for topic, source_file in rows:
-        topic_documents[topic].append(source_file)
-
     # Format output
     formatted_parts = []
-    for topic in topics:
-        if topic not in topic_documents:
-            continue
-        formatted_parts.append(f"{topic}:")
-        for doc in topic_documents[topic]:
-            formatted_parts.append(f"- {doc}")
-        formatted_parts.append("")
-
+    for row in rows:
+        source_file = row[0]
+        formatted_parts.append(f"- {source_file}")
     result_str = "\n".join(formatted_parts).strip()
     logger.debug(
-        f"Listed {len(rows)} documents for {len(topics)} topics:\n{result_str}"
+        f"Listed {len(rows)} documents:\n{result_str}"
     )
     return result_str
 

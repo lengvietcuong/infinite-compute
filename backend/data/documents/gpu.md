@@ -1,6 +1,7 @@
 # Graphics Processing Units (GPUs)
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [What is a GPU?](#what-is-a-gpu)
 3. [GPU Architecture](#gpu-architecture)
@@ -38,14 +39,14 @@ A **Graphics Processing Unit (GPU)** is a specialized electronic circuit designe
 
 ### GPU vs. CPU: A Fundamental Difference
 
-| Aspect | CPU | GPU |
-|--------|-----|-----|
-| **Architecture** | Few powerful cores (2-64) | Thousands of smaller cores (1,000-10,000+) |
-| **Optimization** | Low latency, sequential execution | High throughput, parallel execution |
-| **Cache** | Large, hierarchical caches | Smaller caches, relies on massive parallelism |
-| **Memory Bandwidth** | 50-100 GB/s | 400-1000+ GB/s |
-| **Power per Core** | High | Low |
-| **Best For** | General-purpose computing, control flow | Data-parallel workloads, computation-intensive tasks |
+| Aspect               | CPU                                     | GPU                                                  |
+| -------------------- | --------------------------------------- | ---------------------------------------------------- |
+| **Architecture**     | Few powerful cores (2-64)               | Thousands of smaller cores (1,000-10,000+)           |
+| **Optimization**     | Low latency, sequential execution       | High throughput, parallel execution                  |
+| **Cache**            | Large, hierarchical caches              | Smaller caches, relies on massive parallelism        |
+| **Memory Bandwidth** | 50-100 GB/s                             | 400-1000+ GB/s                                       |
+| **Power per Core**   | High                                    | Low                                                  |
+| **Best For**         | General-purpose computing, control flow | Data-parallel workloads, computation-intensive tasks |
 
 ---
 
@@ -60,6 +61,7 @@ Modern GPU architecture is organized into nested computational units that enable
 **Graphics Processing Clusters (GPCs)**: GPCs are collections of SMs grouped together for organizational purposes. The GA102 features 7 GPCs, each housing 12 SMs, creating a self-contained block that processes subsets of rendering workloads.
 
 **Cores**: The individual processing units within an SM include:
+
 - **CUDA Cores**: General-purpose floating-point processors
 - **Tensor Cores**: Specialized units for matrix operations and AI workloads
 - **RT Cores**: Real-time ray tracing acceleration hardware
@@ -108,6 +110,7 @@ The 2000s witness rapid evolution and the emergence of dedicated GPU manufacture
 The 2010s mark a pivotal shift as GPUs become central to the artificial intelligence boom.
 
 **NVIDIA Architecture Evolution**:
+
 - **Fermi (2010)**: First architecture to support 64-bit floating-point operations
 - **Kepler (2012)**: Significant efficiency improvements; deep learning adoption accelerates
 - **Maxwell (2014)**: Improved memory efficiency
@@ -137,6 +140,7 @@ GPU memory operates fundamentally differently from CPU memory (DDR). While CPUs 
 **GDDR (Graphics Double Data Rate)** is the memory type used in consumer and gaming GPUs. Modern gaming cards typically use **GDDR6** or **GDDR6X**.
 
 **Specifications**:
+
 - **Bus Width**: 256-384 bits per GPU (individual chips are 32-bit)
 - **Per-Pin Speed**: 14-24 Gbps (very fast signaling)
 - **Typical Bandwidth**: 400-1000+ GB/s
@@ -145,11 +149,13 @@ GPU memory operates fundamentally differently from CPU memory (DDR). While CPUs 
 - **Power Consumption**: Higher per unit of bandwidth compared to HBM
 
 **Advantages**:
+
 - Cost-effective for consumer applications
 - Well-established technology with proven reliability
 - Sufficient bandwidth for gaming and graphics applications
 
 **Disadvantages**:
+
 - Lower overall bandwidth compared to HBM
 - Higher power consumption at scale
 - Less suitable for massive AI training workloads
@@ -159,11 +165,13 @@ GPU memory operates fundamentally differently from CPU memory (DDR). While CPUs 
 **HBM (High Bandwidth Memory)** represents the cutting edge of GPU memory technology, utilized in high-end data center GPUs.
 
 **Technology Evolution**:
+
 - **HBM2**: Initial widespread adoption (400+ GB/s per stack)
 - **HBM3**: Current standard in NVIDIA H100 GPUs (3.35 TB/s with 5120-bit bus)
 - **HBM4**: Emerging technology expected in future generations
 
 **Specifications**:
+
 - **Bus Width**: 1024 bits per stack (GPUs stack 4-8 stacks for 4096-8192 bits total)
 - **Per-Pin Speed**: 3-9 Gbps (slower per pin than GDDR, but ultra-wide)
 - **Bandwidth**: 400+ GB/s per stack; 1-3 TB/s with multiple stacks
@@ -172,12 +180,14 @@ GPU memory operates fundamentally differently from CPU memory (DDR). While CPUs 
 - **Power Efficiency**: Superior power efficiency compared to GDDR
 
 **Advantages**:
+
 - Massive bandwidth enabling training of trillion-parameter models
 - Superior power efficiency critical for data center operations
 - Compact footprint through vertical stacking
 - Built-in error correction crucial for long-running AI training
 
 **Disadvantages**:
+
 - Significantly higher cost than GDDR
 - Limited capacity compared to server memory (DDR)
 - Requires specialized packaging and manufacturing
@@ -187,11 +197,13 @@ GPU memory operates fundamentally differently from CPU memory (DDR). While CPUs 
 Understanding memory bandwidth is essential for GPU performance analysis:
 
 **GDDR6 Example**:
+
 - Bus Width: 256 bits
 - Speed: 16 Gbps
 - Calculation: 16 Gbps × (256 bits ÷ 8) = 512 GB/s
 
 **HBM3 Example (Single Stack)**:
+
 - Bus Width: 1024 bits
 - Speed: 3.2 Gbps
 - Calculation: 3.2 Gbps × (1024 bits ÷ 8) = 409.6 GB/s
@@ -232,6 +244,7 @@ Grid (kernel execution)
 #### CUDA Execution Model
 
 When a kernel launches:
+
 1. The host CPU calls the kernel function with grid and block configuration
 2. All blocks are distributed across available Streaming Multiprocessors
 3. Each SM executes one block at a time, but multiple blocks can execute concurrently
@@ -260,6 +273,7 @@ Efficient GPU programming requires understanding memory access patterns:
 ### Alternative Programming Models
 
 Beyond CUDA, developers can use:
+
 - **OpenCL**: Vendor-neutral parallel computing framework
 - **HIP (Heterogeneous-compute Interface for Portability)**: AMD's GPU programming model
 - **High-Level Libraries**: TensorFlow, PyTorch, CuDNN abstract GPU programming details
@@ -275,21 +289,25 @@ NVIDIA dominates the GPU market, particularly in AI and data center segments, wi
 **Product Lines**:
 
 **GeForce RTX Series** (Consumer Gaming):
+
 - RTX 40 Series: High-end gaming with ray tracing and DLSS 3
 - RTX 5000 Series: Next-generation gaming GPUs with advanced features
 
 **Professional RTX Series** (Content Creation):
+
 - RTX 5880 Ada and successor models
 - Certified drivers and optimizations for professional software
 - Error-correcting memory support
 
-**H-Series (Data Center AI)**: 
+**H-Series (Data Center AI)**:
+
 - H100: Industry standard for LLM training (80GB HBM3, 700W TDP)
 - GH200: Grace Hopper Superchip combining CPU and GPU
 - H200: Enhanced H100 with improved memory bandwidth
 - Blackwell Platform: Next-generation architecture
 
 **Tesla Series** (Scientific Computing):
+
 - Legacy data center products
 - High-performance for scientific simulations
 
@@ -300,16 +318,19 @@ AMD has positioned itself as a value-conscious alternative with competitive perf
 **Product Lines**:
 
 **Radeon RX Series** (Gaming):
+
 - RDNA2/RDNA3 architecture
 - Ray tracing and hardware acceleration support
 - Typically 10-20% less expensive than NVIDIA equivalents
 
 **Radeon Pro Series** (Professional):
+
 - WorkStation-grade GPUs
 - Professional software optimization
 - ECC memory support
 
 **EPYC AI Series** (Data Center):
+
 - MI300 Series: Competing directly with NVIDIA H100
 - CDNA Architecture: Optimized for AI/ML workloads
 - Growing adoption in cloud providers and research institutions
@@ -321,11 +342,13 @@ Intel entered the discrete GPU market relatively recently but is expanding its p
 **Product Lines**:
 
 **Arc Series** (Gaming):
+
 - First generation gaming GPUs
 - Competitive performance in rasterization
 - Growing ray tracing capabilities
 
 **Ponte Vecchio & Gaudi Series** (Data Center):
+
 - Scientific computing and AI workloads
 - Integration with Intel's software ecosystem
 
@@ -348,6 +371,7 @@ GPUs have become indispensable for modern AI development.
 **Deep Learning Training**: Training deep neural networks involves matrix multiplications and other operations perfectly suited to GPU parallelism. GPUs can accelerate model training by **10-100x** compared to CPU-only systems.
 
 **Key Machine Learning Tasks**:
+
 - **Image Recognition**: Processing millions of images to train computer vision models
 - **Natural Language Processing (NLP)**: Training language models like GPT using massive text datasets
 - **Autonomous Vehicle Development**: Processing sensor data and training decision models
@@ -356,6 +380,7 @@ GPUs have become indispensable for modern AI development.
 **Inference Deployment**: Beyond training, GPUs accelerate real-time inference—making predictions with trained models. This enables real-time applications like chatbots, fraud detection, and recommendation systems.
 
 **Specialized Libraries**:
+
 - **NVIDIA CUDA Toolkit**: Foundational library for GPU computing
 - **NVIDIA cuDNN**: Optimized routines for deep learning operations
 - **TensorFlow & PyTorch**: Deep learning frameworks with GPU backends
@@ -430,16 +455,19 @@ Inadequate cooling leads to thermal throttling (automatic frequency reduction), 
 **Traditional Approach**: Uses fans and heatsinks to dissipate heat into the surrounding air.
 
 **Advantages**:
+
 - Simplest to implement
 - Low cost
 - Requires no maintenance
 
 **Disadvantages**:
+
 - Limited heat dissipation capacity
 - Noisy operation at high speeds
 - Insufficient for high-density deployments
 
 **Specifications**:
+
 - Air has a heat transfer coefficient approximately 3,500 times lower than water
 
 #### Liquid Cooling Solutions
@@ -451,17 +479,20 @@ Liquid cooling represents a paradigm shift in GPU thermal management, essential 
 Direct-to-chip systems mount cold plates directly onto GPU cores, with coolant flowing through microchannels (27-100 microns).
 
 **Specifications**:
+
 - **Supply Temperature**: 40°C
 - **Return Temperature**: 50°C
 - **Heat Removal**: 70-75% of total rack heat through liquid
 - **Partial PUE**: 1.02-1.03 (nearly perfect efficiency)
 
 **Advantages**:
+
 - Maximum thermal efficiency
 - Enables 100kW+ GPU racks
 - Reduced noise compared to air cooling
 
 **Disadvantages**:
+
 - Higher initial cost
 - Maintenance requirements
 - Requires specialized installation
@@ -471,11 +502,13 @@ Direct-to-chip systems mount cold plates directly onto GPU cores, with coolant f
 Submerges entire servers in non-conductive, thermally efficient dielectric fluid.
 
 **Advantages**:
+
 - Most effective heat removal
 - Eliminates hot spots
 - No fans required
 
 **Disadvantages**:
+
 - Complex deployment
 - Maintenance and fluid management
 - Cost
@@ -485,6 +518,7 @@ Submerges entire servers in non-conductive, thermally efficient dielectric fluid
 Transfers heat from coolant to air through a secondary radiator.
 
 **Advantages**:
+
 - Hybrid approach balancing cost and efficiency
 - Reduces ambient cooling load
 
@@ -517,28 +551,31 @@ Comparative thermal performance shows liquid cooling superiority:
 **Thermal Design Power (TDP)** represents the maximum heat a component generates under typical operating conditions—it's a theoretical maximum, not typical usage.
 
 **Important Notes**:
+
 - TDP indicates maximum power draw, not average consumption
 - Actual power consumption during typical workloads ranges from 50-85% of TDP
 - NVIDIA H100 SXM: 700W TDP, but actual training often runs at 520-600W depending on workload
 
 ### GPU Power Consumption by Use Case
 
-| GPU | Gaming | AI Training | Idle |
-|-----|--------|-------------|------|
-| NVIDIA RTX 4070 | 200W (avg) | 285W (TDP) | <10W |
-| NVIDIA RTX 4090 | 300W (avg) | 450W (TDP) | <10W |
-| NVIDIA H100 | N/A | ~700W (TDP) | ~50W |
-| AMD Radeon RX 7900 XTX | 250W (avg) | 300W (TDP) | <10W |
+| GPU                    | Gaming     | AI Training | Idle |
+| ---------------------- | ---------- | ----------- | ---- |
+| NVIDIA RTX 4070        | 200W (avg) | 285W (TDP)  | <10W |
+| NVIDIA RTX 4090        | 300W (avg) | 450W (TDP)  | <10W |
+| NVIDIA H100            | N/A        | ~700W (TDP) | ~50W |
+| AMD Radeon RX 7900 XTX | 250W (avg) | 300W (TDP)  | <10W |
 
 ### Energy Efficiency Metrics
 
 **Performance Per Watt**: Measuring computational throughput relative to power consumption becomes critical at scale.
 
 **Workload Impact**: Energy efficiency varies dramatically based on workload configuration:
+
 - Higher batch sizes increase instantaneous power demand but reduce total energy through shorter training time
 - Multi-node systems consume more total energy despite faster completion
 
 **Optimization Strategies**:
+
 - Voltage and frequency scaling reduces energy by up to 28% with minimal performance loss
 - Power gating disables unused components
 - Dynamic power management based on actual workload
@@ -548,10 +585,12 @@ Comparative thermal performance shows liquid cooling superiority:
 **Data Center Impact**: A single data center with thousands of GPUs can consume several megawatts of power, requiring significant cooling infrastructure and contributing substantially to operational costs.
 
 **Annual Energy Consumption Example**:
+
 - NVIDIA RTX 4090 running 1 hour/day at 70% utilization: 804.8 kWh/year
 - NVIDIA H100 running full-time in a data center: 6,132 MWh/year (single GPU)
 
 **Cost Considerations**:
+
 - Power consumption is often the largest operational expense in GPU-heavy data centers
 - Electricity costs range from $0.05-0.15 per kWh depending on region and time
 - Cooling infrastructure costs can exceed hardware costs over 3-5 years
@@ -559,6 +598,7 @@ Comparative thermal performance shows liquid cooling superiority:
 ### Power Management Techniques
 
 **Dynamic Voltage and Frequency Scaling (DVFS)**:
+
 - Reducing clock speeds and voltage under partial loads
 - Can reduce energy consumption by 28% with <1% performance loss
 
@@ -572,16 +612,19 @@ Comparative thermal performance shows liquid cooling superiority:
 
 ### Hardware Evolution (2025-2026 and Beyond)
 
-**Advanced Process Nodes**: 
+**Advanced Process Nodes**:
+
 - Movement toward 3nm and smaller process technologies
 - Increased transistor density enabling more cores and larger caches
 
 **Memory Technology Evolution**:
+
 - **HBM4**: Next-generation stacked memory with improved bandwidth and capacity
 - **GDDR7**: Faster consumer GPU memory
 - **Chiplet Architecture**: Multi-die systems allowing modular scaling
 
 **Specialized Architectures**:
+
 - **Sparse Computing**: Optimized hardware for training sparse neural networks
 - **Multi-Precision Support**: Hardware accelerating operations at multiple numerical precisions (INT4, INT8, FP16, BF16, FP32, FP64)
 
@@ -596,11 +639,13 @@ Comparative thermal performance shows liquid cooling superiority:
 ### Architectural Innovations
 
 **Performance Enhancements**:
+
 - Next-gen GPUs expected to exceed current performance by 2-3x
 - Improved ray tracing capabilities
 - Advanced supersampling technologies
 
 **Interconnect Improvements**:
+
 - High-speed interlinks enabling seamless GPU-to-GPU communication
 - Facilitating larger AI training clusters
 - Blurring boundaries between consumer and data center tiers

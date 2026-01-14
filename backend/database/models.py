@@ -1,4 +1,5 @@
 import enum
+import uuid
 
 from database.database import Base
 from pgvector.sqlalchemy import Vector
@@ -18,6 +19,7 @@ from sqlalchemy import (
     Text,
     TIMESTAMP,
 )
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -222,9 +224,9 @@ class Review(Base):
 class ChatSession(Base):
     __tablename__ = "chat"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     user_id = Column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True
     )
     created_at = Column(
         TIMESTAMP(timezone=True), server_default=func.now(), nullable=False
@@ -248,7 +250,7 @@ class ChatMessage(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     session_id = Column(
-        Integer, ForeignKey("chat.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True), ForeignKey("chat.id", ondelete="CASCADE"), nullable=False
     )
     role = Column(SQLEnum(ChatRole), nullable=False)
     content = Column(Text, nullable=False)

@@ -2,6 +2,7 @@
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 import CartSheet from "./components/CartSheet.vue";
+import ChatWidget from "./components/ChatWidget.vue";
 </script>
 
 <template>
@@ -9,6 +10,7 @@ import CartSheet from "./components/CartSheet.vue";
     <Header />
     <router-view />
     <CartSheet />
+    <ChatWidget />
     <Footer />
   </div>
 </template>

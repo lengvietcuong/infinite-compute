@@ -41,6 +41,7 @@ CUDA's architecture provides multiple advantages:
 NVIDIA's introduction of **Tensor Cores** in the Volta architecture (2017) marked a fundamental shift in GPU design. These specialized processing units are specifically engineered for matrix multiplication operations—the core computational workload of deep learning.
 
 **Performance Specifications**:
+
 - A single Tensor Core can perform up to 64 floating-point fused multiply-add (FMA) operations per clock
 - Eight Tensor Cores in a streaming multiprocessor (SM) execute 512 FP16 multiply-accumulate operations per clock, totaling 1,024 floating-point operations per clock
 - INT8 precision mode operates at double this rate: 2,048 integer operations per clock
@@ -94,6 +95,7 @@ Blackwell represents a revolutionary redesign, optimized specifically for genera
 - **Energy Efficiency**: Up to 25× better energy efficiency compared to Hopper for certain inference workloads
 
 **Blackwell Performance Claims**:
+
 - 2.5× training performance improvement over Hopper
 - 30× inference speedup for massive models
 - Enables training of trillion-parameter models previously infeasible
@@ -138,12 +140,14 @@ NVLink enables **direct GPU-to-GPU data transfer** without CPU involvement:
 NVIDIA's software stack extends far beyond CUDA:
 
 **cuDNN (CUDA Deep Neural Network Library)**:
+
 - GPU-accelerated library of primitives for deep learning
 - Provides optimized kernels for convolutional, recurrent, and transformer operations
 - Automatic framework integration in TensorFlow, PyTorch, and others
 - Significant performance boost when detected (typically 5-10× speedup)
 
 **TensorRT and TensorRT-LLM**:
+
 - **TensorRT**: Inference optimization library achieving 36× speedup over CPU-only platforms
 - Optimizes neural networks through quantization, layer fusion, and kernel tuning
 - **TensorRT-LLM**: Specifically optimized for large language models with:
@@ -155,6 +159,7 @@ NVIDIA's software stack extends far beyond CUDA:
 ### Enterprise AI Platform
 
 **NVIDIA AI Enterprise Suite**:
+
 - Cloud-native software platform for generative AI deployment
 - Enterprise-level support and security
 - Support for NVIDIA-developed and external models
@@ -177,6 +182,7 @@ NVIDIA provides industry-specific optimization frameworks:
 ### Developer Tools and Profiling
 
 **NVIDIA Nsight Tools**:
+
 - **Nsight Compute**: Kernel performance analysis and optimization
 - **Nsight Systems**: Application-level behavior analysis
 - Profiling, debugging, and performance tuning capabilities
@@ -195,16 +201,19 @@ NVIDIA's GPU market share has reached extraordinary levels:
 ### Factors Reinforcing Dominance
 
 **Network Effects**:
+
 - Every developer trained on CUDA represents potential lock-in for future projects
 - Large existing codebases make migration expensive
 - Enterprise infrastructure investments are difficult to change
 
 **Software Maturity Gap**:
+
 - AMD's ROCm alternative remains less mature and widely adopted
 - Intel's Xe architecture lacks ecosystem development
 - Narrowing the software gap takes years of sustained investment
 
 **Continuous Innovation**:
+
 - Annual GPU architecture releases (compared to slower competitor cycles)
 - Consistent performance improvements across benchmarks
 - Leadership in emerging AI applications
@@ -227,21 +236,22 @@ NVIDIA's GPU market share has reached extraordinary levels:
 ### Multi-GPU Scaling
 
 NVIDIA's Grace Hopper Superchip demonstrates the advantage of full-stack integration:
+
 - 900 GB/s NVLink C2C bandwidth between CPU and GPU
 - Unified, cache-coherent memory architecture
 - Efficient LLM serving without sacrificing latency constraints
 
 ## 8. Competitive Advantages Over AMD and Intel
 
-| Advantage | NVIDIA | AMD | Intel |
-|-----------|--------|-----|-------|
-| **GPU Market Share** | 92-94% | 6-8% | <1% |
-| **AI Ecosystem Maturity** | Mature (CUDA, cuDNN, TensorRT) | Developing (ROCm) | Early stage (Xe) |
-| **Developer Adoption** | 4 million developers | Growing but limited | Minimal |
-| **Tensor Core Equivalents** | 5th gen (FP4 support) | 4th gen equivalent | Basic matrix units |
-| **Multi-GPU Interconnect** | NVLink 5.0 (1.8 TB/s) | Infinity Fabric | XeLink (developing) |
-| **Enterprise Support** | Comprehensive | Improving | Growing |
-| **Software Optimization** | Extensive library ecosystem | Improving | Limited |
+| Advantage                   | NVIDIA                         | AMD                 | Intel               |
+| --------------------------- | ------------------------------ | ------------------- | ------------------- |
+| **GPU Market Share**        | 92-94%                         | 6-8%                | <1%                 |
+| **AI Ecosystem Maturity**   | Mature (CUDA, cuDNN, TensorRT) | Developing (ROCm)   | Early stage (Xe)    |
+| **Developer Adoption**      | 4 million developers           | Growing but limited | Minimal             |
+| **Tensor Core Equivalents** | 5th gen (FP4 support)          | 4th gen equivalent  | Basic matrix units  |
+| **Multi-GPU Interconnect**  | NVLink 5.0 (1.8 TB/s)          | Infinity Fabric     | XeLink (developing) |
+| **Enterprise Support**      | Comprehensive                  | Improving           | Growing             |
+| **Software Optimization**   | Extensive library ecosystem    | Improving           | Limited             |
 
 ### Why Competitors Struggle
 

@@ -159,6 +159,7 @@ Not all chips meet the highest performance specifications:
 **Performance binning**: NVIDIA tests and sorts chips into different performance categories based on measured characteristics. Chips that operate at lower clock speeds or consume slightly more power are classified separately from premium bins.
 
 **Yield optimization**: NVIDIA's strategy is to maximize overall yield by finding productive uses for almost every functional chip. Rather than discarding chips that fall slightly short of premium specifications, the company sorts them into different product lines:
+
 - Chips meeting the highest specifications become flagship products (like H100 or B200)
 - Chips with slightly lower performance become mid-range products
 - Even partially functional chips are evaluated for alternative applications
@@ -244,6 +245,7 @@ For NVIDIA's AI supercomputers (the DGX series and newer systems), assembly exte
 **Rack assembly**: Multiple GPUs, networking equipment, power supplies, and interconnect hardware are assembled into standard data center racks.
 
 **Complexity at scale**: A fully assembled NVIDIA AI supercomputer might contain:
+
 - 8 or more GPUs per node
 - Hundreds of GPUs in a complete system
 - 130 trillion transistors across all chips
@@ -260,6 +262,7 @@ Before any GPU reaches a customer, it undergoes extreme validation:
 **Thermal cycling**: Temperature is cycled between extremes to ensure reliability across operating conditions.
 
 **Performance validation**: Custom test software exercises all GPU capabilities:
+
 - Parallel computation workloads
 - Memory bandwidth utilization
 - AI inference and training scenarios
@@ -301,13 +304,16 @@ Semiconductor manufacturing is inherently yield-limited:
 ## Supply Chain and Manufacturing Partners
 
 ### Design Phase Partners
+
 - **NVIDIA**: Architecture design, EDA, verification
 
 ### Fabrication Partners
+
 - **TSMC (Taiwan and Arizona)**: Wafer fabrication
 - **Samsung**: Historical fabrication for earlier generation GPUs
 
 ### Packaging and Assembly Partners
+
 - **TSMC**: Advanced CoWoS packaging (current, Taiwan-based)
 - **Amkor Technology**: Packaging, test, assembly (expanding to US)
 - **SPIL (Siliconware)**: Packaging and testing
@@ -315,6 +321,7 @@ Semiconductor manufacturing is inherently yield-limited:
 - **Wistron**: System assembly (Dallas, Texas)
 
 ### Final Assembly and Test
+
 - **Foxconn, Wistron, Quanta Computer**: Global assembly partners
 
 ## Geographic Distribution and Recent Shifts
@@ -363,7 +370,7 @@ The scale and complexity of modern GPU manufacturing is staggering:
 
 ## Conclusion
 
-NVIDIA's GPU manufacturing represents the confluence of decades of semiconductor industry expertise, cutting-edge physics, and extraordinary precision engineering. The process transforms abstract designs into physical silicon containing hundreds of billions of transistors, requiring collaboration across multiple countries and dozens of specialized companies. 
+NVIDIA's GPU manufacturing represents the confluence of decades of semiconductor industry expertise, cutting-edge physics, and extraordinary precision engineering. The process transforms abstract designs into physical silicon containing hundreds of billions of transistors, requiring collaboration across multiple countries and dozens of specialized companies.
 
 Recent developments show NVIDIA shifting toward more geographically distributed manufacturing, with significant expansion of US manufacturing capacity while maintaining reliance on Taiwan's expertise for advanced packaging and some fabrication. This evolution reflects both the company's desire for supply chain resilience and the broader trend of reshoring advanced semiconductor manufacturing to the United States.
 

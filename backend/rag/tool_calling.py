@@ -17,17 +17,7 @@ LIST_DOCUMENTS_TOOL = {
     "type": "function",
     "function": {
         "name": "list_documents",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "topics": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "List of topics to retrieve documents from.",
-                }
-            },
-            "required": ["topics"],
-        },
+        "parameters": {},
     },
 }
 LIST_SECTIONS_TOOL = {
@@ -120,9 +110,7 @@ async def _get_tool_call_result(
         )
 
     if function_name == "list_documents":
-        return await list_documents(
-            topics=function_args["topics"],
-        )
+        return await list_documents()
 
     if function_name == "list_sections":
         return await list_sections(
@@ -176,5 +164,6 @@ async def handle_tool_calls(
                 "content": tool_result,
             }
         )
+        logger.debug(f"Tool '{function_name}' returned: {tool_result}")
 
     return tool_messages

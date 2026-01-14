@@ -20,20 +20,24 @@
 Before attempting to run LLMs locally with NVIDIA GPUs, ensure you have the following:
 
 **GPU Specifications:**
+
 - **NVIDIA GPU**: GeForce RTX series (20, 30, 40, or 50 series) or professional-grade GPUs (A100, A6000, H100)
 - **Minimum VRAM**: 4-6GB for 1.5B parameter models; 8-12GB for 7B models; 16GB+ for larger models
 - **Note**: NVIDIA CUDA support is essential; AMD or Intel GPUs require different toolchains
 
 **System RAM:**
+
 - At minimum, 1.5-2x the amount of VRAM available on your GPU
 - Example: For a GPU with 12GB VRAM, maintain 18-24GB of system RAM
 - This allows for model weights, activations, and temporary data structures
 
 **Storage:**
+
 - 50-100GB free disk space for model files and dependencies
 - SSDs are strongly recommended for faster model loading
 
 **Operating System:**
+
 - Windows 10/11
 - Ubuntu 20.04 or newer
 - macOS (for older GPU models; newer Macs use Apple Silicon instead)
@@ -59,10 +63,12 @@ If this command returns GPU information, your system is NVIDIA-compatible. If no
 Visit [NVIDIA's official driver download page](https://www.nvidia.com/Download/driverDetails.aspx) and download the latest driver for your GPU model and operating system.
 
 **Installation:**
+
 - **Windows**: Run the executable installer and follow the on-screen instructions. Restart your computer after installation.
 - **Linux**: Use your package manager or NVIDIA's official CUDA installer
 
 Verify the installation:
+
 ```bash
 nvidia-smi
 ```
@@ -74,6 +80,7 @@ Expected output shows your GPU model, CUDA Compute Capability, and available VRA
 Download the **CUDA Toolkit 12.x** or newer from [NVIDIA Developer Tools](https://developer.nvidia.com/cuda-toolkit-archive).
 
 **For Windows:**
+
 1. Download the local installer (`.exe`)
 2. Run the installer
 3. During installation, ensure you select:
@@ -97,6 +104,7 @@ sudo sh cuda_12.4.0_550.54.14_linux.run
 ### Step 3: Set Environment Variables
 
 **For Windows:**
+
 1. Open Environment Variables (search "Environment Variables" in Start Menu)
 2. Add the following to your PATH:
    ```
@@ -117,6 +125,7 @@ export CUDA_HOME=/usr/local/cuda
 ```
 
 Then apply changes:
+
 ```bash
 source ~/.bashrc
 ```
@@ -153,6 +162,7 @@ cuDNN (CUDA Deep Neural Network library) accelerates deep learning operations.
 Three primary frameworks dominate local LLM inference on NVIDIA GPUs:
 
 #### 1. **llama.cpp**
+
 - **Best for**: Flexible, hybrid CPU/GPU inference
 - **Quantization formats**: GGUF (primary), with support for multiple compression levels
 - **Performance**: Excellent single-GPU performance; supports layer offloading to CPU
@@ -160,6 +170,7 @@ Three primary frameworks dominate local LLM inference on NVIDIA GPUs:
 - **Community**: Very active; frequent performance optimizations
 
 #### 2. **Ollama**
+
 - **Best for**: Beginners; ease of use prioritized over performance
 - **Setup**: Simplest to get started; one-command model loading
 - **Model switching**: Automatic model unloading when switching between models
@@ -168,6 +179,7 @@ Three primary frameworks dominate local LLM inference on NVIDIA GPUs:
 - **Use cases**: Casual experimentation, local development, single-user deployments
 
 #### 3. **vLLM**
+
 - **Best for**: High-throughput, multi-user production environments
 - **Performance**: Highest throughput with concurrent requests; dynamic batching optimizes resource usage
 - **Concurrency**: Excels with 25+ simultaneous users
@@ -176,10 +188,12 @@ Three primary frameworks dominate local LLM inference on NVIDIA GPUs:
 - **Use cases**: API servers, multi-user applications, data centers
 
 #### Benchmark Comparison (NVIDIA A6000, 48GB VRAM, Llama-2-7B-Chat):
+
 - **Single request**: vLLM: 0.65s | Ollama: 0.76s
 - **25 concurrent users**: vLLM: 2.95s/request (8.41 req/s) | Ollama: 16.79s/request (1.31 req/s)
 
 **Recommendation Decision Tree:**
+
 - GPU with limited VRAM (≤12GB) → **llama.cpp or Ollama**
 - Single user or CPU fallback needed → **llama.cpp**
 - Casual experimentation → **Ollama**
@@ -205,6 +219,7 @@ Quantization reduces model size and improves inference speed by using lower-prec
 **When to use**: CPU-only or when GPU cannot fit the full model
 
 **Quantization levels** (ordered by precision/size):
+
 - `IQ2_XXS`: Extra-extra-small, extreme compression (~2-bit equivalent)
 - `IQ3_S`: Ultra-compact, best for very limited resources
 - `Q4_K_S`: Aggressive 4-bit, smallest file size
@@ -217,6 +232,7 @@ Quantization reduces model size and improves inference speed by using lower-prec
 **K-quants explanation**: The "K" indicates mixed-precision quantization. Critical weights receive higher precision (e.g., 6-bit), while less important weights use lower precision (e.g., 4-bit). This intelligently preserves model quality while maintaining compression.
 
 **Conversion example** (using llama.cpp):
+
 ```bash
 # Convert model to FP16 first
 python llama.cpp/convert.py path/to/model --outtype f16 --outfile model.fp16.bin
@@ -230,6 +246,7 @@ python llama.cpp/convert.py path/to/model --outtype f16 --outfile model.fp16.bin
 **When to use**: NVIDIA GPU with sufficient VRAM; prioritize GPU inference speed
 
 **Characteristics**:
+
 - Excellent accuracy at very low bit widths (2-4 bits)
 - ~5x faster than GGUF on GPU with optimized kernels like Marlin
 - Requires calibration dataset during quantization (quality depends on calibration data)
@@ -237,11 +254,13 @@ python llama.cpp/convert.py path/to/model --outtype f16 --outfile model.fp16.bin
 - Limited to single model per instance (cannot switch models easily)
 
 **Installation**:
+
 ```bash
 pip install auto_gptq optimum[exporters] transformers accelerate
 ```
 
 **Quantization code** (example):
+
 ```python
 from auto_gptq import AutoGPTQForCausalLM, BaseQuantizeConfig
 from transformers import AutoTokenizer
@@ -279,6 +298,7 @@ model.save_quantized("model-gptq")
 **When to use**: NVIDIA GPU; balance speed, quality, and ease of calibration
 
 **Characteristics**:
+
 - Activation-aware: identifies and protects important weights
 - Maintains model accuracy better than GPTQ at same bit-width
 - Faster quantization than GPTQ; requires less calibration data
@@ -286,11 +306,13 @@ model.save_quantized("model-gptq")
 - Often 2-3x faster than GPTQ with good optimization
 
 **Installation**:
+
 ```bash
 pip install autoawq
 ```
 
 **Quantization example**:
+
 ```python
 from awq import AutoAWQForCausalLM
 from transformers import AutoTokenizer
@@ -319,13 +341,13 @@ model.save_quantized("model-awq")
 
 Using the formula: **VRAM (GB) = (Parameters × Precision Bytes × 1.2) / 10^9**
 
-| Model Size | FP32 | FP16/BF16 | INT8 | INT4 (GPTQ/AWQ) | INT4 (GGUF Q4_K_M) |
-|-----------|------|-----------|------|-----------------|-------------------|
-| 1.5B      | 6GB  | 3GB       | 2GB  | 1.5GB           | 0.8-1GB           |
-| 7B        | 28GB | 14GB      | 8GB  | 5-6GB           | 4-5GB             |
-| 13B       | 52GB | 26GB      | 14GB | 8-10GB          | 8-9GB             |
-| 32B       | 128GB| 64GB      | 36GB | 20-24GB         | 18-20GB           |
-| 70B       | 280GB| 140GB     | 70GB | 40-48GB         | 35-40GB           |
+| Model Size | FP32  | FP16/BF16 | INT8 | INT4 (GPTQ/AWQ) | INT4 (GGUF Q4_K_M) |
+| ---------- | ----- | --------- | ---- | --------------- | ------------------ |
+| 1.5B       | 6GB   | 3GB       | 2GB  | 1.5GB           | 0.8-1GB            |
+| 7B         | 28GB  | 14GB      | 8GB  | 5-6GB           | 4-5GB              |
+| 13B        | 52GB  | 26GB      | 14GB | 8-10GB          | 8-9GB              |
+| 32B        | 128GB | 64GB      | 36GB | 20-24GB         | 18-20GB            |
+| 70B        | 280GB | 140GB     | 70GB | 40-48GB         | 35-40GB            |
 
 ---
 
@@ -336,11 +358,13 @@ Using the formula: **VRAM (GB) = (Parameters × Precision Bytes × 1.2) / 10^9**
 LM Studio is a user-friendly desktop application built on llama.cpp with NVIDIA optimization.
 
 **Installation**:
+
 1. Download from [LM Studio official website](https://lmstudio.ai)
 2. Install for your operating system (Windows, macOS, or Linux)
 3. Launch the application
 
 **First Run Setup**:
+
 1. Click the magnifying glass icon to open the Discover menu
 2. Navigate to Runtime settings
 3. Search for "CUDA 12 llama.cpp (Windows)" or appropriate platform
@@ -348,11 +372,13 @@ LM Studio is a user-friendly desktop application built on llama.cpp with NVIDIA 
 5. Set as default runtime in Dropdown selections
 
 **Loading a Model**:
+
 1. Search for a model (e.g., "llama2", "mistral", "neural-chat")
 2. Click Download
 3. Once downloaded, click Load in the chat interface
 
 **GPU Optimization**:
+
 1. Load a model
 2. Click the gear icon next to the model name
 3. Toggle "Flash Attention" to ON
@@ -365,6 +391,7 @@ LM Studio is a user-friendly desktop application built on llama.cpp with NVIDIA 
 Ollama simplifies model management with minimal configuration.
 
 **Installation**:
+
 ```bash
 # Windows: Download installer from https://ollama.ai
 
@@ -376,6 +403,7 @@ curl -fsSL https://ollama.ai/install.sh | sh
 ```
 
 **Run a Model**:
+
 ```bash
 # Download and run in one command
 ollama run llama2
@@ -391,6 +419,7 @@ ollama stop
 ```
 
 **Create Custom Modelfile**:
+
 ```dockerfile
 FROM mistral:7b
 
@@ -400,6 +429,7 @@ SYSTEM "You are a helpful coding assistant."
 ```
 
 Save as `Modelfile` and run:
+
 ```bash
 ollama create my-custom-model -f ./Modelfile
 ollama run my-custom-model
@@ -408,6 +438,7 @@ ollama run my-custom-model
 ### Option 3: Using llama.cpp Directly (Most Control)
 
 **Clone and Build**:
+
 ```bash
 # Clone repository
 git clone https://github.com/ggerganov/llama.cpp
@@ -425,6 +456,7 @@ make LLAMA_CUDA=1 -j$(nproc)
 ```
 
 **Download a Model**:
+
 ```bash
 # Use Hugging Face CLI
 pip install huggingface_hub
@@ -434,6 +466,7 @@ huggingface-cli download TheBloke/Mistral-7B-Instruct-v0.1-GGUF mistral-7b-instr
 ```
 
 **Run Inference via CLI**:
+
 ```bash
 # Basic inference
 ./main -m mistral-7b-instruct-v0.1.Q4_K_M.gguf -p "Explain quantum computing" -n 256
@@ -459,11 +492,13 @@ huggingface-cli download TheBloke/Mistral-7B-Instruct-v0.1-GGUF mistral-7b-instr
 ### Option 4: Using vLLM (Production Serving)
 
 **Installation**:
+
 ```bash
 pip install vllm
 ```
 
 **Run vLLM Server**:
+
 ```bash
 # Basic server
 python -m vllm.entrypoints.openai.api_server \
@@ -479,6 +514,7 @@ python -m vllm.entrypoints.openai.api_server \
 ```
 
 **Query the API**:
+
 ```python
 import requests
 
@@ -544,6 +580,7 @@ cd .. # Back to llama.cpp directory
 ### GPU-Specific Optimizations
 
 #### Enable Flash Attention (15% throughput boost)
+
 ```bash
 # In LM Studio: Toggle "Flash Attention" in model settings
 
@@ -552,12 +589,14 @@ cd .. # Back to llama.cpp directory
 ```
 
 #### CUDA Graph Enablement (35% throughput improvement)
+
 ```bash
 # Enable in llama.cpp/LM Studio (automatic with CUDA 12.8+)
 # Reduces CPU-GPU synchronization overhead
 ```
 
 #### Optimal GPU Layer Offloading
+
 ```bash
 # General rule: Find maximum n_ctx that fits in VRAM
 # For a 7B Q4_K_M model on 12GB GPU:
@@ -614,6 +653,7 @@ EOF
 ### Common Issues and Solutions
 
 #### **Issue: "CUDA out of memory" Error**
+
 ```bash
 # Solution 1: Reduce context window
 ./main -m model.gguf -n 2048 -ngl 32
@@ -629,6 +669,7 @@ EOF
 ```
 
 #### **Issue: Very Slow Inference Speed**
+
 ```bash
 # Verify GPU is being used
 nvidia-smi
@@ -647,6 +688,7 @@ nvidia-smi dmon  # Real-time monitoring
 ```
 
 #### **Issue: Model Not Found or CUDA Errors**
+
 ```bash
 # Verify CUDA installation
 nvcc --version
@@ -658,6 +700,7 @@ make LLAMA_CUDA=1 -j$(nproc)
 ```
 
 #### **Issue: Model Produces Incoherent Responses**
+
 ```bash
 # Problem: Too aggressive quantization
 # Solution: Use higher-quality GGUF level
@@ -673,26 +716,29 @@ make LLAMA_CUDA=1 -j$(nproc)
 ### Best Practices
 
 #### 1. **Choose Appropriate Model Size**
+
 - **12GB GPU**: 7B models maximum (Q4/Q5 quantization)
 - **16GB GPU**: 13B models (Q4 quantization) or 7B full precision
 - **24GB GPU**: 32B models (Q4 quantization)
 - **48GB+ GPU**: 70B models or custom fine-tuned models
 
 #### 2. **VRAM Allocation Strategy**
+
 - Reserve 1-2GB for OS and background processes
 - Allocate remaining VRAM for model, KV cache, and activations
 - Example on 12GB GPU: 10GB for model inference
 
 #### 3. **Quantization Quality Matrix**
 
-| Quality Requirement | VRAM Budget | Recommended |
-|-------------------|-------------|------------|
-| Maximum quality   | Abundant    | FP16/FP32  |
-| High quality      | Moderate    | Q5_K_M (GGUF) or AWQ |
-| Balanced          | Limited     | Q4_K_M (GGUF) or GPTQ |
-| Extreme compression| Minimal    | IQ2_XXS or IQ3_S |
+| Quality Requirement | VRAM Budget | Recommended           |
+| ------------------- | ----------- | --------------------- |
+| Maximum quality     | Abundant    | FP16/FP32             |
+| High quality        | Moderate    | Q5_K_M (GGUF) or AWQ  |
+| Balanced            | Limited     | Q4_K_M (GGUF) or GPTQ |
+| Extreme compression | Minimal     | IQ2_XXS or IQ3_S      |
 
 #### 4. **Production Deployment Checklist**
+
 - [ ] Test model with representative prompts
 - [ ] Monitor GPU memory during peak load
 - [ ] Set appropriate context window limits
@@ -702,12 +748,14 @@ make LLAMA_CUDA=1 -j$(nproc)
 - [ ] Implement prompt caching for repeated queries
 
 #### 5. **Security Considerations**
+
 - Run inference in isolated environments for untrusted inputs
 - Monitor VRAM usage to prevent DoS attacks (context bombing)
 - Sanitize system prompts to prevent prompt injection
 - Use rate limiting on inference endpoints
 
 #### 6. **Finding Pre-Quantized Models**
+
 - Visit [Hugging Face Model Hub](https://huggingface.co/models?library=gguf)
 - Search for "GGUF", "GPTQ", or "AWQ" tags
 - Popular creators: TheBloke (GGUF/GPTQ), AutoGPTQ team (AWQ)
@@ -719,14 +767,15 @@ make LLAMA_CUDA=1 -j$(nproc)
 
 **Test Setup**: NVIDIA RTX 5080, DeepSeek-R1-Distill-Llama-8B (Q4_K_M GGUF)
 
-| Configuration | Tokens/Second | Throughput |
-|---|---|---|
-| Without optimizations | 35 tok/s | Baseline |
-| With Flash Attention | 40 tok/s | +15% |
-| With CUDA Graphs | 47 tok/s | +35% |
-| All optimizations enabled | ~45 tok/s | +27% average |
+| Configuration             | Tokens/Second | Throughput   |
+| ------------------------- | ------------- | ------------ |
+| Without optimizations     | 35 tok/s      | Baseline     |
+| With Flash Attention      | 40 tok/s      | +15%         |
+| With CUDA Graphs          | 47 tok/s      | +35%         |
+| All optimizations enabled | ~45 tok/s     | +27% average |
 
 **Model Loading Time**:
+
 - GGUF Q4_K_M (7B): ~2-3 seconds with GPU offloading
 - GPTQ (7B): ~1-2 seconds
 - Full precision (7B): ~4-5 seconds
@@ -736,17 +785,20 @@ make LLAMA_CUDA=1 -j$(nproc)
 ## Resources and Further Learning
 
 ### Official Documentation
+
 - [llama.cpp GitHub Repository](https://github.com/ggerganov/llama.cpp)
 - [NVIDIA CUDA Toolkit Documentation](https://docs.nvidia.com/cuda/)
 - [Ollama Official Guide](https://ollama.ai/library)
 - [vLLM Documentation](https://docs.vllm.ai/)
 
 ### Community Resources
+
 - Hugging Face Model Hub with GGUF filters
 - LocalLLaMA subreddit for troubleshooting
 - NVIDIA RTX AI Garage blog for latest optimizations
 
 ### Recommended Models for Local Inference
+
 - **Llama 2 7B** (Meta): Excellent all-rounder
 - **Mistral 7B** (Mistral AI): Fast and capable
 - **Neural Chat 7B** (Intel): Optimized for CPU/GPU hybrid

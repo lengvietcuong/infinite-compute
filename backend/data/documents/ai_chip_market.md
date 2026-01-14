@@ -56,16 +56,17 @@ AMD's AI business remains "considerably smaller" than NVIDIA's, with **$5 billio
 
 **Instinct Series GPUs:**
 
-| Feature | MI355X | MI350X |
-|---------|--------|--------|
-| Memory | 288 GB HBM3E | 288 GB HBM3E |
-| Peak Bandwidth | 8 TB/s | 8 TB/s |
-| FP6/FP4 Performance | Up to 20 petaflops | Up to 18.4 petaflops |
-| FP8 Performance | 10 petaflops | ~10 petaflops |
-| Form Factor | Liquid-cooled | Air or liquid-cooled |
-| Price Advantage | 40% more tokens per dollar | Higher throughput, economical |
+| Feature             | MI355X                     | MI350X                        |
+| ------------------- | -------------------------- | ----------------------------- |
+| Memory              | 288 GB HBM3E               | 288 GB HBM3E                  |
+| Peak Bandwidth      | 8 TB/s                     | 8 TB/s                        |
+| FP6/FP4 Performance | Up to 20 petaflops         | Up to 18.4 petaflops          |
+| FP8 Performance     | 10 petaflops               | ~10 petaflops                 |
+| Form Factor         | Liquid-cooled              | Air or liquid-cooled          |
+| Price Advantage     | 40% more tokens per dollar | Higher throughput, economical |
 
 **Generational Improvements:**
+
 - MI355X delivers **4.2x performance improvement over MI300X** for generative AI
 - Compared to NVIDIA's B200, MI355X provides:
   - 2x higher FP6 performance
@@ -76,6 +77,7 @@ AMD's AI business remains "considerably smaller" than NVIDIA's, with **$5 billio
 ### Roadmap
 
 **MI400 Series (2026):**
+
 - Announced as next-generation AI accelerators
 - Expected to deliver **10x more performance** for Mixture of Experts inference
 - 300 GB/s per GPU interconnect bandwidth
@@ -106,6 +108,7 @@ Intel expanded its AI ambitions by shifting focus from Xeon CPUs toward speciali
 ### Gaudi AI Accelerators
 
 **Gaudi 3 Architecture:**
+
 - **Memory**: 128 GB HBM per accelerator
 - **Bandwidth**: 3.7 TB/s (competitive with leading alternatives)
 - **Design**: Optimized for enterprise and cloud AI workloads
@@ -124,6 +127,7 @@ Intel expanded its AI ambitions by shifting focus from Xeon CPUs toward speciali
 ### Performance Benchmarks
 
 According to Stability AI benchmarks with Gaudi 2:
+
 - **1.5x faster** than NVIDIA A100-80GB on distributed training (32-node cluster)
 - **3x+ more images/second** compared to A100s on stable diffusion training
 - Inference on Stable Diffusion 3 8B competitive with A100 using PyTorch optimization
@@ -144,12 +148,12 @@ Google developed **Tensor Processing Units (TPUs)** specifically for machine lea
 
 ### Key Distinction: TPU vs. GPU
 
-| Aspect | TPU (Google) | GPU (NVIDIA) |
-|--------|-----------|----------|
-| Design Philosophy | Hardwired for specific AI ops | General-purpose graphics processors adapted for AI |
-| Primary Use Case | Internal ML workloads, now external sales | Universal compute (training, inference, graphics) |
-| Energy Efficiency | Superior for specific tasks | More flexible but less specialized |
-| Scalability | SuperPods with 9,216 chips | Clusters limited by NVLink bandwidth |
+| Aspect            | TPU (Google)                              | GPU (NVIDIA)                                       |
+| ----------------- | ----------------------------------------- | -------------------------------------------------- |
+| Design Philosophy | Hardwired for specific AI ops             | General-purpose graphics processors adapted for AI |
+| Primary Use Case  | Internal ML workloads, now external sales | Universal compute (training, inference, graphics)  |
+| Energy Efficiency | Superior for specific tasks               | More flexible but less specialized                 |
+| Scalability       | SuperPods with 9,216 chips                | Clusters limited by NVLink bandwidth               |
 
 ### Latest Generation: TPU Ironwood
 
@@ -181,12 +185,14 @@ After focusing primarily on mobile processors and embedded systems, Qualcomm off
 ### New AI Accelerators
 
 **AI200 (2026):**
+
 - Launch expected in 2026
 - Based on Qualcomm's Hexagon NPU architecture, optimized for data center workloads
 - Designed for rack-scale AI inference
 - Software platform: Hyperscaler-grade end-to-end optimization
 
 **AI250 (2027):**
+
 - Next-generation offering with enhanced performance specifications
 - Expected to deliver performance parity with or exceed AMD and NVIDIA alternatives
 
@@ -208,6 +214,7 @@ Qualcomm's stock surged nearly 15% following the AI chip announcement, reflectin
 ### Cerebras: Wafer-Scale Processors
 
 **Unique Architecture:**
+
 - **WSE-3 (Wafer Scale Engine 3)**: Single 300mm die with ~4 trillion transistors
 - **Cores**: 900,000 AI-optimized compute cores
 - **On-Chip Memory**: 44 GB of ultra-fast SRAM (distributed alongside cores)
@@ -216,11 +223,13 @@ Qualcomm's stock surged nearly 15% following the AI chip announcement, reflectin
 
 **Key Innovation:**
 The wafer-scale approach eliminates boundaries between separate chips, providing:
+
 - Minimal latency for inter-core communication
 - Massive on-chip memory reducing off-chip bandwidth needs
 - Strong scaling properties for very large models
 
 **Competitive Positioning:**
+
 - Ideal for training frontier models (GPT-5 scale)
 - Solves specific bottleneck: models too large for distributed GPU training
 - Not positioned as a general replacement but rather a specialized tool
@@ -230,20 +239,24 @@ The wafer-scale approach eliminates boundaries between separate chips, providing
 ### Groq: Low-Latency Inference with Language Processing Units
 
 **Revolutionary Architecture:**
+
 - **LPU (Language Processing Unit)**: Purpose-built for high-throughput, low-latency inference
 - **Deterministic Execution**: Compiler predicts exactly when data arrives at each computation stage, eliminating variable latency
 - **Single-Core Tensor Streaming**: Optimized for sequential token generation
 
 **Benchmark Performance:**
+
 - **Llama 2 70B**: 300 tokens/second (10x faster than NVIDIA H100 clusters)
 - **Real-World Impact**: Makes conversational AI instantaneous, enables complex multi-step reasoning chains in seconds
 
 **Software-First Design:**
+
 - Architecture designed around actual AI inference operations, not adapted from graphics processors
 - Chip-to-chip scaling via proprietary plesiosynchronous protocol
 - Compiler-driven execution ensures deterministic performance
 
 **Market Strategy:**
+
 - Partnering with Meta for official Llama API integration
 - Targeting use cases where latency matters more than throughput density
 
@@ -252,11 +265,13 @@ The wafer-scale approach eliminates boundaries between separate chips, providing
 ### SambaNova: Energy-Efficient Inference Platforms
 
 **Technology:**
+
 - **RDU (Reconfigurable Dataflow Unit)**: Custom silicon for AI inference
 - **Performance**: Claims 4x better efficiency than GPUs (Intelligence per Joule)
 - **Power Efficiency**: SambaRack systems consume average 10 kW for largest models (e.g., 120B parameters)
 
 **Product Offerings:**
+
 - **SambaNova Cloud**: Managed service for fast inference on open-source models
 - **SambaStack**: On-premises deployment for sovereign AI requirements
 - **Samba-1**: In-house trained 1-trillion-parameter generative model (open foundation)
@@ -270,16 +285,19 @@ Intel announced acquisition of SambaNova in December 2025 for **~$1.6 billion**,
 ### Graphcore: Intelligence Processing Units
 
 **Background:**
+
 - Founded 2016, backed by $700+ million in funding
 - Recently acquired by SoftBank for scaling acceleration
 - Positioned as the NVIDIA challenger for very large-scale AI models
 
 **IPU Architecture:**
+
 - **Purpose-Built Design**: Each processor core has dedicated fast memory on-chip
 - **Performance Claims**: 3-7x performance improvements over GPUs for certain workloads
 - **Scalability**: Flexible disaggregation model enabling configuration up to 64,000 IPUs
 
 **Market Position:**
+
 - Focused on extreme-scale AI training for models too large for traditional GPU approaches
 - Smaller market presence but gaining traction in specific enterprise segments
 
@@ -292,6 +310,7 @@ Intel announced acquisition of SambaNova in December 2025 for **~$1.6 billion**,
 Apple integrates specialized **Neural Engine** components into its proprietary silicon:
 
 **Current Generation (A17 Pro / M-Series):**
+
 - **M4 Neural Engine**: 38 trillion operations per second
 - **A19 Pro (iPhone 17)**: Neural accelerators integrated into GPU cores
 - **Architecture**: Distributed neural processing units within unified memory systems
@@ -316,18 +335,21 @@ Apple's neural engines target consumer devices and professionals, not data cente
 Tesla developed custom AI chips to accelerate Full Self-Driving (FSD) and Optimus robotics:
 
 **D1 Chip Architecture:**
+
 - **Transistors**: 50 billion per chip
 - **Process**: 7-nanometer technology
 - **Performance**: 362 teraflops of compute power
 - **Key Feature**: 32 MB high-speed SRAM on-chip for rapid data access
 
 **Tesla AI5 (Next Generation):**
+
 - **40x better performance** over predecessor
 - **8x more raw compute power**
 - **9x more memory**
 - Supports full FSD pipeline and Optimus humanoid robot AI
 
 **Dojo Supercomputer:**
+
 - Tesla's training infrastructure uses proprietary D1 chips
 - Purpose-built for autonomous driving neural network training
 
@@ -346,17 +368,20 @@ Broadcom positions itself not as a GPU competitor but as the **nervous system of
 ### Key Products
 
 **Tomahawk 6 Switch Asics:**
+
 - 2x performance improvement over predecessors
 - Enables 2-tier networks (eliminating a costly 3rd tier)
 - Supports up to 131,000 processors per network
 - Configurations: 512 lanes @ 200 Gbps or 1,024 lanes @ 100 Gbps
 
 **Tomahawk Ultra:**
+
 - Rack-scale AI system interconnection
 - Competes with NVIDIA's NVLink Switch
 - Capable of connecting **4x more chips** using Ethernet-based protocol
 
 **Co-Packaged Optics (CPO):**
+
 - Optical transceivers integrated directly with switch chips
 - 3.5x more efficient than traditional pluggable modules
 - Enables 6.4 Tb/s optical Ethernet chiplets
@@ -364,6 +389,7 @@ Broadcom positions itself not as a GPU competitor but as the **nervous system of
 ### Market Importance
 
 While not making AI chips per se, Broadcom's technologies are **essential infrastructure** that enables:
+
 - Scaling of GPU clusters (NVIDIA's or competitors')
 - Efficient data movement in large AI systems
 - Cost reduction in hyperscaler deployments
@@ -374,25 +400,25 @@ While not making AI chips per se, Broadcom's technologies are **essential infras
 
 ### Training vs. Inference Focus
 
-| Manufacturer | Training Strength | Inference Strength | Notes |
-|--------------|------------------|-------------------|-------|
-| NVIDIA | Dominant (Blackwell) | Strong but not specialized | General-purpose leader |
-| AMD | Strong (MI350/MI400) | Excellent (memory advantage) | Gaining parity for training, better value for inference |
-| Google TPU | Excellent internal use | Purpose-built (Ironwood) | Inference increasingly dominant focus |
-| Cerebras | Exceptional (24T params) | Limited | Specialized for extreme-scale training |
-| Groq | Not competitive | Outstanding (300 tok/sec) | Deterministic latency focus |
-| SambaNova | Limited | Exceptional (4x efficiency) | Energy-efficiency specialist |
-| Intel Gaudi | Competitive | Strong (50% vs H100 claim) | Cost-effective alternative |
+| Manufacturer | Training Strength        | Inference Strength           | Notes                                                   |
+| ------------ | ------------------------ | ---------------------------- | ------------------------------------------------------- |
+| NVIDIA       | Dominant (Blackwell)     | Strong but not specialized   | General-purpose leader                                  |
+| AMD          | Strong (MI350/MI400)     | Excellent (memory advantage) | Gaining parity for training, better value for inference |
+| Google TPU   | Excellent internal use   | Purpose-built (Ironwood)     | Inference increasingly dominant focus                   |
+| Cerebras     | Exceptional (24T params) | Limited                      | Specialized for extreme-scale training                  |
+| Groq         | Not competitive          | Outstanding (300 tok/sec)    | Deterministic latency focus                             |
+| SambaNova    | Limited                  | Exceptional (4x efficiency)  | Energy-efficiency specialist                            |
+| Intel Gaudi  | Competitive              | Strong (50% vs H100 claim)   | Cost-effective alternative                              |
 
 ### Memory and Bandwidth Comparison
 
-| Chip | Memory | Bandwidth | Use Case |
-|------|--------|-----------|----------|
-| NVIDIA Blackwell B200 | 192 GB | 9.2 TB/s | Balanced training/inference |
-| AMD MI355X | 288 GB | 8 TB/s | Memory-intensive inference |
-| Google TPU Ironwood | Large on-chip | 9.6 Tb/s interconnect | Hyperscale inference |
-| Cerebras WSE-3 | 44 GB on-chip | 21 PB/s internal | Extreme-scale training |
-| Intel Gaudi 3 | 128 GB | 3.7 TB/s | Enterprise inference |
+| Chip                  | Memory        | Bandwidth             | Use Case                    |
+| --------------------- | ------------- | --------------------- | --------------------------- |
+| NVIDIA Blackwell B200 | 192 GB        | 9.2 TB/s              | Balanced training/inference |
+| AMD MI355X            | 288 GB        | 8 TB/s                | Memory-intensive inference  |
+| Google TPU Ironwood   | Large on-chip | 9.6 Tb/s interconnect | Hyperscale inference        |
+| Cerebras WSE-3        | 44 GB on-chip | 21 PB/s internal      | Extreme-scale training      |
+| Intel Gaudi 3         | 128 GB        | 3.7 TB/s              | Enterprise inference        |
 
 ### Energy Efficiency Leaders
 
@@ -408,6 +434,7 @@ While not making AI chips per se, Broadcom's technologies are **essential infras
 ### Hyperscaler Behavior
 
 **Cloud Providers' Multi-Chip Strategy:**
+
 - AWS: Primarily NVIDIA with emerging AMD support
 - Microsoft Azure: Exclusive NVIDIA Maia partnership + OpenAI Triton TPUs
 - Google Cloud: Internal TPU usage with NVIDIA/AMD/Intel alternatives
@@ -424,6 +451,7 @@ While not making AI chips per se, Broadcom's technologies are **essential infras
 ### The "Inference Inflection"
 
 A fundamental shift is underway:
+
 - **Training**: Concentrated, conducted once, NVIDIA-dominated
 - **Inference**: Distributed, conducted billions of times daily, becoming increasingly specialized
 
@@ -436,6 +464,7 @@ This inflection favors competitors like Google (TPU), Groq, and SambaNova focusi
 ### CUDA's Dominance
 
 NVIDIA's ecosystem remains unmatched:
+
 - 30+ million developers
 - Deep framework integration (PyTorch, TensorFlow, JAX)
 - Comprehensive library ecosystem (TensorRT, cuDNN, cuML, RAPIDS)
@@ -443,17 +472,18 @@ NVIDIA's ecosystem remains unmatched:
 
 ### Alternatives
 
-| Platform | Maturity | Adoption | Strengths | Weaknesses |
-|----------|----------|----------|-----------|-----------|
-| AMD ROCm | Mature | Growing | Open standards, improving libraries | Smaller community, some compatibility gaps |
-| Google TensorFlow | Mature | Widespread | Flexible, multi-platform | Not hardware-specific advantage |
-| PyTorch | Mature | Dominant | Framework-agnostic | Relies on underlying hardware APIs |
-| Groq Compiler | New | Limited | Deterministic optimization | Requires retraining for new models |
-| Cerebras Cerebrum | Emerging | Limited | Large-model support | Specialized, not general-purpose |
+| Platform          | Maturity | Adoption   | Strengths                           | Weaknesses                                 |
+| ----------------- | -------- | ---------- | ----------------------------------- | ------------------------------------------ |
+| AMD ROCm          | Mature   | Growing    | Open standards, improving libraries | Smaller community, some compatibility gaps |
+| Google TensorFlow | Mature   | Widespread | Flexible, multi-platform            | Not hardware-specific advantage            |
+| PyTorch           | Mature   | Dominant   | Framework-agnostic                  | Relies on underlying hardware APIs         |
+| Groq Compiler     | New      | Limited    | Deterministic optimization          | Requires retraining for new models         |
+| Cerebras Cerebrum | Emerging | Limited    | Large-model support                 | Specialized, not general-purpose           |
 
 ### The Lock-In Problem
 
 CUDA's dominance creates a classic vendor lock-in situation:
+
 - Switching costs are very high for existing deployments
 - New developers default to CUDA as the safe choice
 - Third-party optimizations disproportionately benefit NVIDIA
@@ -481,12 +511,14 @@ CUDA's dominance creates a classic vendor lock-in situation:
 ### TCO Analysis
 
 **For Large-Scale Inference (e.g., LLM serving):**
+
 - Groq: Superior latency-per-watt
 - Google TPU: Superior throughput-per-watt
 - SambaNova: Superior efficiency per token
 - NVIDIA: General-purpose advantage, ecosystem costs offset by maturity
 
 **For Training:**
+
 - NVIDIA: Still best-in-class despite competition
 - Cerebras: Superior for 10T+ parameter models
 - AMD: Increasingly viable for cost-sensitive training
@@ -518,26 +550,31 @@ CUDA's dominance creates a classic vendor lock-in situation:
 ### Hardware Roadmap Highlights
 
 **NVIDIA:**
+
 - Vera Rubin (2026): Inference-optimized, 10x cheaper serving
 - Next-generation Blackwell variants
 - Continued NVLink innovation
 
 **AMD:**
+
 - MI400 series (2026): 10x inference performance on MoE models
 - Helios rack integration: Complete stack with EPYC/Pensando
 - Potential 50%+ market share gain in inference
 
 **Intel:**
+
 - Gaudi 3 full production rollout (H2 2025)
 - Gaudi 4 roadmap
 - Potential SambaNova integration post-acquisition
 
 **Google:**
+
 - TPU expansion to external customers (Meta partnership scaling)
 - Internal use cases creating leverage
 - Possible new TPU generation
 
 **Qualcomm:**
+
 - AI200 commercial availability (2026)
 - Enterprise data center adoption ramping
 - Sovereign AI market focus

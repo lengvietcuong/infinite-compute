@@ -22,12 +22,14 @@ Before opening your case, ensure you have the following:
 ### 1.2 System Preparation
 
 **Power Down Safely:**
+
 - Completely power off your PC
 - Unplug the power cable from the wall
 - Wait at least 20 seconds to allow all capacitors to discharge
 - Press the power button once to ground any remaining electricity
 
 **Prepare Your Case:**
+
 - Open the PC case following your case manufacturer's instructions
 - Locate the primary PCIe x16 slot on your motherboard (usually the topmost full-length slot, just below the RAM)
 - Remove the two metal bracket covers from the rear of your case that align with your GPU's output ports
@@ -35,10 +37,12 @@ Before opening your case, ensure you have the following:
 ### 1.3 Installing the GPU into the PCIe Slot
 
 **Motherboard Preparation:**
+
 - Locate the retention clip at the right end of the primary PCIe x16 slot
 - Gently push this clip downward to the unlocked position
 
 **Inserting the GPU:**
+
 1. Align the GPU's gold connector fingers with the PCIe x16 slot
 2. The notch on the GPU connector should align with the key in the motherboard slot
 3. Gently but firmly insert the GPU into the slot, applying even downward pressure
@@ -50,16 +54,19 @@ Before opening your case, ensure you have the following:
 ### 1.4 Power Supply Connections
 
 **Determine Power Requirements:**
+
 - Check your GPU's specifications on the manufacturer's website for power consumption (TDP)
 - Identify the type and number of PCIe power connectors required (6-pin, 8-pin, or 12-pin)
 
 **Power Cable Guidelines:**
+
 - PCIe x16 motherboard slot: provides up to 75W
 - 6-pin PCIe connector: provides up to 75W
 - 8-pin PCIe connector: provides up to 150W
 - 12-pin PCIe connector: provides up to 400W (newer NVIDIA designs)
 
 **Connecting Power Cables:**
+
 1. Locate the PCIe power connectors on the top of your GPU
 2. Route cables from your PSU to the GPU, avoiding sharp bends
 3. Connect each cable firmly—the connector should fit only one way (keyed design)
@@ -67,6 +74,7 @@ Before opening your case, ensure you have the following:
 5. Ensure all connections are fully inserted until you see a click or feel resistance
 
 **Power Supply Requirements:**
+
 - Minimum PSU capacity: GPU TDP + CPU + system overhead
 - For example, an RTX 4090 (575W) + high-end CPU requires at least a 1000W PSU
 - Always consult the GPU manufacturer's recommended system power supply rating
@@ -78,6 +86,7 @@ Many modern GPUs come with pre-applied thermal paste on the cooler. Check the ba
 **If Manual Application is Needed:**
 
 1. **Preparation:**
+
    - Remove the GPU from the case
    - Remove the heatsink/cooler from the GPU die
    - Clean the GPU die surface using isopropyl alcohol and a microfiber cloth
@@ -87,14 +96,17 @@ Many modern GPUs come with pre-applied thermal paste on the cooler. Check the ba
 2. **Thermal Paste Application Methods:**
 
    **Dot Method (Recommended for Most GPUs):**
+
    - Apply a small dot of thermal paste (rice grain size, ~0.3-0.4ml) in the center of the GPU's integrated heat spreader (IHS)
    - The mounting pressure will spread the paste evenly
 
    **Line Method:**
+
    - Create a thin line of thermal paste along the center of the IHS
    - The line length should equal the width of the IHS
 
    **Spread Method:**
+
    - Use a plastic spreader or old credit card to apply a thin, even layer
    - Ensure complete coverage but keep the layer thin
 
@@ -111,17 +123,20 @@ Many modern GPUs come with pre-applied thermal paste on the cooler. Check the ba
 ### 2.1 Identifying Your GPU
 
 **On Windows:**
+
 1. Right-click on the Windows Start button
 2. Select "Device Manager"
 3. Expand "Display adapters"
 4. Note your GPU model name
 
 **On Linux:**
+
 ```bash
 lspci | grep -i nvidia
 ```
 
 **On macOS:**
+
 - Click the Apple menu
 - Select "About This Mac"
 - Go to "System Report"
@@ -130,10 +145,12 @@ lspci | grep -i nvidia
 ### 2.2 Windows Driver Installation
 
 **Step 1: Check CUDA Compatibility**
+
 - Visit NVIDIA's [CUDA-Enabled GPU List](https://developer.nvidia.com/cuda-gpus)
 - Verify your GPU supports CUDA
 
 **Step 2: Download the Latest Driver**
+
 1. Go to [NVIDIA Driver Downloads](https://www.nvidia.com/Download/index.aspx)
 2. Select your GPU product line, series, and OS
 3. Choose between:
@@ -152,6 +169,7 @@ For problematic drivers or switching from AMD, perform a clean install using Dis
 5. Click "Clean and Restart"
 
 **Step 4: Install the Driver**
+
 1. Run the downloaded NVIDIA installer
 2. Review and accept the license agreement
 3. Choose **Custom (Advanced)** installation type
@@ -161,10 +179,12 @@ For problematic drivers or switching from AMD, perform a clean install using Dis
 7. Click Install and wait for completion
 
 **Step 5: Restart System**
+
 - Reboot once installation completes
 - Let Windows fully load
 
 **Step 6: Verify Installation**
+
 1. Right-click on desktop
 2. Select "NVIDIA Control Panel"
 3. Go to "Help" → "System Information"
@@ -173,6 +193,7 @@ For problematic drivers or switching from AMD, perform a clean install using Dis
 ### 2.3 Linux Driver Installation (Ubuntu/Debian)
 
 **Automatic Installation (Recommended):**
+
 ```bash
 # Update package list
 sudo apt update
@@ -185,6 +206,7 @@ sudo reboot
 ```
 
 **Manual Installation with DKMS:**
+
 ```bash
 # Install required packages
 sudo apt install linux-headers-$(uname -r)
@@ -201,6 +223,7 @@ sudo reboot
 ```
 
 **For Fedora/RHEL-based Systems:**
+
 ```bash
 # Add NVIDIA repository
 sudo dnf config-manager --add-repo http://developer.download.nvidia.com/compute/cuda/repos/rhel10/$(uname -m)/cuda-rhel10.repo
@@ -221,6 +244,7 @@ sudo reboot
 ### 2.4 macOS Driver Installation
 
 NVIDIA drivers for macOS are limited. Most newer GPUs require alternatives like:
+
 - Metal Performance Shaders (MPS) for native acceleration
 - eGPU support through Thunderbolt 3/4
 - Third-party tools like CUDA through Docker containers
@@ -230,16 +254,19 @@ Check [NVIDIA's macOS support page](https://www.nvidia.com/Download/driverResult
 ### 2.5 Verify Driver Installation
 
 **Windows (Command Prompt):**
+
 ```bash
 nvidia-smi
 ```
 
 **Linux/macOS (Terminal):**
+
 ```bash
 nvidia-smi
 ```
 
 Expected output should display:
+
 - GPU name and memory
 - Driver version
 - CUDA Compute Capability
@@ -253,6 +280,7 @@ CUDA is required for GPU-accelerated computing and deep learning frameworks.
 ### 3.1 Windows CUDA Installation
 
 **Step 1: Download CUDA Toolkit**
+
 1. Visit [NVIDIA CUDA Toolkit Download](https://developer.nvidia.com/cuda-downloads)
 2. Select:
    - OS: Windows
@@ -262,6 +290,7 @@ CUDA is required for GPU-accelerated computing and deep learning frameworks.
 4. Download the installer
 
 **Step 2: Run the Installer**
+
 1. Execute the downloaded .exe file with administrator privileges
 2. Accept the license agreement
 3. Select installation location (default: `C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\vX.X`)
@@ -274,8 +303,10 @@ CUDA is required for GPU-accelerated computing and deep learning frameworks.
 5. Complete installation
 
 **Step 3: Verify Installation**
+
 1. Open Command Prompt
 2. Run:
+
 ```bash
 nvcc --version
 ```
@@ -285,6 +316,7 @@ Should display CUDA compiler version.
 ### 3.2 Linux CUDA Installation (Ubuntu)
 
 **Step 1: Install CUDA Repository**
+
 ```bash
 # Install curl if needed
 sudo apt update && sudo apt install curl
@@ -297,6 +329,7 @@ echo "deb [signed-by=/usr/share/keyrings/nvidia-cuda-keyring.gpg] https://develo
 ```
 
 **Step 2: Install CUDA Toolkit**
+
 ```bash
 sudo apt update
 sudo apt install cuda
@@ -305,17 +338,20 @@ sudo apt install cuda
 **Step 3: Configure Environment Variables**
 
 Edit or create `~/.bashrc`:
+
 ```bash
 export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 ```
 
 Apply changes:
+
 ```bash
 source ~/.bashrc
 ```
 
 **Step 4: Verify Installation**
+
 ```bash
 nvcc --version
 ```
@@ -329,6 +365,7 @@ cuDNN is a specialized library for deep neural network operations and is require
 ### 4.1 Windows cuDNN Installation
 
 **Option 1: Package Manager Installation**
+
 ```bash
 # Download and run cuDNN installer for Windows
 # Execute the installer and follow on-screen prompts
@@ -336,9 +373,11 @@ cuDNN is a specialized library for deep neural network operations and is require
 ```
 
 **Option 2: Manual Installation**
+
 1. Download cuDNN from [NVIDIA Developer site](https://developer.nvidia.com/cudnn)
 2. Unzip the downloaded file
 3. Copy files to CUDA directories:
+
    - `bin\cudnn*.dll` → `C:\Program Files\NVIDIA\CUDNN\vx.x\bin`
    - `include\cudnn*.h` → `C:\Program Files\NVIDIA\CUDNN\vx.x\include`
    - `lib\x64\cudnn*.lib` → `C:\Program Files\NVIDIA\CUDNN\vx.x\lib`
@@ -350,6 +389,7 @@ cuDNN is a specialized library for deep neural network operations and is require
 ### 4.2 Linux cuDNN Installation
 
 **Option 1: Package Manager (Ubuntu/Debian)**
+
 ```bash
 # Install cuDNN via apt
 sudo apt-get install libcudnn8=8.x.x.x-1+cudaX.X
@@ -357,6 +397,7 @@ sudo apt-get install libcudnn8-dev=8.x.x.x-1+cudaX.X
 ```
 
 **Option 2: Manual Installation**
+
 ```bash
 # Extract archive
 tar -xf cudnn-linux-x86_64-x.x.x.x_cudaX.X-archive.tar.xz
@@ -371,6 +412,7 @@ sudo ldconfig
 ```
 
 **Verify Installation:**
+
 ```bash
 cat /usr/local/cuda/include/cudnn.h | grep CUDNN_MAJOR -A 2
 ```
@@ -398,11 +440,13 @@ python3 -m pip install nvidia-cudnn-cu12==9.x.y.z
 ### 5.1 TensorFlow GPU Setup
 
 **Installation:**
+
 ```bash
 pip install tensorflow[and-cuda]
 ```
 
 **Verification:**
+
 ```python
 import tensorflow as tf
 print(tf.config.list_physical_devices('GPU'))
@@ -413,16 +457,19 @@ Should display your GPU as an available device.
 ### 5.2 PyTorch GPU Setup
 
 **Installation (CUDA 12.1):**
+
 ```bash
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
 
 **Installation (CUDA 11.8):**
+
 ```bash
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
 
 **Verification:**
+
 ```python
 import torch
 print(torch.cuda.is_available())      # Should return True
@@ -433,6 +480,7 @@ print(torch.cuda.get_device_name(0))  # GPU name
 ### 5.3 MXNet GPU Setup
 
 **Installation:**
+
 ```bash
 # For CUDA 11.0
 pip install mxnet-cu110
@@ -442,6 +490,7 @@ pip install mxnet-cu120
 ```
 
 **Verification:**
+
 ```python
 import mxnet as mx
 print(mx.context.num_gpus())
@@ -454,11 +503,13 @@ print(mx.context.num_gpus())
 ### 6.1 GPU Not Detected
 
 **Windows:**
+
 - Run Device Manager; if GPU shows yellow warning, update drivers
 - Check BIOS settings for PCIe slot enablement
 - Verify GPU is fully seated in PCIe slot
 
 **Linux:**
+
 ```bash
 # Check hardware detection
 lspci | grep -i nvidia
@@ -473,6 +524,7 @@ sudo modprobe nvidia
 ### 6.2 Driver Installation Failures
 
 **Solution Steps:**
+
 1. Boot into Safe Mode (Windows) or single-user mode (Linux)
 2. Use DDU to completely remove old drivers
 3. Disable any conflicting drivers (nouveau on Linux)
@@ -480,6 +532,7 @@ sudo modprobe nvidia
 5. Reboot system
 
 **For Linux (disable Nouveau driver):**
+
 ```bash
 sudo tee /etc/modprobe.d/blacklist-nouveau.conf <<< "blacklist nouveau"
 sudo tee -a /etc/modprobe.d/blacklist-nouveau.conf <<< "options nouveau modeset=0"
@@ -490,6 +543,7 @@ sudo reboot
 ### 6.3 CUDA Not Detected by Applications
 
 **Verify CUDA Installation:**
+
 ```bash
 nvcc --version
 echo $CUDA_PATH        # Windows
@@ -497,6 +551,7 @@ echo $LD_LIBRARY_PATH  # Linux
 ```
 
 **Set Environment Variables Manually (Windows):**
+
 1. Right-click "This PC" → Properties
 2. Advanced system settings
 3. Environment Variables
@@ -507,11 +562,13 @@ echo $LD_LIBRARY_PATH  # Linux
 ### 6.4 High Temperatures
 
 **Check Temperature:**
+
 ```bash
 nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits
 ```
 
 **Solutions:**
+
 - Ensure proper thermal paste application
 - Check cooler fan operation
 - Clean dust from heatsink and fans
@@ -521,11 +578,13 @@ nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits
 ### 6.5 Low Performance / Underclocking
 
 **Check GPU Clock Status:**
+
 ```bash
 nvidia-smi -q -d CLOCK
 ```
 
 **Possible Causes:**
+
 - GPU thermal throttling (see above)
 - PCIe bandwidth constraints
 - Insufficient power delivery
@@ -534,11 +593,13 @@ nvidia-smi -q -d CLOCK
 ### 6.6 Framework-Specific Issues
 
 **TensorFlow GPU Not Used:**
+
 - Verify CUDA compatibility: Check TensorFlow version requirements
 - Reinstall TensorFlow: `pip install --upgrade tensorflow[and-cuda]`
 - Check for conflicting CPU-optimized packages
 
 **PyTorch CUDA Issues:**
+
 - Verify CUDA version matches: `python -c "import torch; print(torch.__version__)"`
 - Reinstall with correct CUDA version
 - Check for conflicting older CUDA installations
@@ -550,11 +611,13 @@ nvidia-smi -q -d CLOCK
 ### 7.1 GPU Memory Management
 
 **Check Available Memory:**
+
 ```bash
 nvidia-smi --query-gpu=memory.total,memory.used --format=csv
 ```
 
 **Reduce Memory Usage in Python:**
+
 ```python
 import tensorflow as tf
 # Limit GPU memory usage
@@ -566,12 +629,14 @@ for gpu in gpus:
 ### 7.2 Multi-GPU Setup
 
 **PyTorch DataParallel:**
+
 ```python
 model = torch.nn.DataParallel(model)
 model.to(device)
 ```
 
 **TensorFlow Distributed:**
+
 ```python
 strategy = tf.distribute.MirroredStrategy()
 with strategy.scope():
@@ -581,11 +646,13 @@ with strategy.scope():
 ### 7.3 Driver and CUDA Updates
 
 **Windows Driver Update:**
+
 - Use GeForce Experience for automatic updates, or
 - Manually download from NVIDIA Driver Downloads page
 - Always backup current driver before updating
 
 **Linux Driver Update:**
+
 ```bash
 sudo apt update && sudo apt upgrade cuda-drivers
 sudo reboot
@@ -595,12 +662,12 @@ sudo reboot
 
 ## Part 8: Compatibility Matrix
 
-| Framework | Min CUDA | Min cuDNN | Notes |
-|-----------|----------|-----------|-------|
-| TensorFlow 2.15 | 12.2 | 8.1+ | Supports latest CUDA versions |
-| PyTorch 2.1+ | 11.8, 12.1 | 8.3.2+ | Multiple CUDA version support |
-| MXNet 1.9+ | 10.1-11.7 | 7.6.5-8.5 | Requires manual compilation for some versions |
-| JAX | 11.2+ | 8.0+ | Supports latest CUDA releases |
+| Framework       | Min CUDA   | Min cuDNN | Notes                                         |
+| --------------- | ---------- | --------- | --------------------------------------------- |
+| TensorFlow 2.15 | 12.2       | 8.1+      | Supports latest CUDA versions                 |
+| PyTorch 2.1+    | 11.8, 12.1 | 8.3.2+    | Multiple CUDA version support                 |
+| MXNet 1.9+      | 10.1-11.7  | 7.6.5-8.5 | Requires manual compilation for some versions |
+| JAX             | 11.2+      | 8.0+      | Supports latest CUDA releases                 |
 
 ---
 
