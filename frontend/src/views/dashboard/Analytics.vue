@@ -4,27 +4,25 @@ import { useAuth } from "../../composables/useAuth";
 import { formatPrice } from "../../utils/format";
 import { API_BASE_URL } from "../../config/api";
 import Skeleton from "../../components/Skeleton.vue";
+import VChart from "vue-echarts";
+import { use } from "echarts/core";
+import { CanvasRenderer } from "echarts/renderers";
+import { LineChart } from "echarts/charts";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Line } from "vue-chartjs";
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent,
+  GridComponent,
+} from "echarts/components";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+use([
+  CanvasRenderer,
+  LineChart,
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent,
+  GridComponent,
+]);
 
 const { user } = useAuth();
 const analyticsData = ref(null);
@@ -69,34 +67,6 @@ const getPrimaryColor = () => {
   return convertOklchToRgb(rawColor);
 };
 
-const chartData = computed(() => {
-  if (!analyticsData.value?.sales_performance) return null;
-
-  const data = analyticsData.value.sales_performance;
-  const labels = data.map((item) => {
-    const date = new Date(item.date);
-    return timeframe.value === "today"
-      ? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-      : date.toLocaleDateString();
-  });
-
-  const primaryColor = getPrimaryColor();
-
-  return {
-    labels,
-    datasets: [
-      {
-        label: "Revenue",
-        data: data.map((item) => item.revenue),
-        borderColor: primaryColor,
-        backgroundColor: primaryColor + "1A",
-        yAxisID: "y",
-        tension: 0.4,
-      },
-    ],
-  };
-});
-
 const getComputedColor = (variable) => {
   const rawColor = getComputedStyle(document.documentElement)
     .getPropertyValue(variable)
@@ -107,15 +77,136 @@ const getComputedColor = (variable) => {
   return convertOklchToRgb(rawColor);
 };
 
-const getComputedFontSize = (variable) => {
-  const remValue = getComputedStyle(document.documentElement)
-    .getPropertyValue(variable)
-    .trim();
-
-  if (!remValue) return 14; // Fallback font size
-
-  return parseInt(remValue.replace("rem", "")) * 16;
+const formatAxisValue = (value) => {
+  if (value >= 1000000) {
+    return (value / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+  }
+  if (value >= 1000) {
+    return (value / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+  }
+  return value.toString();
 };
+
+const chartOption = computed(() => {
+  if (!analyticsData.value?.sales_performance) return null;
+
+  const data = analyticsData.value.sales_performance;
+  const labels = data.map((item) => {
+    const date = new Date(item.date);
+    return timeframe.value === "today"
+      ? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      : date.toLocaleDateString();
+  });
+  const values = data.map((item) => item.revenue);
+
+  const primaryColor = getPrimaryColor();
+  const mutedForeground = getComputedColor("--muted-foreground");
+  const borderColor = getComputedColor("--border");
+  const gridLineColor = isLightMode.value ? "rgba(0, 0, 0, 0.1)" : borderColor;
+
+  return {
+    grid: {
+      left: "3%",
+      right: "4%",
+      bottom: "3%",
+      top: "3%",
+      containLabel: true,
+    },
+    xAxis: {
+      type: "category",
+      data: labels,
+      name: timeframe.value === "today" ? "Time" : "Date",
+      nameLocation: "middle",
+      nameGap: 35,
+      nameTextStyle: {
+        color: mutedForeground,
+      },
+      axisLine: {
+        lineStyle: {
+          color: borderColor,
+        },
+      },
+      axisLabel: {
+        color: mutedForeground,
+        rotate: 45,
+      },
+      splitLine: {
+        show: false,
+      },
+    },
+    yAxis: {
+      type: "value",
+      name: "Revenue (USD)",
+      nameLocation: "middle",
+      nameGap: 50,
+      nameTextStyle: {
+        color: mutedForeground,
+      },
+      axisLine: {
+        lineStyle: {
+          color: borderColor,
+        },
+      },
+      axisLabel: {
+        color: mutedForeground,
+        formatter: (value) => "$" + formatAxisValue(value),
+      },
+      splitLine: {
+        lineStyle: {
+          color: gridLineColor,
+          type: "solid",
+        },
+      },
+    },
+    series: [
+      {
+        name: "Revenue",
+        type: "line",
+        data: values,
+        smooth: true,
+        lineStyle: {
+          color: primaryColor,
+          width: 2,
+        },
+        itemStyle: {
+          color: primaryColor,
+        },
+        areaStyle: {
+          color: primaryColor,
+          opacity: 0.1,
+        },
+        emphasis: {
+          focus: "none",
+          lineStyle: {
+            color: primaryColor,
+            width: 2,
+          },
+          itemStyle: {
+            color: primaryColor,
+          },
+          areaStyle: {
+            color: primaryColor,
+            opacity: 0.1,
+          },
+        },
+      },
+    ],
+    tooltip: {
+      trigger: "axis",
+      formatter: (params) => {
+        const param = params[0];
+        return `${param.name}<br/>${param.seriesName}: $${formatPrice(
+          param.value
+        )}`;
+      },
+      backgroundColor: "var(--popover)",
+      borderColor: "var(--border)",
+      textStyle: {
+        color: "var(--popover-foreground)",
+      },
+    },
+  };
+});
 
 const isLightMode = ref(document.body.classList.contains("light-mode"));
 
@@ -137,94 +228,6 @@ onUnmounted(() => {
   if (themeObserver) {
     themeObserver.disconnect();
   }
-});
-
-const chartOptions = computed(() => {
-  const mutedForeground = getComputedColor("--muted-foreground");
-  const borderColor = getComputedColor("--border");
-  const fontSize = getComputedFontSize("--text-sm");
-
-  const gridLineColor = isLightMode.value ? "rgba(0, 0, 0, 0.15)" : borderColor;
-
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: {
-      mode: "index",
-      intersect: false,
-    },
-    plugins: {
-      legend: {
-        display: false,
-      },
-      tooltip: {
-        callbacks: {
-          label: (context) => {
-            let label = context.dataset.label || "";
-            if (label) {
-              label += ": ";
-            }
-            if (context.parsed.y !== null) {
-              label += formatPrice(context.parsed.y);
-            }
-            return label;
-          },
-        },
-      },
-    },
-    scales: {
-      x: {
-        display: true,
-        title: {
-          display: true,
-          text: timeframe.value === "today" ? "Time" : "Date",
-          color: mutedForeground,
-          font: {
-            size: fontSize,
-          },
-        },
-        grid: {
-          color: gridLineColor,
-          drawBorder: true,
-          borderColor: borderColor,
-        },
-        ticks: {
-          color: mutedForeground,
-          maxRotation: 45,
-          minRotation: 0,
-        },
-        border: {
-          color: borderColor,
-        },
-      },
-      y: {
-        type: "linear",
-        display: true,
-        position: "left",
-        title: {
-          display: true,
-          text: "Revenue (USD)",
-          color: mutedForeground,
-          font: {
-            size: fontSize,
-          },
-        },
-        grid: {
-          color: gridLineColor,
-          drawBorder: true,
-          borderColor: borderColor,
-        },
-        ticks: {
-          color: mutedForeground,
-          callback: (value) => formatPrice(value),
-          maxTicksLimit: 8,
-        },
-        border: {
-          color: borderColor,
-        },
-      },
-    },
-  };
 });
 
 const fetchAnalytics = async () => {
@@ -367,11 +370,11 @@ const totalUnits = computed(() => {
     <div class="glass-card p-4 mb-4 chart-container">
       <h3 class="text-lg font-semibold mb-4">Sales Performance</h3>
       <div class="chart-wrapper">
-        <Line
-          v-if="chartData && chartOptions && !isLoading"
+        <v-chart
+          v-if="chartOption && !isLoading"
+          :option="chartOption"
           :key="`chart-${isLightMode}`"
-          :data="chartData"
-          :options="chartOptions"
+          autoresize
         />
         <div v-else class="h-full flex flex-col gap-3 justify-center">
           <Skeleton class="h-6 w-full" />
@@ -590,6 +593,7 @@ const totalUnits = computed(() => {
 .analytics-content {
   max-width: 100%;
   overflow-x: hidden;
+  min-width: 0;
 }
 
 /* KPI Cards Grid */
@@ -665,8 +669,12 @@ const totalUnits = computed(() => {
 .chart-wrapper {
   height: 300px;
   width: 100%;
-  min-width: 0;
   position: relative;
+}
+
+.chart-wrapper .echarts {
+  height: 100%;
+  width: 100%;
 }
 
 .product-image {
@@ -690,8 +698,8 @@ const totalUnits = computed(() => {
   background-color: var(--card);
   color: var(--card-foreground);
   box-shadow: var(--shadow-sm);
+  position: relative;
   min-width: 0;
-  overflow: hidden;
 }
 
 /* Products Grid */
