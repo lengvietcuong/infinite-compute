@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { formatPrice } from "../utils/format";
+import { API_BASE_URL } from "../config/api";
 import SparklesCore from "./SparklesCore.vue";
 import Skeleton from "./Skeleton.vue";
 
@@ -27,13 +28,16 @@ const updateVisibleCount = () => {
 const fetchTopProducts = async () => {
   loading.value = true;
   try {
-    const response = await fetch("/api/products/top-selling?limit=10", {
-      cache: "no-store",
-      headers: {
-        "Cache-Control": "no-cache",
-        "Pragma": "no-cache"
+    const response = await fetch(
+      `${API_BASE_URL}/products/top-selling?limit=10`,
+      {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+        },
       }
-    });
+    );
     if (!response.ok) throw new Error("Failed to fetch top products");
     const data = await response.json();
     if (data && data.length > 0) {

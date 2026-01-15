@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "../../composables/useAuth";
+import { API_BASE_URL } from "../../config/api";
 
 const router = useRouter();
 const { login } = useAuth();
@@ -26,7 +27,7 @@ const handleLogin = async () => {
   isLoading.value = true;
 
   try {
-    const response = await fetch("/api/auth/login", {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

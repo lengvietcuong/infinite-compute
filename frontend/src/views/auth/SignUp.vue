@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { API_BASE_URL } from "../../config/api";
 
 const router = useRouter();
 const name = ref("");
@@ -46,7 +47,7 @@ const handleSignUp = async () => {
   isLoading.value = true;
 
   try {
-    const response = await fetch("/api/auth/signup", {
+    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
