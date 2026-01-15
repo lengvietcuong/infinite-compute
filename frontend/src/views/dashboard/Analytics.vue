@@ -39,10 +39,34 @@ const timeframes = [
   { label: "All Time", value: "all" },
 ];
 
+const convertOklchToRgb = (oklchString) => {
+  try {
+    // If it's already a valid color format, return it
+    if (!oklchString.includes("oklch")) {
+      return oklchString;
+    }
+
+    // Create a temporary element to get computed color
+    const temp = document.createElement("div");
+    temp.style.color = oklchString;
+    document.body.appendChild(temp);
+    const computedColor = getComputedStyle(temp).color;
+    document.body.removeChild(temp);
+
+    return computedColor || "#76c7c0"; // Fallback color
+  } catch (error) {
+    return "#76c7c0"; // Fallback color
+  }
+};
+
 const getPrimaryColor = () => {
-  return getComputedStyle(document.documentElement)
+  const rawColor = getComputedStyle(document.documentElement)
     .getPropertyValue("--primary")
     .trim();
+
+  if (!rawColor) return "#76c7c0"; // Fallback color
+
+  return convertOklchToRgb(rawColor);
 };
 
 const chartData = computed(() => {
@@ -74,15 +98,22 @@ const chartData = computed(() => {
 });
 
 const getComputedColor = (variable) => {
-  return getComputedStyle(document.documentElement)
+  const rawColor = getComputedStyle(document.documentElement)
     .getPropertyValue(variable)
     .trim();
+
+  if (!rawColor) return "#71717a"; // Fallback muted foreground color
+
+  return convertOklchToRgb(rawColor);
 };
 
 const getComputedFontSize = (variable) => {
   const remValue = getComputedStyle(document.documentElement)
     .getPropertyValue(variable)
     .trim();
+
+  if (!remValue) return 14; // Fallback font size
+
   return parseInt(remValue.replace("rem", "")) * 16;
 };
 
@@ -338,6 +369,7 @@ const totalUnits = computed(() => {
       <div class="chart-wrapper">
         <Line
           v-if="chartData && chartOptions && !isLoading"
+          :key="`chart-${isLightMode}`"
           :data="chartData"
           :options="chartOptions"
         />
@@ -632,6 +664,9 @@ const totalUnits = computed(() => {
 
 .chart-wrapper {
   height: 300px;
+  width: 100%;
+  min-width: 0;
+  position: relative;
 }
 
 .product-image {
@@ -655,6 +690,8 @@ const totalUnits = computed(() => {
   background-color: var(--card);
   color: var(--card-foreground);
   box-shadow: var(--shadow-sm);
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* Products Grid */

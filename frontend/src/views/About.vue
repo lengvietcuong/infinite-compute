@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from "vue";
+import { API_BASE_URL } from "../config/api";
 
 // Tabs State
 const activeTab = ref("store-1");
@@ -32,7 +33,7 @@ const unlockReward = async () => {
   loading.value = true;
 
   try {
-    const response = await fetch("/api/orders/coupon/generate", {
+    const response = await fetch(`${API_BASE_URL}/orders/coupon/generate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

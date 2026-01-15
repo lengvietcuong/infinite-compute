@@ -1,6 +1,7 @@
 <script setup>
 import { ref, nextTick, onMounted, watch, computed } from "vue";
 import MarkdownIt from "markdown-it";
+import { API_BASE_URL } from "../config/api";
 
 const md = new MarkdownIt({
   html: false,
@@ -32,7 +33,7 @@ const scrollToBottom = async () => {
 
 const resetChat = async () => {
   try {
-    const url = new URL(`${window.location.origin}/api/chat`);
+    const url = new URL(`${API_BASE_URL}/chat`);
     if (chatId.value) {
       url.searchParams.append("chat_id", chatId.value);
     }
@@ -67,7 +68,7 @@ const sendMessage = async () => {
   scrollToBottom();
 
   try {
-    const response = await fetch("/api/chat", {
+    const response = await fetch(`${API_BASE_URL}/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -115,7 +116,7 @@ const loadChatHistory = async () => {
   if (!chatId.value) return;
 
   try {
-    const url = new URL(`${window.location.origin}/api/chat/history`);
+    const url = new URL(`${API_BASE_URL}/chat/history`);
     url.searchParams.append("chat_id", chatId.value);
 
     const response = await fetch(url, {
