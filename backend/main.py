@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import CORS_ORIGINS
-from routers import auth, users, products, news, orders, reviews, analytics, chat
+from routers import auth, users, products, news, orders, reviews, analytics, chat, coupons, conversations
 
 
 logging.basicConfig(
@@ -36,6 +36,8 @@ app.include_router(orders.router)
 app.include_router(reviews.router)
 app.include_router(analytics.router)
 app.include_router(chat.router)
+app.include_router(coupons.router)
+app.include_router(conversations.router)
 
 
 @app.get("/")

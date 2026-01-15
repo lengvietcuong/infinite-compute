@@ -7,6 +7,8 @@ import Products from "./Products.vue";
 import Users from "./Users.vue";
 import Orders from "./Orders.vue";
 import Reviews from "./Reviews.vue";
+import Coupons from "./Coupons.vue";
+import Conversations from "./Conversations.vue";
 import Toast from "../../components/ui/Toast.vue";
 
 const { user } = useAuth();
@@ -14,9 +16,17 @@ const router = useRouter();
 
 const tabs = computed(() => {
   if (user.value?.role === "admin") {
-    return ["Analytics", "Users", "Products", "Orders", "Reviews"];
+    return [
+      "Analytics",
+      "Users",
+      "Products",
+      "Orders",
+      "Reviews",
+      "Coupons",
+      "Conversations",
+    ];
   }
-  return ["Products", "Orders", "Reviews"];
+  return ["Products", "Orders", "Reviews", "Coupons", "Conversations"];
 });
 
 const activeTab = ref("Analytics");
@@ -46,6 +56,10 @@ const currentTabComponent = computed(() => {
       return Orders;
     case "Reviews":
       return Reviews;
+    case "Coupons":
+      return Coupons;
+    case "Conversations":
+      return Conversations;
     default:
       return Products;
   }
@@ -199,6 +213,16 @@ const currentTabComponent = computed(() => {
 .nav-icon-reviews {
   -webkit-mask-image: url("/icons/write.svg");
   mask-image: url("/icons/write.svg");
+}
+
+.nav-icon-coupons {
+  -webkit-mask-image: url("/icons/discount.svg");
+  mask-image: url("/icons/discount.svg");
+}
+
+.nav-icon-conversations {
+  -webkit-mask-image: url("/icons/chatbot.svg");
+  mask-image: url("/icons/chatbot.svg");
 }
 
 .nav-icon-home {

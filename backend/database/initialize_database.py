@@ -306,6 +306,50 @@ async def create_reviews(session: AsyncSession) -> List[Review]:
     reviews: List[Review] = []
     reviewed = set()
 
+    REVIEW_TEMPLATES = {
+        5: [
+            "Excellent GPU! Runs all my games at max settings. Highly recommend!",
+            "Outstanding performance! This card exceeded my expectations. Worth every penny.",
+            "Perfect for my needs. Fast shipping and great quality. Five stars!",
+            "Best GPU I've ever owned. Handles everything I throw at it with ease.",
+            "Amazing performance for the price. Very satisfied with this purchase!",
+            "Flawless performance! Great for gaming and rendering. Couldn't be happier.",
+            "This GPU is a beast! Runs cool and quiet even under heavy load.",
+            "Incredible value! Performance is top-notch for both gaming and productivity.",
+        ],
+        4: [
+            "Great GPU overall. Minor coil whine but performance is solid.",
+            "Good performance for the price. Runs a bit hot but manageable.",
+            "Very satisfied! Only giving 4 stars because shipping took longer than expected.",
+            "Solid card. Does what it says on the tin. Would recommend.",
+            "Good value for money. Performance is great, though drivers could be better.",
+            "Happy with my purchase. Runs most games smoothly with high settings.",
+            "Quality product. Lost one star due to the high power consumption.",
+        ],
+        3: [
+            "Decent GPU but nothing special. Gets the job done.",
+            "Average performance. Works fine but expected more for the price.",
+            "It's okay. Performance is acceptable but not outstanding.",
+            "Does what it needs to do. Not blown away but not disappointed either.",
+            "Middle of the road. Good for casual gaming but struggles with demanding titles.",
+            "Fair product. Some driver issues but overall functional.",
+        ],
+        2: [
+            "Disappointed with the performance. Runs hotter than expected.",
+            "Not worth the price. Had several crashes and stability issues.",
+            "Below expectations. Thermal throttling is a real problem.",
+            "Having driver issues constantly. Customer support wasn't helpful.",
+            "Underperforms compared to specifications. Would not buy again.",
+        ],
+        1: [
+            "Terrible experience. Card died after two weeks. Avoid!",
+            "Complete waste of money. Constant crashes and artifacts.",
+            "DOA - Dead on arrival. Had to return immediately.",
+            "Worst purchase ever. Nothing but problems from day one.",
+            "Save your money. This GPU is unreliable and underperforms badly.",
+        ],
+    }
+
     for order in random.sample(orders, int(len(orders) * 0.6)):
         if not order.user_id:
             continue
@@ -325,12 +369,14 @@ async def create_reviews(session: AsyncSession) -> List[Review]:
                 [1, 2, 3, 4, 5], weights=[2, 3, 10, 35, 50]
             )[0]
 
+            comment = random.choice(REVIEW_TEMPLATES[rating])
+
             reviews.append(
                 Review(
                     user_id=order.user_id,
                     product_id=item.product_id,
                     rating=rating,
-                    comment=None,
+                    comment=comment,
                     created_at=order.created_at + timedelta(days=random.randint(1, 30)),
                 )
             )
