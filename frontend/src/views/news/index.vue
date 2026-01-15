@@ -2,6 +2,7 @@
 import { ref, watch, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Skeleton from "../../components/Skeleton.vue";
+import { API_BASE_URL } from "@/config/api";
 
 const router = useRouter();
 const route = useRoute();
@@ -34,9 +35,7 @@ const fetchNews = async () => {
     if (startDate.value) params.append("start_date", startDate.value);
     if (endDate.value) params.append("end_date", endDate.value);
 
-    const response = await fetch(
-      `http://localhost:8000/news?${params.toString()}`
-    );
+    const response = await fetch(`${API_BASE_URL}/news?${params.toString()}`);
 
     if (!response.ok) {
       throw new Error(`Error: ${response.statusText}`);

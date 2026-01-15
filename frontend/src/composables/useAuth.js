@@ -1,4 +1,5 @@
 import { ref, computed } from "vue";
+import { API_BASE_URL } from "@/config/api";
 
 const user = ref(null);
 const token = ref(localStorage.getItem("token"));
@@ -17,7 +18,7 @@ export function useAuth() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/users/me", {
+      const response = await fetch(`${API_BASE_URL}/users/me`, {
         headers: {
           Authorization: `Bearer ${token.value}`,
         },

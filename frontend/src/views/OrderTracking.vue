@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { formatPrice, formatDate } from "../utils/format";
+import { API_BASE_URL } from "@/config/api";
 
 const identifier = ref("");
 const orders = ref([]);
@@ -26,7 +27,7 @@ const trackOrder = async () => {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const response = await fetch("http://localhost:8000/orders/track", {
+    const response = await fetch(`${API_BASE_URL}/orders/track`, {
       method: "POST",
       headers: headers,
       body: JSON.stringify({ identifier: identifier.value }),

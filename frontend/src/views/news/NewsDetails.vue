@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { formatDate } from "../../utils/format";
+import { API_BASE_URL } from "@/config/api";
 
 const route = useRoute();
 const router = useRouter();
@@ -13,9 +14,7 @@ const fetchNewsItem = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const response = await fetch(
-      `http://localhost:8000/news/${route.params.id}`
-    );
+    const response = await fetch(`${API_BASE_URL}/news/${route.params.id}`);
 
     if (!response.ok) {
       if (response.status === 404) {

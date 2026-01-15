@@ -3,6 +3,7 @@ import { ref, watch, onMounted, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { formatPrice } from "../../utils/format";
 import Skeleton from "../../components/Skeleton.vue";
+import { API_BASE_URL } from "@/config/api";
 
 const router = useRouter();
 const route = useRoute();
@@ -66,7 +67,7 @@ const fetchProducts = async () => {
     if (searchQuery.value) params.append("search", searchQuery.value);
 
     const response = await fetch(
-      `http://localhost:8000/products?${params.toString()}`
+      `${API_BASE_URL}/products?${params.toString()}`
     );
 
     if (!response.ok) {

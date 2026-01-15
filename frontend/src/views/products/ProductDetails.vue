@@ -5,6 +5,7 @@ import { useCart } from "../../composables/useCart";
 import { useAuth } from "../../composables/useAuth";
 import { formatPrice } from "../../utils/format";
 import Modal from "../../components/ui/Modal.vue";
+import { API_BASE_URL } from "@/config/api";
 
 const route = useRoute();
 const router = useRouter();
@@ -36,7 +37,7 @@ const checkEligibility = async () => {
   checkingEligibility.value = true;
   try {
     const response = await fetch(
-      `http://localhost:8000/reviews/check-eligibility/${route.params.id}`,
+      `${API_BASE_URL}/reviews/check-eligibility/${route.params.id}`,
       {
         headers: {
           Authorization: `Bearer ${token.value}`,
@@ -72,7 +73,7 @@ const submitReview = async () => {
   reviewError.value = "";
 
   try {
-    const response = await fetch("http://localhost:8000/reviews", {
+    const response = await fetch(`${API_BASE_URL}/reviews`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -104,9 +105,7 @@ const fetchProduct = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const response = await fetch(
-      `http://localhost:8000/products/${route.params.id}`
-    );
+    const response = await fetch(`${API_BASE_URL}/products/${route.params.id}`);
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -129,7 +128,7 @@ const fetchReviews = async () => {
   reviewsLoading.value = true;
   try {
     const response = await fetch(
-      `http://localhost:8000/reviews/product/${route.params.id}`
+      `${API_BASE_URL}/reviews/product/${route.params.id}`
     );
     if (response.ok) {
       reviews.value = await response.json();
@@ -156,7 +155,7 @@ const deleteReview = async () => {
 
   try {
     const response = await fetch(
-      `http://localhost:8000/reviews/${reviewToDelete.value.id}`,
+      `${API_BASE_URL}/reviews/${reviewToDelete.value.id}`,
       {
         method: "DELETE",
         headers: {
@@ -490,7 +489,9 @@ const specs = computed(() => {
                           width="16"
                           height="16"
                           viewBox="0 0 24 24"
-                          :fill="i <= review.rating ? 'currentColor' : 'var(--muted)'"
+                          :fill="
+                            i <= review.rating ? 'currentColor' : 'var(--muted)'
+                          "
                           stroke="none"
                           :class="
                             i <= review.rating ? 'text-warning' : 'text-muted'
@@ -503,7 +504,9 @@ const specs = computed(() => {
                       </span>
                     </div>
                     <button
-                      v-if="isAuthenticated && user && review.user_id === user.id"
+                      v-if="
+                        isAuthenticated && user && review.user_id === user.id
+                      "
                       type="button"
                       class="btn btn-icon btn-ghost btn-sm p-1 delete-review-btn ms-2"
                       @click="openDeleteModal(review)"
@@ -522,9 +525,7 @@ const specs = computed(() => {
                         class="delete-review-icon"
                       >
                         <path d="M3 6h18" />
-                        <path
-                          d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"
-                        />
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
                         <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
                       </svg>
                     </button>

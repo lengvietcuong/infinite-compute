@@ -4,6 +4,7 @@ import { useCart } from "../composables/useCart";
 import { useAuth } from "../composables/useAuth";
 import { useRouter } from "vue-router";
 import { formatPrice } from "../utils/format";
+import { API_BASE_URL } from "@/config/api";
 
 const { cart, cartTotal, clearCart } = useCart();
 const { user, isAuthenticated } = useAuth();
@@ -44,7 +45,7 @@ const applyDiscount = async () => {
 
   try {
     const response = await fetch(
-      `http://localhost:8000/orders/validate-coupon/${form.value.discountCode}`
+      `${API_BASE_URL}/orders/validate-coupon/${form.value.discountCode}`
     );
 
     if (!response.ok) {
@@ -230,7 +231,7 @@ const placeOrder = async () => {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const response = await fetch("http://localhost:8000/orders", {
+    const response = await fetch(`${API_BASE_URL}/orders`, {
       method: "POST",
       headers: headers,
       body: JSON.stringify(orderData),

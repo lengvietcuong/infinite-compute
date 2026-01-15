@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import { useCart } from "../composables/useCart";
 import { useAuth } from "../composables/useAuth";
 import { formatPrice } from "../utils/format";
+import { API_BASE_URL } from "@/config/api";
 
 const router = useRouter();
 const { cartItemCount, toggleCart } = useCart();
@@ -84,7 +85,7 @@ const fetchSearchResults = async () => {
       limit: 5,
     });
     const response = await fetch(
-      `http://localhost:8000/products?${params.toString()}`
+      `${API_BASE_URL}/products?${params.toString()}`
     );
     if (response.ok) {
       searchResults.value = await response.json();
@@ -518,7 +519,10 @@ onUnmounted(() => {
           </li>
 
           <!-- User Dropdown (Desktop only - hidden on mobile/tablet) -->
-          <li class="nav-item dropdown d-none d-xl-block" v-if="isAuthenticated">
+          <li
+            class="nav-item dropdown d-none d-xl-block"
+            v-if="isAuthenticated"
+          >
             <button
               class="btn btn-icon btn-ghost nav-icon-btn user-icon-btn"
               data-bs-toggle="dropdown"
@@ -565,7 +569,6 @@ onUnmounted(() => {
               </li>
             </ul>
           </li>
-
         </ul>
       </div>
     </div>
