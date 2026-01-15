@@ -183,52 +183,26 @@ const copyToClipboard = async () => {
             <div class="col-lg-5">
               <div class="tabs-wrapper">
                 <div class="tabs-list mb-4">
-                  <button
-                    class="tab-trigger d-flex align-items-center gap-2"
-                    :class="{ active: activeTab === 'store-1' }"
-                    @click="activeTab = 'store-1'"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path
-                        d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
-                      />
-                      <circle cx="12" cy="10" r="3" />
-                    </svg>
+                  <label class="tab-trigger d-flex align-items-center gap-2">
+                    <input
+                      type="radio"
+                      name="storeLocation"
+                      value="store-1"
+                      v-model="activeTab"
+                      class="form-check-input"
+                    />
                     <span class="small">Sydney, Australia</span>
-                  </button>
-                  <button
-                    class="tab-trigger d-flex align-items-center gap-2"
-                    :class="{ active: activeTab === 'store-2' }"
-                    @click="activeTab = 'store-2'"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path
-                        d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
-                      />
-                      <circle cx="12" cy="10" r="3" />
-                    </svg>
+                  </label>
+                  <label class="tab-trigger d-flex align-items-center gap-2">
+                    <input
+                      type="radio"
+                      name="storeLocation"
+                      value="store-2"
+                      v-model="activeTab"
+                      class="form-check-input"
+                    />
                     <span class="small">Ho Chi Minh, Vietnam</span>
-                  </button>
+                  </label>
                 </div>
               </div>
 
@@ -374,10 +348,27 @@ const copyToClipboard = async () => {
   transition: all var(--transition-base) ease;
 }
 
-.tab-trigger.active {
+.tab-trigger:has(input:checked) {
   background: var(--background);
   color: var(--foreground);
   box-shadow: var(--shadow-sm);
+}
+
+.form-check-input {
+  cursor: pointer;
+  margin: 0;
+  background-color: var(--muted);
+  border-color: var(--border);
+}
+
+.form-check-input:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.form-check-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.25rem rgba(var(--primary), 0.25);
 }
 
 .store-img {

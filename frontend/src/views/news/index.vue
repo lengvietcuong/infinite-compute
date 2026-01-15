@@ -176,18 +176,17 @@ const prevPage = () => {
           >
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.3-4.3" />
-          </svg>
-        </span>
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search by title, content, category..."
-          class="form-input"
-          aria-label="Search news articles"
-        />
-      </div>
-
-      <!-- Sort -->
+        </svg>
+      </span>
+      <input
+        v-model="searchQuery"
+        v-focus
+        type="text"
+        placeholder="Search by title, content, category..."
+        class="form-input"
+        aria-label="Search news articles"
+      />
+    </div>      <!-- Sort -->
       <div class="select-with-icon">
         <svg
           xmlns="http://www.w3.org/2000/svg"
