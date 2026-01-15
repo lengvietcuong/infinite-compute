@@ -32,10 +32,6 @@ const fetchTopProducts = async () => {
       `${API_BASE_URL}/products/top-selling?limit=10`,
       {
         cache: "no-store",
-        headers: {
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
-        },
       }
     );
     if (!response.ok) throw new Error("Failed to fetch top products");

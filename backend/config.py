@@ -49,4 +49,4 @@ MAX_HEADING_DEPTH = 3
 MAX_CONCURRENT_REQUESTS = 10
 
 # CORS Settings
-CORS_ORIGINS = ["http://localhost:5173", "http://localhost:3000"]
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
