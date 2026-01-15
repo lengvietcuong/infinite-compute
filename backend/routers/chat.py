@@ -13,7 +13,7 @@ from database.database import AsyncSessionLocal
 from database.models import ChatSession, ChatMessage, User, ChatRole
 from auth import get_current_user_optional
 from rag.inference import get_llm_response, embed, Message
-from rag.chunk_retrieval import semantic_search
+from rag.retrieval.chunk_retrieval import semantic_search
 from config import SYSTEM_PROMPT, MAX_CONCURRENT_REQUESTS
 
 

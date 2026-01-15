@@ -151,13 +151,6 @@ async def _get_llm_response(
         "temperature": TEMPERATURE,
         "max_tokens": MAX_TOKENS,
         "tool_choice": "auto",
-        "plugins": [
-            {
-            "id": "web",
-            "engine": "exa",
-            "max_results": 1
-            }
-        ]
     }
     if TOOLS:
         payload["tools"] = TOOLS
@@ -205,6 +198,7 @@ async def get_llm_response(
             tool_messages = await handle_tool_calls(
                 assistant_message=assistant_message,
                 query_embedding=query_embedding,
+                http_session=http_session,
             )
             messages.extend(tool_messages)
             continue

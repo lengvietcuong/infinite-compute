@@ -2,12 +2,16 @@ import json
 import logging
 from typing import Any, Dict, List
 
-from rag.chunk_retrieval import keyword_search
-from rag.document_retrieval import (
+import aiohttp
+
+from rag.retrieval.chunk_retrieval import keyword_search
+from rag.retrieval.document_retrieval import (
     list_documents,
     list_sections,
     read_sections,
 )
+from rag.retrieval.product_search import get_product, list_products
+from rag.retrieval.web_search import web_search
 
 
 logger = logging.getLogger(__name__)
@@ -81,13 +85,53 @@ KEYWORD_SEARCH_TOOL = {
         },
     },
 }
-TOOLS = [LIST_DOCUMENTS_TOOL, LIST_SECTIONS_TOOL, READ_SECTIONS_TOOL, KEYWORD_SEARCH_TOOL]
+WEB_SEARCH_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "web_search",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "The search query to look up on the web.",
+                }
+            },
+            "required": ["query"],
+        },
+    },
+}
+GET_PRODUCT_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "get_product",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "product_name": {
+                    "type": "string",
+                    "description": "The GPU name. Keep it as short as possible for the best chance of getting a match. For example, searching '4090' will match 'GeForce RTX 4090'.",
+                }
+            },
+            "required": ["product_name"],
+        },
+    },
+}
+LIST_PRODUCTS_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "list_products",
+        "parameters": {},
+    },
+}
+TOOLS = [LIST_DOCUMENTS_TOOL, LIST_SECTIONS_TOOL, READ_SECTIONS_TOOL, KEYWORD_SEARCH_TOOL, WEB_SEARCH_TOOL, GET_PRODUCT_TOOL, LIST_PRODUCTS_TOOL]
 
 
 async def _get_tool_call_result(
     function_name: str,
     function_args: dict,
-    query_embedding: List[float]
+    query_embedding: List[float],
+    http_session: aiohttp.ClientSession,
 ) -> str:
     """
     Execute a single tool call and return its result.
@@ -95,9 +139,8 @@ async def _get_tool_call_result(
     Args:
         function_name (str): Name of the function to call
         function_args (dict): Arguments for the function
-        query (List[float]): Original user query embedding for context
+        query_embedding (List[float]): Original user query embedding for context
         http_session (aiohttp.ClientSession): aiohttp ClientSession for making HTTP requests
-        semaphore (asyncio.Semaphore): Semaphore to limit concurrent requests
 
     Returns:
         str: The result of the tool call
@@ -122,6 +165,20 @@ async def _get_tool_call_result(
             sections=function_args["sections"],
             documents=function_args["documents"],
         )
+    
+    if function_name == "web_search":
+        return await web_search(
+            query=function_args["query"],
+            http_session=http_session,
+        )
+
+    if function_name == "get_product":
+        return await get_product(
+            product_name=function_args["product_name"],
+        )
+
+    if function_name == "list_products":
+        return await list_products()
 
     raise ValueError(f"Invalid tool '{function_name}'")
 
@@ -129,16 +186,18 @@ async def _get_tool_call_result(
 async def handle_tool_calls(
     assistant_message: Dict[str, Any],
     query_embedding: List[float],
+    http_session: aiohttp.ClientSession,
 ) -> List[Dict[str, Any]]:
     """
     Handle tool calls from the assistant's message and return results as messages.
 
     Args:
-        assistant_message (Message): The assistant's message containing tool calls
+        assistant_message (Dict[str, Any]): The assistant's message containing tool calls
         query_embedding (List[float]): Original user query embedding for context
+        http_session (aiohttp.ClientSession): aiohttp ClientSession for making HTTP requests
 
     Returns:
-        List[Message]: List of tool result messages to append to the conversation
+        List[Dict[str, Any]]: List of tool result messages to append to the conversation
     """
     tool_messages: List[Dict[str, Any]] = []
 
@@ -151,7 +210,8 @@ async def handle_tool_calls(
             tool_result = await _get_tool_call_result(
                 function_name=function_name,
                 function_args=function_args,
-                query_embedding=query_embedding
+                query_embedding=query_embedding,
+                http_session=http_session,
             )
         except Exception as error:
             logger.error(f"Error with tool '{function_name}': {error}")
