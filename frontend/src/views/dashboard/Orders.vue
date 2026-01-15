@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useAuth } from "../../composables/useAuth";
 import { useToast } from "../../composables/useToast";
+import { API_BASE_URL } from "../../config/api";
 import Table from "../../components/ui/table/Table.vue";
 import TableHeader from "../../components/ui/table/TableHeader.vue";
 import TableRow from "../../components/ui/table/TableRow.vue";
@@ -45,7 +46,7 @@ const canDelete = computed(() => user.value?.role === "admin");
 const fetchOrders = async () => {
   isLoading.value = true;
   try {
-    const response = await fetch("/api/orders", {
+    const response = await fetch(`${API_BASE_URL}/orders`, {
       headers: {
         Authorization: `Bearer ${token.value}`,
       },
@@ -146,7 +147,7 @@ const updateStatus = async (order, newStatus) => {
   if (order.status === newStatus) return;
 
   try {
-    const response = await fetch(`/api/orders/${order.id}/status`, {
+    const response = await fetch(`${API_BASE_URL}/orders/${order.id}/status`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -185,12 +186,15 @@ const deleteOrder = async () => {
   if (!orderToDelete.value) return;
 
   try {
-    const response = await fetch(`/api/orders/${orderToDelete.value.id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token.value}`,
-      },
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/orders/${orderToDelete.value.id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token.value}`,
+        },
+      }
+    );
 
     if (response.ok) {
       orders.value = orders.value.filter(
@@ -289,14 +293,17 @@ const saveOrder = async () => {
         formData.value.tracking_number?.trim() || null;
     }
 
-    const response = await fetch(`/api/orders/${orderToEdit.value.id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token.value}`,
-      },
-      body: JSON.stringify(updateData),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/orders/${orderToEdit.value.id}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token.value}`,
+        },
+        body: JSON.stringify(updateData),
+      }
+    );
 
     if (response.ok) {
       const updatedOrder = await response.json();
@@ -721,7 +728,9 @@ const saveOrder = async () => {
                     stroke-linejoin="round"
                     aria-hidden="true"
                   >
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <path
+                      d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                    ></path>
                     <circle cx="12" cy="12" r="3"></circle>
                   </svg>
                 </button>
@@ -973,7 +982,11 @@ const saveOrder = async () => {
       <div class="modal-content-padding">
         <div v-if="orderToView" class="max-h-[70vh] overflow-y-auto">
           <div>
-            <h4 class="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">Order Items</h4>
+            <h4
+              class="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide"
+            >
+              Order Items
+            </h4>
             <div class="border border-color rounded-lg overflow-hidden">
               <table class="w-full">
                 <thead class="bg-muted/50">
@@ -991,23 +1004,38 @@ const saveOrder = async () => {
                     class="border-t border-color"
                   >
                     <td class="p-3 text-sm">
-                      {{ item.product_name || `Product #${item.product_id || 'N/A'}` }}
+                      {{
+                        item.product_name ||
+                        `Product #${item.product_id || "N/A"}`
+                      }}
                     </td>
                     <td class="p-3 text-sm text-right">{{ item.quantity }}</td>
-                    <td class="p-3 text-sm text-right">${{ formatPrice(item.price_at_purchase) }}</td>
+                    <td class="p-3 text-sm text-right">
+                      ${{ formatPrice(item.price_at_purchase) }}
+                    </td>
                     <td class="p-3 text-sm text-right font-medium">
                       ${{ formatPrice(item.price_at_purchase * item.quantity) }}
                     </td>
                   </tr>
-                  <tr v-if="!orderToView.items || orderToView.items.length === 0">
-                    <td colspan="4" class="p-3 text-sm text-center text-muted-foreground">
+                  <tr
+                    v-if="!orderToView.items || orderToView.items.length === 0"
+                  >
+                    <td
+                      colspan="4"
+                      class="p-3 text-sm text-center text-muted-foreground"
+                    >
                       No items found
                     </td>
                   </tr>
                 </tbody>
                 <tfoot class="bg-muted/50 border-t-2 border-color">
                   <tr>
-                    <td colspan="3" class="p-3 text-sm font-semibold text-right">Total:</td>
+                    <td
+                      colspan="3"
+                      class="p-3 text-sm font-semibold text-right"
+                    >
+                      Total:
+                    </td>
                     <td class="p-3 text-sm font-semibold text-right">
                       ${{ formatPrice(orderToView.total_amount) }}
                     </td>
@@ -1018,17 +1046,21 @@ const saveOrder = async () => {
           </div>
 
           <div class="shipping-address-section">
-            <h4 class="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">Shipping Address</h4>
+            <h4
+              class="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide"
+            >
+              Shipping Address
+            </h4>
             <div class="border border-color rounded-lg p-4 bg-muted/50">
-              <pre class="text-sm whitespace-pre-wrap font-mono">{{ orderToView.shipping_address || 'No shipping address provided' }}</pre>
+              <pre class="text-sm whitespace-pre-wrap font-mono">{{
+                orderToView.shipping_address || "No shipping address provided"
+              }}</pre>
             </div>
           </div>
         </div>
 
         <div class="modal-actions">
-          <button @click="closeViewModal" class="btn btn-outline">
-            Close
-          </button>
+          <button @click="closeViewModal" class="btn btn-outline">Close</button>
         </div>
       </div>
     </Modal>

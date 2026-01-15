@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useAuth } from "../../composables/useAuth";
 import { useToast } from "../../composables/useToast";
+import { API_BASE_URL } from "../../config/api";
 import Table from "../../components/ui/table/Table.vue";
 import TableHeader from "../../components/ui/table/TableHeader.vue";
 import TableRow from "../../components/ui/table/TableRow.vue";
@@ -42,7 +43,7 @@ const passwordError = ref("");
 const fetchUsers = async () => {
   isLoading.value = true;
   try {
-    const response = await fetch("/api/users", {
+    const response = await fetch(`${API_BASE_URL}/users`, {
       headers: {
         Authorization: `Bearer ${token.value}`,
       },
@@ -178,8 +179,8 @@ const saveUser = async () => {
 
   try {
     const url = isEditing.value
-      ? `/api/users/${formData.value.id}`
-      : "/api/users";
+      ? `${API_BASE_URL}/users/${formData.value.id}`
+      : `${API_BASE_URL}/users`;
 
     const method = isEditing.value ? "PATCH" : "POST";
 
@@ -241,12 +242,15 @@ const deleteUser = async () => {
   if (!userToDelete.value) return;
 
   try {
-    const response = await fetch(`/api/users/${userToDelete.value.id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token.value}`,
-      },
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/users/${userToDelete.value.id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token.value}`,
+        },
+      }
+    );
 
     if (response.ok) {
       users.value = users.value.filter((u) => u.id !== userToDelete.value.id);

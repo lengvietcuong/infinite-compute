@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useAuth } from "../../composables/useAuth";
 import { useToast } from "../../composables/useToast";
+import { API_BASE_URL } from "../../config/api";
 import Table from "../../components/ui/table/Table.vue";
 import TableHeader from "../../components/ui/table/TableHeader.vue";
 import TableRow from "../../components/ui/table/TableRow.vue";
@@ -28,7 +29,7 @@ const sortDirection = ref("asc");
 const fetchReviews = async () => {
   isLoading.value = true;
   try {
-    const response = await fetch("/api/reviews", {
+    const response = await fetch(`${API_BASE_URL}/reviews`, {
       headers: {
         Authorization: `Bearer ${token.value}`,
       },
@@ -133,12 +134,15 @@ const deleteReview = async () => {
   if (!reviewToDelete.value) return;
 
   try {
-    const response = await fetch(`/api/reviews/${reviewToDelete.value.id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token.value}`,
-      },
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/reviews/${reviewToDelete.value.id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token.value}`,
+        },
+      }
+    );
 
     if (response.ok) {
       reviews.value = reviews.value.filter(

@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useAuth } from "../../composables/useAuth";
 import { useToast } from "../../composables/useToast";
+import { API_BASE_URL } from "../../config/api";
 import Table from "../../components/ui/table/Table.vue";
 import TableHeader from "../../components/ui/table/TableHeader.vue";
 import TableRow from "../../components/ui/table/TableRow.vue";
@@ -53,7 +54,7 @@ const canDelete = computed(() => user.value?.role === "admin");
 const fetchProducts = async () => {
   isLoading.value = true;
   try {
-    const response = await fetch("/api/products", {
+    const response = await fetch(`${API_BASE_URL}/products`, {
       headers: {
         Authorization: `Bearer ${token.value}`,
       },
@@ -197,8 +198,8 @@ const closeModal = () => {
 const saveProduct = async () => {
   try {
     const url = isEditing.value
-      ? `/api/products/${formData.value.id}`
-      : "/api/products";
+      ? `${API_BASE_URL}/products/${formData.value.id}`
+      : `${API_BASE_URL}/products`;
 
     const method = isEditing.value ? "PATCH" : "POST";
 
@@ -254,12 +255,15 @@ const deleteProduct = async () => {
   if (!productToDelete.value) return;
 
   try {
-    const response = await fetch(`/api/products/${productToDelete.value.id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token.value}`,
-      },
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/products/${productToDelete.value.id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token.value}`,
+        },
+      }
+    );
 
     if (response.ok) {
       products.value = products.value.filter(

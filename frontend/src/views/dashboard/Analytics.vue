@@ -2,6 +2,8 @@
 import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { useAuth } from "../../composables/useAuth";
 import { formatPrice } from "../../utils/format";
+import { API_BASE_URL } from "../../config/api";
+import Skeleton from "../../components/Skeleton.vue";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -110,10 +112,8 @@ const chartOptions = computed(() => {
   const mutedForeground = getComputedColor("--muted-foreground");
   const borderColor = getComputedColor("--border");
   const fontSize = getComputedFontSize("--text-sm");
-  
-  const gridLineColor = isLightMode.value 
-    ? "rgba(0, 0, 0, 0.15)"
-    : borderColor;
+
+  const gridLineColor = isLightMode.value ? "rgba(0, 0, 0, 0.15)" : borderColor;
 
   return {
     responsive: true,
@@ -197,13 +197,12 @@ const chartOptions = computed(() => {
 });
 
 const fetchAnalytics = async () => {
-  // Logic checked in parent or here
   if (user.value?.role !== "admin") return;
   isLoading.value = true;
   try {
     const token = localStorage.getItem("token");
     const response = await fetch(
-      `/api/analytics?timeframe=${timeframe.value}`,
+      `${API_BASE_URL}/analytics?timeframe=${timeframe.value}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -270,13 +269,14 @@ const totalUnits = computed(() => {
       <div>
         <div class="glass-card p-4 kpi-card">
           <div class="flex justify-between items-start">
-            <div>
+            <div class="flex-1">
               <p class="text-sm font-medium text-muted-foreground mb-1">
                 Total Revenue
               </p>
-              <h3 class="text-2xl font-bold">
+              <h3 v-if="!isLoading" class="text-2xl font-bold">
                 ${{ formatPrice(analyticsData?.revenue || 0) }}
               </h3>
+              <Skeleton v-else class="h-8 w-32" />
             </div>
             <div class="kpi-icon kpi-icon-dollar" aria-hidden="true"></div>
           </div>
@@ -285,13 +285,14 @@ const totalUnits = computed(() => {
       <div>
         <div class="glass-card p-4 kpi-card">
           <div class="flex justify-between items-start">
-            <div>
+            <div class="flex-1">
               <p class="text-sm font-medium text-muted-foreground mb-1">
                 Total Orders
               </p>
-              <h3 class="text-2xl font-bold">
+              <h3 v-if="!isLoading" class="text-2xl font-bold">
                 {{ analyticsData?.total_orders || 0 }}
               </h3>
+              <Skeleton v-else class="h-8 w-24" />
             </div>
             <div class="kpi-icon kpi-icon-packages" aria-hidden="true"></div>
           </div>
@@ -300,13 +301,14 @@ const totalUnits = computed(() => {
       <div>
         <div class="glass-card p-4 kpi-card">
           <div class="flex justify-between items-start">
-            <div>
+            <div class="flex-1">
               <p class="text-sm font-medium text-muted-foreground mb-1">
                 Avg. Order Value
               </p>
-              <h3 class="text-2xl font-bold">
+              <h3 v-if="!isLoading" class="text-2xl font-bold">
                 ${{ formatPrice(analyticsData?.average_order_value || 0) }}
               </h3>
+              <Skeleton v-else class="h-8 w-32" />
             </div>
             <div class="kpi-icon kpi-icon-order-value" aria-hidden="true"></div>
           </div>
@@ -315,13 +317,14 @@ const totalUnits = computed(() => {
       <div>
         <div class="glass-card p-4 kpi-card">
           <div class="flex justify-between items-start">
-            <div>
+            <div class="flex-1">
               <p class="text-sm font-medium text-muted-foreground mb-1">
                 Total Units
               </p>
-              <h3 class="text-2xl font-bold">
+              <h3 v-if="!isLoading" class="text-2xl font-bold">
                 {{ totalUnits }}
               </h3>
+              <Skeleton v-else class="h-8 w-24" />
             </div>
             <div class="kpi-icon kpi-icon-receipt" aria-hidden="true"></div>
           </div>
@@ -334,14 +337,17 @@ const totalUnits = computed(() => {
       <h3 class="text-lg font-semibold mb-4">Sales Performance</h3>
       <div class="chart-wrapper">
         <Line
-          v-if="chartData && chartOptions"
+          v-if="chartData && chartOptions && !isLoading"
           :data="chartData"
           :options="chartOptions"
         />
-        <div v-else class="h-full flex justify-center items-center">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
+        <div v-else class="h-full flex flex-col gap-3 justify-center">
+          <Skeleton class="h-6 w-full" />
+          <Skeleton class="h-6 w-full" />
+          <Skeleton class="h-6 w-full" />
+          <Skeleton class="h-6 w-full" />
+          <Skeleton class="h-6 w-full" />
+          <Skeleton class="h-6 w-full" />
         </div>
       </div>
     </div>
@@ -362,6 +368,26 @@ const totalUnits = computed(() => {
               </thead>
               <tbody class="[&_tr:last-child]:border-0">
                 <tr
+                  v-if="isLoading"
+                  v-for="n in 5"
+                  :key="'skeleton-revenue-' + n"
+                  class="border-b border-border"
+                >
+                  <td class="p-2 align-middle">
+                    <div class="flex items-center gap-3">
+                      <Skeleton class="h-10 w-10" />
+                      <div class="flex-1">
+                        <Skeleton class="h-4 w-32 mb-2" />
+                        <Skeleton class="h-1.5 w-full" />
+                      </div>
+                    </div>
+                  </td>
+                  <td class="p-2 align-middle text-end">
+                    <Skeleton class="h-4 w-20 ml-auto" />
+                  </td>
+                </tr>
+                <tr
+                  v-if="!isLoading"
                   v-for="product in analyticsData?.top_products_revenue || []"
                   :key="product.product_id"
                   class="border-b border-border transition-colors hover:bg-muted/50"
@@ -445,6 +471,26 @@ const totalUnits = computed(() => {
               </thead>
               <tbody class="[&_tr:last-child]:border-0">
                 <tr
+                  v-if="isLoading"
+                  v-for="n in 5"
+                  :key="'skeleton-units-' + n"
+                  class="border-b border-border"
+                >
+                  <td class="p-2 align-middle">
+                    <div class="flex items-center gap-3">
+                      <Skeleton class="h-10 w-10" />
+                      <div class="flex-1">
+                        <Skeleton class="h-4 w-32 mb-2" />
+                        <Skeleton class="h-1.5 w-full" />
+                      </div>
+                    </div>
+                  </td>
+                  <td class="p-2 align-middle text-end">
+                    <Skeleton class="h-4 w-16 ml-auto" />
+                  </td>
+                </tr>
+                <tr
+                  v-if="!isLoading"
                   v-for="product in analyticsData?.top_products_units || []"
                   :key="product.product_id"
                   class="border-b border-border transition-colors hover:bg-muted/50"

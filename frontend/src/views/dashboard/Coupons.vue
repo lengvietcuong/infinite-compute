@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useAuth } from "../../composables/useAuth";
 import { useToast } from "../../composables/useToast";
+import { API_BASE_URL } from "../../config/api";
 import Table from "../../components/ui/table/Table.vue";
 import TableHeader from "../../components/ui/table/TableHeader.vue";
 import TableRow from "../../components/ui/table/TableRow.vue";
@@ -34,7 +35,7 @@ const formData = ref({
 const fetchCoupons = async () => {
   isLoading.value = true;
   try {
-    const response = await fetch("/api/coupons", {
+    const response = await fetch(`${API_BASE_URL}/coupons`, {
       headers: {
         Authorization: `Bearer ${token.value}`,
       },
@@ -51,7 +52,7 @@ const fetchCoupons = async () => {
 
 const fetchStats = async () => {
   try {
-    const response = await fetch("/api/coupons/stats", {
+    const response = await fetch(`${API_BASE_URL}/coupons/stats`, {
       headers: {
         Authorization: `Bearer ${token.value}`,
       },
@@ -164,8 +165,8 @@ const closeModal = () => {
 const saveCoupon = async () => {
   try {
     const url = isEditing.value
-      ? `/api/coupons/${formData.value.id}`
-      : "/api/coupons";
+      ? `${API_BASE_URL}/coupons/${formData.value.id}`
+      : `${API_BASE_URL}/coupons`;
 
     const method = isEditing.value ? "PUT" : "POST";
 
@@ -223,12 +224,15 @@ const deleteCoupon = async () => {
   if (!couponToDelete.value) return;
 
   try {
-    const response = await fetch(`/api/coupons/${couponToDelete.value.id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token.value}`,
-      },
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/coupons/${couponToDelete.value.id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token.value}`,
+        },
+      }
+    );
 
     if (response.ok) {
       await fetchCoupons();

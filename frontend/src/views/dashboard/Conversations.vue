@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from "vue";
 import MarkdownIt from "markdown-it";
 import { useAuth } from "../../composables/useAuth";
 import { useToast } from "../../composables/useToast";
+import { API_BASE_URL } from "../../config/api";
 import Table from "../../components/ui/table/Table.vue";
 import TableHeader from "../../components/ui/table/TableHeader.vue";
 import TableRow from "../../components/ui/table/TableRow.vue";
@@ -36,7 +37,7 @@ const sortDirection = ref("asc");
 const fetchConversations = async () => {
   isLoading.value = true;
   try {
-    const response = await fetch("/api/conversations", {
+    const response = await fetch(`${API_BASE_URL}/conversations`, {
       headers: {
         Authorization: `Bearer ${token.value}`,
       },
@@ -53,7 +54,7 @@ const fetchConversations = async () => {
 
 const fetchStats = async () => {
   try {
-    const response = await fetch("/api/conversations/stats", {
+    const response = await fetch(`${API_BASE_URL}/conversations/stats`, {
       headers: {
         Authorization: `Bearer ${token.value}`,
       },
@@ -145,11 +146,14 @@ const prevPage = () => {
 
 const openViewModal = async (conversation) => {
   try {
-    const response = await fetch(`/api/conversations/${conversation.id}`, {
-      headers: {
-        Authorization: `Bearer ${token.value}`,
-      },
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/conversations/${conversation.id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token.value}`,
+        },
+      }
+    );
     if (response.ok) {
       selectedConversation.value = await response.json();
       isViewModalOpen.value = true;
@@ -182,7 +186,7 @@ const deleteConversation = async () => {
 
   try {
     const response = await fetch(
-      `/api/conversations/${conversationToDelete.value.id}`,
+      `${API_BASE_URL}/conversations/${conversationToDelete.value.id}`,
       {
         method: "DELETE",
         headers: {
