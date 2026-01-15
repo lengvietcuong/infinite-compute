@@ -58,11 +58,18 @@ const handleSignUp = async () => {
       }),
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      throw new Error(data.detail || "Failed to sign up");
+      let errorMessage = "Failed to sign up";
+      try {
+        const data = await response.json();
+        errorMessage = data.detail || errorMessage;
+      } catch {
+        errorMessage = `Server error: ${response.status} ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
     }
+
+    const data = await response.json();
 
     // Automatically log in after sign up or redirect to login
     router.push("/sign-in");

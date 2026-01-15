@@ -17,42 +17,9 @@ const sortBy = ref(route.query.sort_by || "latest");
 const page = ref(parseInt(route.query.page) || 1);
 const pageSize = 12;
 const totalProducts = ref(0);
-const allFetchedProducts = ref([]);
-
-const filteredAndSortedProducts = computed(() => {
-  let result = [...allFetchedProducts.value];
-
-  switch (sortBy.value) {
-    case "price_asc":
-      result.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-      break;
-    case "price_desc":
-      result.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-      break;
-    case "most_reviews":
-      result.sort((a, b) => (b.review_count || 0) - (a.review_count || 0));
-      break;
-    case "latest":
-    default:
-      // Handle potential missing dates safely
-      result.sort((a, b) => {
-        const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
-        const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
-        return dateB - dateA;
-      });
-      break;
-  }
-  return result;
-});
-
-const paginatedProducts = computed(() => {
-  const start = (page.value - 1) * pageSize;
-  const end = start + pageSize;
-  return filteredAndSortedProducts.value.slice(start, end);
-});
 
 const totalPages = computed(
-  () => Math.ceil(filteredAndSortedProducts.value.length / pageSize) || 1
+  () => Math.ceil(totalProducts.value / pageSize) || 1
 );
 
 const fetchProducts = async () => {
@@ -60,8 +27,8 @@ const fetchProducts = async () => {
   error.value = null;
   try {
     const params = new URLSearchParams({
-      skip: 0,
-      limit: 100,
+      skip: (page.value - 1) * pageSize,
+      limit: pageSize,
     });
 
     if (searchQuery.value) params.append("search", searchQuery.value);
@@ -75,8 +42,44 @@ const fetchProducts = async () => {
     }
 
     const data = await response.json();
-    allFetchedProducts.value = data;
-    totalProducts.value = data.length;
+    
+    let sortedProducts = [...data];
+    switch (sortBy.value) {
+      case "price_asc":
+        sortedProducts.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+        break;
+      case "price_desc":
+        sortedProducts.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+        break;
+      case "most_reviews":
+        sortedProducts.sort((a, b) => (b.review_count || 0) - (a.review_count || 0));
+        break;
+      case "latest":
+      default:
+        sortedProducts.sort((a, b) => {
+          const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
+          const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
+          return dateB - dateA;
+        });
+        break;
+    }
+    
+    products.value = sortedProducts;
+    
+    if (page.value === 1 || totalProducts.value === 0) {
+      const countParams = new URLSearchParams();
+      if (searchQuery.value) countParams.append("search", searchQuery.value);
+      
+      const countResponse = await fetch(
+        `${API_BASE_URL}/products/count?${countParams.toString()}`
+      );
+      if (countResponse.ok) {
+        const countData = await countResponse.json();
+        totalProducts.value = countData.count;
+      } else {
+        totalProducts.value = data.length;
+      }
+    }
   } catch (err) {
     console.error("Failed to fetch products:", err);
     error.value = "Failed to load products. Please try again later.";
@@ -99,9 +102,8 @@ const updateURL = () => {
 
 // Watchers
 watch(searchQuery, () => {
-  page.value = 1; // Reset to page 1 on search
-  // Debounce fetch handled by separate watcher or logic if needed,
-  // but here we just fetch immediately or via debounced function.
+  page.value = 1;
+  totalProducts.value = 0;
   debouncedFetch();
 });
 
@@ -279,7 +281,7 @@ const navigateToProduct = (id) => {
     <!-- Grid -->
     <div v-else class="products-grid">
       <article
-        v-for="product in paginatedProducts"
+        v-for="product in products"
         :key="product.id"
         class="product-card glass-card"
         @click="navigateToProduct(product.id)"
@@ -334,7 +336,7 @@ const navigateToProduct = (id) => {
 
     <!-- Empty State -->
     <div
-      v-if="!loading && !error && allFetchedProducts.length === 0"
+      v-if="!loading && !error && products.length === 0"
       class="text-center py-5 text-muted"
     >
       No products found matching your criteria.
@@ -343,7 +345,7 @@ const navigateToProduct = (id) => {
     <!-- Pagination -->
     <div
       class="pagination mt-5 d-flex justify-content-center gap-2"
-      v-if="filteredAndSortedProducts.length > pageSize"
+      v-if="totalProducts > pageSize"
     >
       <button
         @click="goToFirstPage"

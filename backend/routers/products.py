@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from typing import List, Optional
@@ -12,6 +12,7 @@ router = APIRouter(prefix="/products", tags=["Products"])
 
 @router.get("", response_model=List[ProductResponse])
 async def list_products(
+    response: Response,
     skip: int = 0,
     limit: int = 100,
     search: Optional[str] = None,
@@ -23,6 +24,10 @@ async def list_products(
     db: AsyncSession = Depends(get_db)
 ):
     """List all products with optional filters"""
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    
     query = select(Product)
     
     # Apply filters
@@ -74,9 +79,59 @@ async def list_products(
     return products_with_stats
 
 
+@router.get("/count")
+async def get_products_count(
+    response: Response,
+    search: Optional[str] = None,
+    architecture: Optional[str] = None,
+    product_line: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    in_stock: Optional[bool] = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """Get total count of products matching filters"""
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    
+    query = select(func.count(Product.id))
+    
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.where(
+            (Product.name.ilike(search_pattern)) |
+            (Product.description.ilike(search_pattern))
+        )
+    
+    if architecture:
+        query = query.where(Product.architecture == architecture)
+    
+    if product_line:
+        query = query.where(Product.product_line == product_line)
+    
+    if min_price is not None:
+        query = query.where(Product.price >= min_price)
+    
+    if max_price is not None:
+        query = query.where(Product.price <= max_price)
+    
+    if in_stock is True:
+        query = query.where(Product.stock_quantity > 0)
+    
+    result = await db.execute(query)
+    count = result.scalar()
+    
+    return {"count": count}
+
+
 @router.get("/top-selling", response_model=List[ProductResponse])
-async def get_top_selling_products(limit: int = 10, db: AsyncSession = Depends(get_db)):
+async def get_top_selling_products(response: Response, limit: int = 10, db: AsyncSession = Depends(get_db)):
     """Get top selling products based on order quantities"""
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    
     query = (
         select(Product)
         .join(OrderItem, Product.id == OrderItem.product_id)
@@ -127,8 +182,12 @@ async def get_top_selling_products(limit: int = 10, db: AsyncSession = Depends(g
 
 
 @router.get("/{product_id}", response_model=ProductResponse)
-async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
+async def get_product(product_id: int, response: Response, db: AsyncSession = Depends(get_db)):
     """Get a specific product by ID"""
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    
     result = await db.execute(select(Product).where(Product.id == product_id))
     product = result.scalar_one_or_none()
     

@@ -27,7 +27,13 @@ const updateVisibleCount = () => {
 const fetchTopProducts = async () => {
   loading.value = true;
   try {
-    const response = await fetch("/api/products/top-selling?limit=10");
+    const response = await fetch("/api/products/top-selling?limit=10", {
+      cache: "no-store",
+      headers: {
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache"
+      }
+    });
     if (!response.ok) throw new Error("Failed to fetch top products");
     const data = await response.json();
     if (data && data.length > 0) {

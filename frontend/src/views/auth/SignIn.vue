@@ -37,12 +37,18 @@ const handleLogin = async () => {
       }),
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      throw new Error(data.detail || "Failed to login");
+      let errorMessage = "Failed to login";
+      try {
+        const data = await response.json();
+        errorMessage = data.detail || errorMessage;
+      } catch {
+        errorMessage = `Server error: ${response.status} ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
     }
 
+    const data = await response.json();
     await login(data.access_token);
 
     // Check role and redirect
