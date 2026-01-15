@@ -44,10 +44,10 @@ const handleLogin = async () => {
     }
 
     await login(data.access_token);
-    
+
     // Check role and redirect
     const { user } = useAuth();
-    if (user.value?.role === 'admin' || user.value?.role === 'staff') {
+    if (user.value?.role === "admin" || user.value?.role === "staff") {
       router.push("/dashboard");
     } else {
       const redirectPath = router.currentRoute.value.query.redirect || "/";
@@ -338,9 +338,9 @@ body.light-mode .gradient-light {
 }
 
 .alert-danger {
-  color: var(--error);
-  background-color: color-mix(in srgb, var(--error), transparent 90%);
-  border: 1px solid color-mix(in srgb, var(--error), transparent 80%);
+  color: var(--destructive);
+  background-color: color-mix(in srgb, var(--destructive), transparent 90%);
+  border: 1px solid color-mix(in srgb, var(--destructive), transparent 80%);
   padding: var(--spacing-sm);
   border-radius: var(--radius);
   font-size: 0.875rem;

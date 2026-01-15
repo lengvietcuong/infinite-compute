@@ -1,11 +1,17 @@
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch } from "vue";
 
 const cart = ref([]);
 const isCartOpen = ref(false);
+const stockDialog = ref({
+  isOpen: false,
+  title: "",
+  message: "",
+  variant: "destructive",
+});
 
 // Load cart from local storage
 const loadCart = () => {
-  const savedCart = localStorage.getItem('cart');
+  const savedCart = localStorage.getItem("cart");
   if (savedCart) {
     cart.value = JSON.parse(savedCart);
   }
@@ -13,7 +19,20 @@ const loadCart = () => {
 
 // Save cart to local storage
 const saveCart = () => {
-  localStorage.setItem('cart', JSON.stringify(cart.value));
+  localStorage.setItem("cart", JSON.stringify(cart.value));
+};
+
+const showStockDialog = (title, message, variant = "destructive") => {
+  stockDialog.value = {
+    isOpen: true,
+    title,
+    message,
+    variant,
+  };
+};
+
+const closeStockDialog = () => {
+  stockDialog.value.isOpen = false;
 };
 
 export function useCart() {
@@ -28,13 +47,26 @@ export function useCart() {
   const addToCart = (product) => {
     const existingItem = cart.value.find((item) => item.id === product.id);
     if (existingItem) {
+      if (existingItem.quantity >= product.stock_quantity) {
+        showStockDialog(
+          "Stock Limit Reached",
+          `Cannot add more. Only ${product.stock_quantity} units available in stock.`
+        );
+        return;
+      }
       existingItem.quantity += 1;
+      existingItem.stock_quantity = product.stock_quantity;
     } else {
+      if (product.stock_quantity <= 0) {
+        showStockDialog("Out of Stock", "This product is out of stock.");
+        return;
+      }
       cart.value.push({
         id: product.id,
         name: product.name,
         price: product.price,
         image_url: product.image_url,
+        stock_quantity: product.stock_quantity,
         quantity: 1,
       });
     }
@@ -48,6 +80,13 @@ export function useCart() {
   const updateQuantity = (productId, quantity) => {
     const item = cart.value.find((item) => item.id === productId);
     if (item) {
+      if (quantity > item.stock_quantity) {
+        showStockDialog(
+          "Stock Limit Reached",
+          `Cannot add more. Only ${item.stock_quantity} units available in stock.`
+        );
+        return;
+      }
       item.quantity = quantity;
       if (item.quantity <= 0) {
         removeFromCart(productId);
@@ -60,7 +99,10 @@ export function useCart() {
   };
 
   const cartTotal = computed(() => {
-    return cart.value.reduce((total, item) => total + item.price * item.quantity, 0);
+    return cart.value.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0
+    );
   });
 
   const cartItemCount = computed(() => {
@@ -74,6 +116,7 @@ export function useCart() {
   return {
     cart,
     isCartOpen,
+    stockDialog,
     addToCart,
     removeFromCart,
     updateQuantity,
@@ -81,5 +124,6 @@ export function useCart() {
     cartTotal,
     cartItemCount,
     toggleCart,
+    closeStockDialog,
   };
 }

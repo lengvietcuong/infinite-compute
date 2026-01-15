@@ -201,7 +201,7 @@ onMounted(() => {
             />
             <path d="M9 11v2" />
           </svg>
-          <h3>AI Assistant</h3>
+          <h3>AI Advisor</h3>
         </div>
         <div class="header-actions">
           <button @click="resetChat" class="action-btn" title="Reset Chat">
@@ -499,6 +499,29 @@ onMounted(() => {
 .message-content :deep(a) {
   color: var(--primary);
   text-decoration: underline;
+}
+
+.message-content :deep(table) {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5rem 0;
+  border: 1px solid var(--border);
+}
+
+.message-content :deep(th),
+.message-content :deep(td) {
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.message-content :deep(th) {
+  background: var(--muted);
+  font-weight: 600;
+}
+
+.message-content :deep(tr:nth-child(even)) {
+  background: var(--muted);
 }
 
 .chat-input-area {

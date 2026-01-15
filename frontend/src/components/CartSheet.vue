@@ -73,6 +73,19 @@ const handleCheckout = () => {
           <div class="item-details">
             <h4 class="item-name">{{ item.name }}</h4>
             <p class="item-price">${{ formatPrice(item.price) }}</p>
+            <p v-if="item.stock_quantity !== undefined" class="item-stock">
+              <span v-if="item.stock_quantity <= 0" class="stock-error"
+                >Out of Stock</span
+              >
+              <span
+                v-else-if="item.quantity >= item.stock_quantity"
+                class="stock-info"
+                >Max stock reached</span
+              >
+              <span v-else class="stock-available"
+                >{{ item.stock_quantity }} in stock</span
+              >
+            </p>
             <div class="item-controls">
               <div class="quantity-control" role="group" aria-label="Quantity">
                 <button
@@ -82,16 +95,26 @@ const handleCheckout = () => {
                 >
                   -
                 </button>
-                <span class="qty-val" aria-live="polite">{{ item.quantity }}</span>
+                <span class="qty-val" aria-live="polite">{{
+                  item.quantity
+                }}</span>
                 <button
                   class="qty-btn"
                   @click="updateQuantity(item.id, item.quantity + 1)"
+                  :disabled="
+                    item.stock_quantity !== undefined &&
+                    item.quantity >= item.stock_quantity
+                  "
                   aria-label="Increase quantity"
                 >
                   +
                 </button>
               </div>
-              <button class="remove-btn" @click="removeFromCart(item.id)" :aria-label="`Remove ${item.name} from cart`">
+              <button
+                class="remove-btn"
+                @click="removeFromCart(item.id)"
+                :aria-label="`Remove ${item.name} from cart`"
+              >
                 Remove
               </button>
             </div>
@@ -242,6 +265,23 @@ const handleCheckout = () => {
   margin: 0;
 }
 
+.item-stock {
+  font-size: var(--text-xs);
+  margin: 0.25rem 0 0 0;
+}
+
+.item-stock .stock-error {
+  color: var(--destructive);
+}
+
+.item-stock .stock-info {
+  color: var(--muted-foreground);
+}
+
+.item-stock .stock-available {
+  color: var(--muted-foreground);
+}
+
 .item-controls {
   display: flex;
   justify-content: space-between;
@@ -265,8 +305,13 @@ const handleCheckout = () => {
   cursor: pointer;
 }
 
-.qty-btn:hover {
+.qty-btn:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.1);
+}
+
+.qty-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .qty-val {

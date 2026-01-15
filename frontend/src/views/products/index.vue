@@ -629,7 +629,7 @@ const navigateToProduct = (id) => {
 }
 
 .text-warning {
-  color: var(--warning);
+  color: var(--destructive);
 }
 
 .card-title {

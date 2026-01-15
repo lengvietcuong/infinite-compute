@@ -92,13 +92,21 @@ async def create_order(
     order_items_data = []
     
     for item in order_data.items:
-        result = await db.execute(select(Product).where(Product.id == item.product_id))
+        result = await db.execute(
+            select(Product).where(Product.id == item.product_id).with_for_update()
+        )
         product = result.scalar_one_or_none()
         
         if not product:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Product with ID {item.product_id} not found"
+            )
+        
+        if product.stock_quantity <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{product.name} is out of stock"
             )
         
         if product.stock_quantity < item.quantity:

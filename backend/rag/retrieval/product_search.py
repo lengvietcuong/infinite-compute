@@ -104,7 +104,4 @@ async def get_product(product_name: str) -> str:
         else:
             product_info.append("No reviews yet")
 
-        if product.image_url:
-            product_info.append(f"Image URL: {product.image_url}")
-
         return "\n".join(product_info)

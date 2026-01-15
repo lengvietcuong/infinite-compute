@@ -41,10 +41,12 @@ const applyDiscount = async () => {
   isCheckingDiscount.value = true;
   discountError.value = null;
   discountSuccess.value = null;
-  
+
   try {
-    const response = await fetch(`http://localhost:8000/orders/validate-coupon/${form.value.discountCode}`);
-    
+    const response = await fetch(
+      `http://localhost:8000/orders/validate-coupon/${form.value.discountCode}`
+    );
+
     if (!response.ok) {
       throw new Error("Invalid discount code");
     }
@@ -157,7 +159,7 @@ const validateForm = () => {
   const isEmailValid = validateEmail();
   const isExpiryValid = validateExpiry();
   const isCvcValid = validateCvc();
-  
+
   return isNameValid && isEmailValid && isExpiryValid && isCvcValid;
 };
 
@@ -188,6 +190,21 @@ const placeOrder = async () => {
   if (!validateForm()) {
     error.value = "Please fix the validation errors before submitting";
     return;
+  }
+
+  // Validate stock before placing order
+  for (const item of cart.value) {
+    if (item.stock_quantity !== undefined && item.stock_quantity <= 0) {
+      error.value = `${item.name} is out of stock. Please remove it from your cart.`;
+      return;
+    }
+    if (
+      item.stock_quantity !== undefined &&
+      item.quantity > item.stock_quantity
+    ) {
+      error.value = `Insufficient stock for ${item.name}. Only ${item.stock_quantity} units available.`;
+      return;
+    }
   }
 
   isProcessing.value = true;
@@ -297,8 +314,12 @@ const handleOverlayClick = () => {
               v-if="discountApplied"
               class="d-flex justify-content-between mb-2 text-success"
             >
-              <span class="summary-label">Discount ({{ discountPercent }}%)</span>
-              <span class="summary-value">-${{ formatPrice(discountAmount) }}</span>
+              <span class="summary-label"
+                >Discount ({{ discountPercent }}%)</span
+              >
+              <span class="summary-value"
+                >-${{ formatPrice(discountAmount) }}</span
+              >
             </div>
             <div class="d-flex justify-content-between mb-2">
               <span class="summary-label">Shipping</span>
@@ -339,7 +360,10 @@ const handleOverlayClick = () => {
                 required
                 @blur="validateName"
               />
-              <div v-if="validationErrors.name" class="text-destructive mt-1 small">
+              <div
+                v-if="validationErrors.name"
+                class="text-destructive mt-1 small"
+              >
                 {{ validationErrors.name }}
               </div>
             </div>
@@ -354,7 +378,10 @@ const handleOverlayClick = () => {
                 required
                 @blur="validateEmail"
               />
-              <div v-if="validationErrors.email" class="text-destructive mt-1 small">
+              <div
+                v-if="validationErrors.email"
+                class="text-destructive mt-1 small"
+              >
                 {{ validationErrors.email }}
               </div>
             </div>
@@ -478,7 +505,10 @@ const handleOverlayClick = () => {
                 required
                 @blur="validateExpiry"
               />
-              <div v-if="validationErrors.expiry" class="text-destructive mt-1 small">
+              <div
+                v-if="validationErrors.expiry"
+                class="text-destructive mt-1 small"
+              >
                 {{ validationErrors.expiry }}
               </div>
             </div>
@@ -495,7 +525,10 @@ const handleOverlayClick = () => {
                 required
                 @blur="validateCvc"
               />
-              <div v-if="validationErrors.cvc" class="text-destructive mt-1 small">
+              <div
+                v-if="validationErrors.cvc"
+                class="text-destructive mt-1 small"
+              >
                 {{ validationErrors.cvc }}
               </div>
             </div>
@@ -685,7 +718,7 @@ const handleOverlayClick = () => {
 }
 
 .text-success {
-  color: var(--success);
+  color: var(--primary);
 }
 
 .text-destructive {
@@ -787,9 +820,9 @@ body.light-mode .section-icon {
 }
 
 .alert-danger {
-  color: var(--error);
-  background-color: color-mix(in srgb, var(--error), transparent 90%);
-  border: 1px solid color-mix(in srgb, var(--error), transparent 80%);
+  color: var(--destructive);
+  background-color: color-mix(in srgb, var(--destructive), transparent 90%);
+  border: 1px solid color-mix(in srgb, var(--destructive), transparent 80%);
   padding: var(--spacing-sm);
   border-radius: var(--radius);
 }
