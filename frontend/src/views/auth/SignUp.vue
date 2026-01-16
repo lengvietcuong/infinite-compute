@@ -12,6 +12,9 @@ const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 const isLoading = ref(false);
 const error = ref("");
+const showModal = ref(false);
+const couponCode = ref("");
+const copied = ref(false);
 
 const togglePassword = () => {
   showPassword.value = !showPassword.value;
@@ -19,6 +22,23 @@ const togglePassword = () => {
 
 const toggleConfirmPassword = () => {
   showConfirmPassword.value = !showConfirmPassword.value;
+};
+
+const copyToClipboard = async () => {
+  try {
+    await navigator.clipboard.writeText(couponCode.value);
+    copied.value = true;
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
+  } catch (err) {
+    console.error("Failed to copy", err);
+  }
+};
+
+const closeModalAndRedirect = () => {
+  showModal.value = false;
+  router.push("/sign-in");
 };
 
 const handleSignUp = async () => {
@@ -72,8 +92,8 @@ const handleSignUp = async () => {
 
     const data = await response.json();
 
-    // Automatically log in after sign up or redirect to login
-    router.push("/sign-in");
+    couponCode.value = data.coupon_code;
+    showModal.value = true;
   } catch (e) {
     error.value = e.message;
   } finally {
@@ -354,6 +374,80 @@ const handleSignUp = async () => {
         <div class="auth-image"></div>
       </div>
     </div>
+
+    <!-- Coupon Modal -->
+    <Teleport to="body">
+      <div
+        v-if="showModal"
+        class="modal-overlay"
+        @click="closeModalAndRedirect"
+      >
+        <div
+          class="modal-content glass-card p-5 text-center fade-in-up-slow"
+          @click.stop
+        >
+          <div class="success-icon mb-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="64"
+              height="64"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--primary)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="gift-icon-modal mb-2"
+            >
+              <rect x="3" y="8" width="18" height="4" rx="1" />
+              <path d="M12 8v13" />
+              <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
+              <path
+                d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"
+              />
+            </svg>
+          </div>
+          <h2 class="h3 mb-3">Welcome to InfiniteCompute!</h2>
+          <p class="text-muted mb-4">
+            Here is your
+            <span class="text-primary fw-bold">10% OFF</span> coupon code.
+          </p>
+
+          <div
+            class="coupon-display d-flex align-items-center justify-content-between p-3 mb-4"
+          >
+            <code class="fs-5 fw-bold text-foreground">{{ couponCode }}</code>
+            <button
+              @click="copyToClipboard"
+              class="btn btn-ghost btn-sm p-2 position-relative"
+              title="Copy to clipboard"
+            >
+              <div v-if="copied" class="tooltip-copied">Copied!</div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--foreground)"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                <path
+                  d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <button @click="closeModalAndRedirect" class="btn btn-primary w-100">
+            Continue to Sign In
+          </button>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -492,5 +586,74 @@ body.light-mode .gradient-light {
   to {
     transform: rotate(360deg);
   }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: var(--z-modal);
+}
+
+.modal-content {
+  max-width: 400px;
+  width: 90%;
+  border: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+}
+
+.coupon-display {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.tooltip-copied {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: transparent;
+  color: var(--primary);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-xs);
+  font-size: 0.75rem;
+  font-weight: bold;
+  pointer-events: none;
+  animation: fadeIn var(--transition-slow) ease-out;
+  margin-bottom: var(--spacing-sm);
+  white-space: nowrap;
+}
+
+.tooltip-copied::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -4px;
+  border-width: 4px;
+  border-style: solid;
+  border-color: var(--primary) transparent transparent transparent;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, var(--spacing-xs));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.coupon-display button {
+  position: relative;
 }
 </style>

@@ -62,12 +62,7 @@ async def validate_coupon(
 ):
     """Validate a discount coupon"""
     result = await db.execute(
-        select(Coupon).where(
-            and_(
-                Coupon.code == code,
-                Coupon.is_active == True
-            )
-        )
+        select(Coupon).where(Coupon.code == code)
     )
     coupon = result.scalar_one_or_none()
     
@@ -122,12 +117,7 @@ async def create_order(
         discount_percent = Decimal(0)
         
         if order_data.discount_code:
-            stmt = select(Coupon).where(
-                and_(
-                    Coupon.code == order_data.discount_code,
-                    Coupon.is_active == True
-                )
-            )
+            stmt = select(Coupon).where(Coupon.code == order_data.discount_code)
             result = await db.execute(stmt)
             coupon = result.scalar_one_or_none()
             
@@ -418,8 +408,7 @@ async def generate_coupon(
     # Create the coupon in DB
     coupon = Coupon(
         code=code,
-        discount_percent=Decimal(10.0),
-        is_active=True
+        discount_percent=Decimal(10.0)
     )
     db.add(coupon)
     try:

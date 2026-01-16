@@ -18,6 +18,7 @@ from sqlalchemy import (
     String,
     Text,
     TIMESTAMP,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -136,7 +137,6 @@ class Coupon(Base):
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String(50), unique=True, nullable=False, index=True)
     discount_percent = Column(DECIMAL(5, 2), nullable=False)
-    is_active = Column(Boolean, default=True)
     created_at = Column(
         TIMESTAMP(timezone=True), server_default=func.now(), nullable=False
     )
@@ -214,6 +214,7 @@ class Review(Base):
 
     __table_args__ = (
         CheckConstraint("rating >= 1 AND rating <= 5", name="check_rating_range"),
+        UniqueConstraint("user_id", "product_id", name="unique_user_product_review"),
     )
 
     # Relationships
@@ -249,7 +250,7 @@ class ChatMessage(Base):
     __tablename__ = "chat_messages"
 
     id = Column(Integer, primary_key=True, index=True)
-    session_id = Column(
+    chat_id = Column(
         UUID(as_uuid=True), ForeignKey("chat.id", ondelete="CASCADE"), nullable=False
     )
     role = Column(SQLEnum(ChatRole), nullable=False)
@@ -313,11 +314,6 @@ class Document(Base):
     content = Column(
         Text,
         CheckConstraint("length(content) > 0"),
-        nullable=False,
-    )
-    topic = Column(
-        Text,
-        CheckConstraint("length(topic) > 0"),
         nullable=False,
     )
     source_file = Column(

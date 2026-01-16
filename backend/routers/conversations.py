@@ -87,7 +87,7 @@ async def get_all_conversations(
                 user_email = user.email
         
         message_count_result = await db.execute(
-            select(func.count(ChatMessage.id)).where(ChatMessage.session_id == session.id)
+            select(func.count(ChatMessage.id)).where(ChatMessage.chat_id == session.id)
         )
         message_count = message_count_result.scalar()
         
@@ -171,7 +171,7 @@ async def get_conversation(
     
     messages_result = await db.execute(
         select(ChatMessage)
-        .where(ChatMessage.session_id == session.id)
+        .where(ChatMessage.chat_id == session.id)
         .order_by(ChatMessage.created_at)
     )
     messages = messages_result.scalars().all()

@@ -2,14 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database.database import get_db
-from database.models import User
-from schemas import UserCreate, UserResponse, Token, LoginRequest
+from database.models import User, Coupon
+from schemas import UserCreate, UserResponse, Token, LoginRequest, SignUpResponse
 from auth import get_password_hash, verify_password, create_access_token
+from decimal import Decimal
+import random
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=SignUpResponse, status_code=status.HTTP_201_CREATED)
 async def signup(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     """Register a new user"""
     # Check if user already exists
@@ -34,7 +36,47 @@ async def signup(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     await db.commit()
     await db.refresh(new_user)
     
-    return new_user
+    # Generate coupon for new user
+    names = (user_data.full_name or "").strip().split(maxsplit=1)
+    first_name = names[0] if len(names) > 0 else "User"
+    last_name = names[1] if len(names) > 1 else ""
+    
+    first = first_name.replace(" ", "")
+    last = last_name.replace(" ", "")
+    random_num = random.randint(1000, 9999)
+    coupon_code = f"{first}{last}{random_num}"
+    
+    coupon = Coupon(
+        code=coupon_code,
+        discount_percent=Decimal(10.0)
+    )
+    db.add(coupon)
+    
+    try:
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        random_num = random.randint(1000, 9999)
+        coupon_code = f"{first}{last}{random_num}"
+        coupon.code = coupon_code
+        db.add(coupon)
+        await db.commit()
+    
+    await db.refresh(coupon)
+    
+    # Build response with coupon information
+    response_data = SignUpResponse(
+        id=new_user.id,
+        email=new_user.email,
+        full_name=new_user.full_name,
+        role=new_user.role,
+        created_at=new_user.created_at,
+        updated_at=new_user.updated_at,
+        coupon_code=coupon.code,
+        coupon_discount=coupon.discount_percent
+    )
+    
+    return response_data
 
 
 @router.post("/login", response_model=Token)

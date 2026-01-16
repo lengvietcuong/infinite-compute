@@ -173,7 +173,6 @@ const saveCoupon = async () => {
     const payload = {
       code: formData.value.code,
       discount_percent: parseFloat(formData.value.discount_percent),
-      is_active: true,
     };
 
     const response = await fetch(url, {

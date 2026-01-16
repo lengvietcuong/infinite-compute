@@ -76,14 +76,14 @@ async def chat(
 
         result = await db.execute(
             select(ChatMessage)
-            .where(ChatMessage.session_id == chat.id)
+            .where(ChatMessage.chat_id == chat.id)
             .order_by(ChatMessage.created_at)
         )
         db_messages = result.scalars().all()
         logger.info(f"Loaded {len(db_messages)} previous messages")
         
         user_msg = ChatMessage(
-            session_id=chat.id,
+            chat_id=chat.id,
             role=ChatRole.USER,
             content=request.message
         )
@@ -117,7 +117,7 @@ async def chat(
         
         response_content = messages[-1]["content"]
         assistant_msg = ChatMessage(
-            session_id=chat.id,
+            chat_id=chat.id,
             role=ChatRole.ASSISTANT,
             content=response_content
         )
@@ -140,7 +140,7 @@ async def get_chat_history(
         
         result = await db.execute(
             select(ChatMessage)
-            .where(ChatMessage.session_id == chat.id)
+            .where(ChatMessage.chat_id == chat.id)
             .order_by(ChatMessage.created_at)
         )
         db_messages = result.scalars().all()

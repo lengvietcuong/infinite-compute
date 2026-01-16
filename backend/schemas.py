@@ -33,6 +33,17 @@ class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class SignUpResponse(UserBase):
+    id: int
+    role: UserRole
+    created_at: datetime
+    updated_at: datetime
+    coupon_code: str
+    coupon_discount: Decimal
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 # ==================== Auth Schemas ====================
 class Token(BaseModel):
     access_token: str

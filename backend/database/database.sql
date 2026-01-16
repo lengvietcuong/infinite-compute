@@ -50,9 +50,16 @@ CREATE TABLE news (
     published_date DATE,
     source VARCHAR(255),
     image_url TEXT,
-    author_id INTEGER REFERENCES users(id) ON DELETE SET NULL, -- Track who posted
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Coupons Table
+CREATE TABLE coupons (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    discount_percent DECIMAL(5, 2) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Orders Table
@@ -92,7 +99,7 @@ CREATE TABLE reviews (
 -- Chat Sessions Table
 -- Only for signed-in users. Guests use LocalStorage.
 CREATE TABLE chat (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -101,7 +108,7 @@ CREATE TABLE chat (
 -- Chat Messages Table
 CREATE TABLE chat_messages (
     id SERIAL PRIMARY KEY,
-    session_id INTEGER REFERENCES chat(id) ON DELETE CASCADE,
+    chat_id INTEGER REFERENCES chat(id) ON DELETE CASCADE,
     role VARCHAR(50) NOT NULL CHECK (role IN ('user', 'assistant')),
     content TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -137,7 +144,6 @@ WITH (m = 16, ef_construction = 64);
 CREATE TABLE documents (
     id SERIAL PRIMARY KEY,
     content TEXT NOT NULL CHECK (length(content) > 0),
-    topic TEXT NOT NULL CHECK (length(topic) > 0),
     source_file VARCHAR(255) NOT NULL CHECK (length(source_file) > 0) UNIQUE,
     sha256_hash BYTEA GENERATED ALWAYS AS (digest(content, 'sha256')) STORED NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

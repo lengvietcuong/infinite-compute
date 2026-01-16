@@ -85,16 +85,6 @@ def _chunk_markdown_text(
     return chunks
 
 
-def _extract_document_topic(markdown_text: str) -> str:
-    """Extract the first heading from markdown as the document topic."""
-    for line in markdown_text.split('\n'):
-        line = line.strip()
-        if line.startswith('#'):
-            topic = line.lstrip('#').strip()
-            return topic if topic else 'Untitled'
-    return 'Untitled'
-
-
 async def add_markdown_documents(data_directory: Path) -> None:
     """Load all Markdown documents into the documents table."""
     async with AsyncSessionLocal() as session:
@@ -120,9 +110,8 @@ async def add_markdown_documents(data_directory: Path) -> None:
 
             existing_sources.add(source_file)
             existing_hashes.add(document_hash)
-            topic = _extract_document_topic(content)
             documents_to_add.append(
-                Document(content=content, topic=topic, source_file=source_file)
+                Document(content=content, source_file=source_file)
             )
 
         logger.info(f"Found {len(documents_to_add)} Markdown documents to add")

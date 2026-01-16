@@ -1,5 +1,5 @@
 """
-Document-level retrieval functions for listing and reading document topics, documents, and sections.
+Document-level retrieval functions for listing and reading documents and sections.
 """
 
 import logging
@@ -21,13 +21,10 @@ logger = logging.getLogger(__name__)
 
 async def list_documents() -> str:
     """
-    List all documents from the database filtered by topics.
-
-    Args:
-        topics (List[str]): List of topics to filter by
+    List all documents from the database.
 
     Returns:
-        str: Formatted string with documents organized by topic
+        str: Formatted string with all available documents
     """
     logger.debug("Listing documents")
 

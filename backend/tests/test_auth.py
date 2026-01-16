@@ -22,6 +22,9 @@ class TestAuthentication:
         assert data["full_name"] == "New Test User"
         assert data["role"] == "customer"
         assert "id" in data
+        assert "coupon_code" in data
+        assert "coupon_discount" in data
+        assert float(data["coupon_discount"]) == 10.0
         pytest.test_counter += 1
     
     async def test_signup_duplicate_email(self, client: AsyncClient):
