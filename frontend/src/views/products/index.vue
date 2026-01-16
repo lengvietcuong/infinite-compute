@@ -32,6 +32,7 @@ const fetchProducts = async () => {
     });
 
     if (searchQuery.value) params.append("search", searchQuery.value);
+    if (sortBy.value) params.append("sort_by", sortBy.value);
 
     const response = await fetch(
       `${API_BASE_URL}/products?${params.toString()}`
@@ -42,29 +43,7 @@ const fetchProducts = async () => {
     }
 
     const data = await response.json();
-    
-    let sortedProducts = [...data];
-    switch (sortBy.value) {
-      case "price_asc":
-        sortedProducts.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-        break;
-      case "price_desc":
-        sortedProducts.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-        break;
-      case "most_reviews":
-        sortedProducts.sort((a, b) => (b.review_count || 0) - (a.review_count || 0));
-        break;
-      case "latest":
-      default:
-        sortedProducts.sort((a, b) => {
-          const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
-          const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
-          return dateB - dateA;
-        });
-        break;
-    }
-    
-    products.value = sortedProducts;
+    products.value = data;
     
     if (page.value === 1 || totalProducts.value === 0) {
       const countParams = new URLSearchParams();
@@ -119,10 +98,12 @@ const debouncedFetch = () => {
 watch(sortBy, () => {
   page.value = 1;
   updateURL();
+  fetchProducts();
 });
 
 watch(page, () => {
   updateURL();
+  fetchProducts();
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 

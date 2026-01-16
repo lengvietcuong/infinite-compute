@@ -59,6 +59,33 @@ class TestProducts:
         for product in data:
             assert product["stock_quantity"] > 0
     
+    async def test_list_products_sort_by_price_asc(self, client: AsyncClient):
+        """Test sorting products by price ascending"""
+        response = await client.get("/products?sort_by=price_asc")
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) > 0
+        prices = [float(product["price"]) for product in data]
+        assert prices == sorted(prices)
+    
+    async def test_list_products_sort_by_price_desc(self, client: AsyncClient):
+        """Test sorting products by price descending"""
+        response = await client.get("/products?sort_by=price_desc")
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) > 0
+        prices = [float(product["price"]) for product in data]
+        assert prices == sorted(prices, reverse=True)
+    
+    async def test_list_products_sort_by_most_reviews(self, client: AsyncClient):
+        """Test sorting products by review count"""
+        response = await client.get("/products?sort_by=most_reviews")
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) > 0
+        review_counts = [product["review_count"] for product in data]
+        assert review_counts == sorted(review_counts, reverse=True)
+    
     async def test_get_product_by_id(self, client: AsyncClient, test_product_id: int):
         """Test getting product by ID"""
         response = await client.get(f"/products/{test_product_id}")

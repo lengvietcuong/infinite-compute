@@ -21,6 +21,7 @@ async def list_products(
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
     in_stock: Optional[bool] = None,
+    sort_by: Optional[str] = None,
     db: AsyncSession = Depends(get_db)
 ):
     """List all products with optional filters"""
@@ -53,7 +54,15 @@ async def list_products(
     if in_stock is True:
         query = query.where(Product.stock_quantity > 0)
     
-    query = query.offset(skip).limit(limit).order_by(Product.created_at.desc())
+    # Apply sorting
+    if sort_by == "price_asc":
+        query = query.order_by(Product.price.asc())
+    elif sort_by == "price_desc":
+        query = query.order_by(Product.price.desc())
+    else:
+        query = query.order_by(Product.created_at.desc())
+    
+    query = query.offset(skip).limit(limit)
     result = await db.execute(query)
     products = result.scalars().all()
     
@@ -75,6 +84,10 @@ async def list_products(
         product_dict['review_count'] = stats.review_count
         
         products_with_stats.append(ProductResponse(**product_dict))
+    
+    # Handle sorting by review count (requires in-memory sorting since it's computed)
+    if sort_by == "most_reviews":
+        products_with_stats.sort(key=lambda p: p.review_count or 0, reverse=True)
     
     return products_with_stats
 
