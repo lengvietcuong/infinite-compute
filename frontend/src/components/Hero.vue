@@ -122,7 +122,14 @@ onUnmounted(() => {
             <router-link to="/products" class="btn btn-lg btn-primary">
               Browse Products
             </router-link>
-            <a href="#" class="btn btn-lg btn-outline"> Contact Sales </a>
+            <a
+              href="https://www.linkedin.com/in/lengvietcuong/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-lg btn-outline"
+            >
+              Contact Sales
+            </a>
           </div>
         </div>
 

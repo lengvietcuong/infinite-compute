@@ -86,8 +86,12 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const { isAuthenticated, isAdmin, fetchUser, user } = useAuth();
 
-  // Wait for user to be fetched if we have a token but no user data yet
-  if (localStorage.getItem("token") && !user.value) {
+  // Only fetch user if navigating to a protected route and we have a token but no user data yet
+  if (
+    (to.meta.requiresAuth || to.meta.requiresAdminOrStaff) &&
+    localStorage.getItem("token") &&
+    !user.value
+  ) {
     await fetchUser();
   }
 
