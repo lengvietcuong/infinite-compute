@@ -171,7 +171,7 @@ async def delete_review(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Delete a review (own reviews or admin)"""
+    """Delete a review (own reviews, staff, or admin)"""
     result = await db.execute(select(Review).where(Review.id == review_id))
     review = result.scalar_one_or_none()
     
@@ -181,9 +181,9 @@ async def delete_review(
             detail="Review not found"
         )
     
-    # Check if user owns this review or is admin
+    # Check if user owns this review or is staff/admin
     from database.models import UserRole
-    if review.user_id != current_user.id and current_user.role != UserRole.ADMIN:
+    if review.user_id != current_user.id and current_user.role not in [UserRole.STAFF, UserRole.ADMIN]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only delete your own reviews"

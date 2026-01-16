@@ -270,3 +270,48 @@ class TestReviews:
                 headers=get_auth_headers(admin_token)
             )
             assert response.status_code == 204
+    
+    async def test_delete_any_review_as_staff(self, client: AsyncClient, staff_token: str, customer_token: str):
+        """Test staff can delete any review"""
+        # Create a review as customer
+        response = await client.get("/products?skip=3&limit=1")
+        if len(response.json()) == 0:
+            pytest.skip("Not enough products")
+        product_id = response.json()[0]["id"]
+        
+        # Create order, ship, and review
+        response = await client.post(
+            "/orders",
+            headers=get_auth_headers(customer_token),
+            json={
+                "shipping_address": "123 Test Staff Delete",
+                "items": [{"product_id": product_id, "quantity": 1}]
+            }
+        )
+        order_id = response.json()["id"]
+        
+        await client.patch(
+            f"/orders/{order_id}/status",
+            headers=get_auth_headers(staff_token),
+            json={"status": "SHIPPED"}
+        )
+        
+        response = await client.post(
+            "/reviews",
+            headers=get_auth_headers(customer_token),
+            json={
+                "product_id": product_id,
+                "rating": 3,
+                "comment": "Staff will delete this"
+            }
+        )
+        
+        if response.status_code == 201:
+            review_id = response.json()["id"]
+            
+            # Delete the review as staff (not the owner)
+            response = await client.delete(
+                f"/reviews/{review_id}",
+                headers=get_auth_headers(staff_token)
+            )
+            assert response.status_code == 204
