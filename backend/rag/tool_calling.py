@@ -10,7 +10,7 @@ from rag.retrieval.document_retrieval import (
     list_sections,
     read_sections,
 )
-from rag.retrieval.product_search import get_product, list_products
+from rag.retrieval.product_search import get_product, get_products, list_products
 from rag.retrieval.web_search import web_search
 
 
@@ -124,7 +124,47 @@ LIST_PRODUCTS_TOOL = {
         "parameters": {},
     },
 }
-TOOLS = [LIST_DOCUMENTS_TOOL, LIST_SECTIONS_TOOL, READ_SECTIONS_TOOL, KEYWORD_SEARCH_TOOL, WEB_SEARCH_TOOL, GET_PRODUCT_TOOL, LIST_PRODUCTS_TOOL]
+GET_PRODUCTS_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "get_products",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "product_names": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of product names to retrieve (e.g., ['4090', '4080'] will match 'GeForce RTX 4090' and 'GeForce RTX 4080').",
+                },
+                "min_price": {
+                    "type": "number",
+                    "description": "Minimum price filter in dollars.",
+                },
+                "max_price": {
+                    "type": "number",
+                    "description": "Maximum price filter in dollars.",
+                },
+                "min_memory": {
+                    "type": "integer",
+                    "description": "Minimum memory in GB (e.g., 8, 12, 16, 24).",
+                },
+                "product_line": {
+                    "type": "string",
+                    "description": "Filter by product line. Available values: 'Consumer Desktop', 'Consumer Laptop', 'Data Center', 'Professional Desktop'.",
+                },
+                "architecture": {
+                    "type": "string",
+                    "description": "Filter by architecture. Available values: 'Blackwell', 'Ada', 'Hopper', 'Ampere', 'Turing'.",
+                },
+                "min_stock": {
+                    "type": "integer",
+                    "description": "Minimum stock quantity.",
+                },
+            },
+        },
+    },
+}
+TOOLS = [LIST_DOCUMENTS_TOOL, LIST_SECTIONS_TOOL, READ_SECTIONS_TOOL, KEYWORD_SEARCH_TOOL, WEB_SEARCH_TOOL, GET_PRODUCT_TOOL, LIST_PRODUCTS_TOOL, GET_PRODUCTS_TOOL]
 
 
 async def _get_tool_call_result(
@@ -179,6 +219,17 @@ async def _get_tool_call_result(
 
     if function_name == "list_products":
         return await list_products()
+
+    if function_name == "get_products":
+        return await get_products(
+            product_names=function_args.get("product_names"),
+            min_price=function_args.get("min_price"),
+            max_price=function_args.get("max_price"),
+            min_memory=function_args.get("min_memory"),
+            product_line=function_args.get("product_line"),
+            architecture=function_args.get("architecture"),
+            min_stock=function_args.get("min_stock"),
+        )
 
     raise ValueError(f"Invalid tool '{function_name}'")
 

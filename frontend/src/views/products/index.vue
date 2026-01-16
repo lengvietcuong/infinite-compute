@@ -44,11 +44,11 @@ const fetchProducts = async () => {
 
     const data = await response.json();
     products.value = data;
-    
+
     if (page.value === 1 || totalProducts.value === 0) {
       const countParams = new URLSearchParams();
       if (searchQuery.value) countParams.append("search", searchQuery.value);
-      
+
       const countResponse = await fetch(
         `${API_BASE_URL}/products/count?${countParams.toString()}`
       );
