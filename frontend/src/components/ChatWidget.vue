@@ -502,6 +502,26 @@ onMounted(() => {
   text-decoration: underline;
 }
 
+.message-content :deep(h1),
+.message-content :deep(h2),
+.message-content :deep(h3),
+.message-content :deep(h4),
+.message-content :deep(h5),
+.message-content :deep(h6) {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.message-content :deep(h1:first-child),
+.message-content :deep(h2:first-child),
+.message-content :deep(h3:first-child),
+.message-content :deep(h4:first-child),
+.message-content :deep(h5:first-child),
+.message-content :deep(h6:first-child) {
+  margin-top: 0;
+}
+
 .message-content :deep(table) {
   border-collapse: collapse;
   width: 100%;

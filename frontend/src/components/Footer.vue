@@ -43,18 +43,17 @@
           </h6>
           <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
             <li>
-              <a href="#" class="text-muted text-decoration-none hover-primary"
+              <a
+                href="/products"
+                class="text-muted text-decoration-none hover-primary"
                 >Products</a
               >
             </li>
             <li>
-              <a href="#" class="text-muted text-decoration-none hover-primary"
-                >Solutions</a
-              >
-            </li>
-            <li>
-              <a href="#" class="text-muted text-decoration-none hover-primary"
-                >Pricing</a
+              <a
+                href="/track-order"
+                class="text-muted text-decoration-none hover-primary"
+                >Track Order</a
               >
             </li>
           </ul>
@@ -68,18 +67,17 @@
           </h6>
           <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
             <li>
-              <a href="#" class="text-muted text-decoration-none hover-primary"
+              <a
+                href="/about"
+                class="text-muted text-decoration-none hover-primary"
                 >About</a
               >
             </li>
             <li>
-              <a href="#" class="text-muted text-decoration-none hover-primary"
-                >Careers</a
-              >
-            </li>
-            <li>
-              <a href="#" class="text-muted text-decoration-none hover-primary"
-                >Contact</a
+              <a
+                href="/news"
+                class="text-muted text-decoration-none hover-primary"
+                >News</a
               >
             </li>
           </ul>
@@ -94,7 +92,9 @@
           <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
             <li>
               <a
-                href="#"
+                href="https://www.linkedin.com/in/lengvietcuong/"
+                target="_blank"
+                rel="noopener noreferrer"
                 class="social-link d-flex align-items-center gap-2 text-muted text-decoration-none hover-primary"
               >
                 <svg
@@ -119,7 +119,9 @@
             </li>
             <li>
               <a
-                href="#"
+                href="https://youtube.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 class="social-link d-flex align-items-center gap-2 text-muted text-decoration-none hover-primary"
               >
                 <svg
@@ -144,30 +146,6 @@
                 YouTube
               </a>
             </li>
-            <li>
-              <a
-                href="#"
-                class="social-link d-flex align-items-center gap-2 text-muted text-decoration-none hover-primary"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="social-icon"
-                >
-                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37 z" />
-                  <circle cx="17.5" cy="6.5" r="1.5" />
-                </svg>
-                Instagram
-              </a>
-            </li>
           </ul>
         </div>
       </div>
@@ -175,9 +153,28 @@
       <div
         class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-5"
       >
-        <p class="mb-0 text-muted small">
-          &copy; 2026 InfiniteCompute. All rights reserved.
-        </p>
+        <div>
+          <p class="mb-0 text-muted small">
+            &copy; 2026 InfiniteCompute. All rights reserved.
+          </p>
+          <p class="mb-0 text-muted small">
+            Images by
+            <a
+              href="https://pexels.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-muted hover-primary"
+              >Pexels</a
+            >. Icons by
+            <a
+              href="https://lucide.dev/icons/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-muted hover-primary"
+              >Lucide</a
+            >.
+          </p>
+        </div>
         <div class="d-flex gap-4">
           <a
             href="#"

@@ -483,12 +483,18 @@ onUnmounted(() => {
 
           <!-- Auth Section -->
           <li class="nav-item auth-nav-group" v-if="!isAuthenticated">
-            <router-link class="btn btn-sm btn-outline" to="/sign-in"
+            <router-link
+              class="btn btn-sm btn-outline"
+              to="/sign-in"
+              @click="collapseMenu"
               >Login</router-link
             >
           </li>
           <li class="nav-item mb-3 mb-xl-0" v-if="!isAuthenticated">
-            <router-link class="btn btn-sm btn-primary" to="/sign-up"
+            <router-link
+              class="btn btn-sm btn-primary"
+              to="/sign-up"
+              @click="collapseMenu"
               >Sign Up</router-link
             >
           </li>
