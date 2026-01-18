@@ -10,6 +10,7 @@ const md = new MarkdownIt({
 });
 
 const isOpen = ref(false);
+const isExpanded = ref(false);
 const messages = ref([]);
 const inputMessage = ref("");
 const isLoading = ref(false);
@@ -17,11 +18,29 @@ const showResetHighlight = ref(false);
 const chatContainer = ref(null);
 const chatId = ref(localStorage.getItem("chatId"));
 
+const toolNameMap = {
+  get_products: { start: "Getting product details...", end: "Retrieved product details" },
+  get_product: { start: "Getting product details...", end: "Retrieved product details ✔" },
+  list_products: { start: "Listing products...", end: "Retrieved product list ✔" },
+  web_search: { start: "Searching the web...", end: "Web search completed ✔" },
+  keyword_search: { start: "Searching documents...", end: "Document search completed ✔" },
+  list_documents: { start: "Listing documents...", end: "Retrieved document list ✔" },
+  list_sections: { start: "Listing sections...", end: "Retrieved section list ✔" },
+  read_sections: { start: "Reading documents...", end: "Retrieved document content ✔" },
+};
+
 const toggleChat = () => {
   isOpen.value = !isOpen.value;
   if (isOpen.value) {
     scrollToBottom();
   }
+};
+
+const toggleExpand = () => {
+  isExpanded.value = !isExpanded.value;
+  nextTick(() => {
+    scrollToBottom();
+  });
 };
 
 const scrollToBottom = async () => {
@@ -67,8 +86,10 @@ const sendMessage = async () => {
   isLoading.value = true;
   scrollToBottom();
 
+  let assistantMessageIndex = -1;
+
   try {
-    const response = await fetch(`${API_BASE_URL}/chat`, {
+    const response = await fetch(`${API_BASE_URL}/chat/stream`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -84,24 +105,108 @@ const sendMessage = async () => {
       throw new Error("Network response was not ok");
     }
 
-    const data = await response.json();
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
 
-    if (data.chat_id && !chatId.value) {
-      chatId.value = data.chat_id;
-      localStorage.setItem("chatId", data.chat_id);
+    while (true) {
+      const { done, value } = await reader.read();
+      
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const data = line.slice(6);
+          
+          try {
+            const event = JSON.parse(data);
+
+            if (event.type === "chat_id" && !chatId.value) {
+              chatId.value = event.chat_id;
+              localStorage.setItem("chatId", event.chat_id);
+            } else if (event.type === "content") {
+              if (assistantMessageIndex === -1) {
+                isLoading.value = false;
+                assistantMessageIndex = messages.value.length;
+                messages.value.push({
+                  role: "assistant",
+                  content: "",
+                  toolMessages: [],
+                  isStreaming: true,
+                });
+              }
+              messages.value[assistantMessageIndex].content += event.content;
+              scrollToBottom();
+            } else if (event.type === "tool_call_start") {
+              if (assistantMessageIndex === -1) {
+                isLoading.value = false;
+                assistantMessageIndex = messages.value.length;
+                messages.value.push({
+                  role: "assistant",
+                  content: "",
+                  toolMessages: [],
+                  isStreaming: true,
+                });
+              }
+              const toolMsg = toolNameMap[event.tool_name]?.start || `Using tool: ${event.tool_name}`;
+              messages.value[assistantMessageIndex].toolMessages.push(toolMsg);
+              scrollToBottom();
+            } else if (event.type === "tool_call_end") {
+              const toolMsg = toolNameMap[event.tool_name]?.end || `Tool ${event.tool_name} completed`;
+              messages.value[assistantMessageIndex].toolMessages.push(toolMsg);
+              scrollToBottom();
+            } else if (event.type === "done") {
+              if (assistantMessageIndex !== -1) {
+                messages.value[assistantMessageIndex].isStreaming = false;
+              }
+              isLoading.value = false;
+              scrollToBottom();
+            } else if (event.type === "error") {
+              if (assistantMessageIndex === -1) {
+                isLoading.value = false;
+                assistantMessageIndex = messages.value.length;
+                messages.value.push({
+                  role: "assistant",
+                  content: "",
+                  toolMessages: [],
+                  isStreaming: false,
+                });
+              }
+              messages.value[assistantMessageIndex].content = `Error: ${event.error}`;
+              messages.value[assistantMessageIndex].isStreaming = false;
+              isLoading.value = false;
+              scrollToBottom();
+            }
+          } catch (parseError) {
+            console.error("Failed to parse SSE data:", parseError);
+          }
+        }
+      }
     }
-    messages.value.push({
-      role: "assistant",
-      content: data.response,
-    });
 
-    scrollToBottom();
+    if (assistantMessageIndex !== -1) {
+      messages.value[assistantMessageIndex].isStreaming = false;
+    }
+    isLoading.value = false;
   } catch (error) {
     console.error("Error sending message:", error);
-    messages.value.push({
-      role: "assistant",
-      content: "Sorry, something went wrong. Please try again.",
-    });
+    if (assistantMessageIndex === -1) {
+      isLoading.value = false;
+      assistantMessageIndex = messages.value.length;
+      messages.value.push({
+        role: "assistant",
+        content: "",
+        toolMessages: [],
+        isStreaming: false,
+      });
+    }
+    messages.value[assistantMessageIndex].content = "Sorry, something went wrong. Please try again.";
+    messages.value[assistantMessageIndex].isStreaming = false;
+    isLoading.value = false;
   } finally {
     isLoading.value = false;
     scrollToBottom();
@@ -178,7 +283,7 @@ onMounted(() => {
     </button>
 
     <!-- Chat Interface -->
-    <div v-if="isOpen" class="chat-window">
+    <div v-if="isOpen" class="chat-window" :class="{ expanded: isExpanded }">
       <div class="chat-header">
         <div class="header-content">
           <svg
@@ -221,6 +326,16 @@ onMounted(() => {
               <path d="M3 3v5h5" />
             </svg>
           </button>
+          <button 
+            @click="toggleExpand" 
+            class="action-btn expand-btn" 
+            :title="isExpanded ? 'Minimize' : 'Expand'"
+          >
+            <span 
+              class="icon-mask" 
+              :class="isExpanded ? 'minimize-icon' : 'expand-icon'"
+            ></span>
+          </button>
           <button @click="toggleChat" class="action-btn" title="Close">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -254,10 +369,21 @@ onMounted(() => {
           class="message"
           :class="msg.role"
         >
+          <div v-if="msg.toolMessages && msg.toolMessages.length > 0" class="tool-messages">
+            <div v-for="(toolMsg, toolIndex) in msg.toolMessages" :key="toolIndex" class="tool-message">
+              {{ toolMsg }}
+            </div>
+          </div>
           <div
+            v-if="msg.content"
             class="message-content"
             v-html="renderMarkdown(msg.content)"
           ></div>
+          <div v-if="msg.isStreaming && !isLoading" class="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
         </div>
 
         <div v-if="isLoading" class="message assistant loading">
@@ -338,6 +464,22 @@ onMounted(() => {
   overflow: hidden;
   animation: slideUp 0.3s ease-out;
   border: 1px solid var(--border);
+  transition: width 0.3s ease-out, height 0.3s ease-out, top 0.3s ease-out, 
+              left 0.3s ease-out, right 0.3s ease-out, bottom 0.3s ease-out,
+              transform 0.3s ease-out, position 0.3s ease-out;
+}
+
+.chat-window.expanded {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+  width: 800px;
+  height: 700px;
+  max-width: 90vw;
+  max-height: 90vh;
 }
 
 @keyframes slideUp {
@@ -408,6 +550,29 @@ onMounted(() => {
   height: 20px;
 }
 
+.icon-mask {
+  width: 20px;
+  height: 20px;
+  display: block;
+  background-color: var(--foreground);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+.expand-icon {
+  -webkit-mask-image: url("/icons/expand.svg");
+  mask-image: url("/icons/expand.svg");
+}
+
+.minimize-icon {
+  -webkit-mask-image: url("/icons/minimize.svg");
+  mask-image: url("/icons/minimize.svg");
+}
+
 .chat-messages {
   flex: 1;
   padding: 1rem;
@@ -416,14 +581,18 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  position: relative;
 }
 
 .empty-state {
   text-align: center;
   color: var(--muted-foreground);
-  margin-top: 50%;
-  transform: translateY(-50%);
   padding: 0 1rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
 }
 
 .message {
@@ -495,6 +664,17 @@ onMounted(() => {
 
 .message-content :deep(em) {
   font-style: italic;
+}
+
+.tool-messages {
+  margin-bottom: 0.5rem;
+}
+
+.tool-message {
+  color: var(--muted-foreground);
+  font-style: italic;
+  font-size: 0.9em;
+  margin: 0.25rem 0;
 }
 
 .message-content :deep(a) {
@@ -646,6 +826,22 @@ onMounted(() => {
 
   .chat-toggle-btn {
     margin-left: auto;
+  }
+
+  .expand-btn {
+    display: none;
+  }
+
+  .chat-window.expanded {
+    width: 100%;
+    height: 500px;
+    max-width: 100%;
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    transform: none;
+    position: absolute;
   }
 }
 </style>
