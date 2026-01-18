@@ -19,14 +19,35 @@ const chatContainer = ref(null);
 const chatId = ref(localStorage.getItem("chatId"));
 
 const toolNameMap = {
-  get_products: { start: "Getting product details...", end: "Retrieved product details" },
-  get_product: { start: "Getting product details...", end: "Retrieved product details ✔" },
-  list_products: { start: "Listing products...", end: "Retrieved product list ✔" },
+  get_products: {
+    start: "Getting product details...",
+    end: "Retrieved product details ✔",
+  },
+  get_product: {
+    start: "Getting product details...",
+    end: "Retrieved product details ✔",
+  },
+  list_products: {
+    start: "Listing products...",
+    end: "Retrieved product list ✔",
+  },
   web_search: { start: "Searching the web...", end: "Web search completed ✔" },
-  keyword_search: { start: "Searching documents...", end: "Document search completed ✔" },
-  list_documents: { start: "Listing documents...", end: "Retrieved document list ✔" },
-  list_sections: { start: "Listing sections...", end: "Retrieved section list ✔" },
-  read_sections: { start: "Reading documents...", end: "Retrieved document content ✔" },
+  keyword_search: {
+    start: "Searching documents...",
+    end: "Document search completed ✔",
+  },
+  list_documents: {
+    start: "Listing documents...",
+    end: "Retrieved document list ✔",
+  },
+  list_sections: {
+    start: "Listing sections...",
+    end: "Retrieved section list ✔",
+  },
+  read_sections: {
+    start: "Reading documents...",
+    end: "Retrieved document content ✔",
+  },
 };
 
 const toggleChat = () => {
@@ -111,7 +132,7 @@ const sendMessage = async () => {
 
     while (true) {
       const { done, value } = await reader.read();
-      
+
       if (done) break;
 
       buffer += decoder.decode(value, { stream: true });
@@ -121,7 +142,7 @@ const sendMessage = async () => {
       for (const line of lines) {
         if (line.startsWith("data: ")) {
           const data = line.slice(6);
-          
+
           try {
             const event = JSON.parse(data);
 
@@ -152,11 +173,15 @@ const sendMessage = async () => {
                   isStreaming: true,
                 });
               }
-              const toolMsg = toolNameMap[event.tool_name]?.start || `Using tool: ${event.tool_name}`;
+              const toolMsg =
+                toolNameMap[event.tool_name]?.start ||
+                `Using tool: ${event.tool_name}`;
               messages.value[assistantMessageIndex].toolMessages.push(toolMsg);
               scrollToBottom();
             } else if (event.type === "tool_call_end") {
-              const toolMsg = toolNameMap[event.tool_name]?.end || `Tool ${event.tool_name} completed`;
+              const toolMsg =
+                toolNameMap[event.tool_name]?.end ||
+                `Tool ${event.tool_name} completed`;
               messages.value[assistantMessageIndex].toolMessages.push(toolMsg);
               scrollToBottom();
             } else if (event.type === "done") {
@@ -176,7 +201,9 @@ const sendMessage = async () => {
                   isStreaming: false,
                 });
               }
-              messages.value[assistantMessageIndex].content = `Error: ${event.error}`;
+              messages.value[
+                assistantMessageIndex
+              ].content = `Error: ${event.error}`;
               messages.value[assistantMessageIndex].isStreaming = false;
               isLoading.value = false;
               scrollToBottom();
@@ -204,7 +231,8 @@ const sendMessage = async () => {
         isStreaming: false,
       });
     }
-    messages.value[assistantMessageIndex].content = "Sorry, something went wrong. Please try again.";
+    messages.value[assistantMessageIndex].content =
+      "Sorry, something went wrong. Please try again.";
     messages.value[assistantMessageIndex].isStreaming = false;
     isLoading.value = false;
   } finally {
@@ -326,13 +354,13 @@ onMounted(() => {
               <path d="M3 3v5h5" />
             </svg>
           </button>
-          <button 
-            @click="toggleExpand" 
-            class="action-btn expand-btn" 
+          <button
+            @click="toggleExpand"
+            class="action-btn expand-btn"
             :title="isExpanded ? 'Minimize' : 'Expand'"
           >
-            <span 
-              class="icon-mask" 
+            <span
+              class="icon-mask"
               :class="isExpanded ? 'minimize-icon' : 'expand-icon'"
             ></span>
           </button>
@@ -369,8 +397,15 @@ onMounted(() => {
           class="message"
           :class="msg.role"
         >
-          <div v-if="msg.toolMessages && msg.toolMessages.length > 0" class="tool-messages">
-            <div v-for="(toolMsg, toolIndex) in msg.toolMessages" :key="toolIndex" class="tool-message">
+          <div
+            v-if="msg.toolMessages && msg.toolMessages.length > 0"
+            class="tool-messages"
+          >
+            <div
+              v-for="(toolMsg, toolIndex) in msg.toolMessages"
+              :key="toolIndex"
+              class="tool-message"
+            >
               {{ toolMsg }}
             </div>
           </div>
@@ -464,9 +499,9 @@ onMounted(() => {
   overflow: hidden;
   animation: slideUp 0.3s ease-out;
   border: 1px solid var(--border);
-  transition: width 0.3s ease-out, height 0.3s ease-out, top 0.3s ease-out, 
-              left 0.3s ease-out, right 0.3s ease-out, bottom 0.3s ease-out,
-              transform 0.3s ease-out, position 0.3s ease-out;
+  transition: width 0.3s ease-out, height 0.3s ease-out, top 0.3s ease-out,
+    left 0.3s ease-out, right 0.3s ease-out, bottom 0.3s ease-out,
+    transform 0.3s ease-out, position 0.3s ease-out;
 }
 
 .chat-window.expanded {
