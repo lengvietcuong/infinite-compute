@@ -35,7 +35,7 @@ cp frontend/.env.example frontend/.env
 
 The default environment variables will work for local development out of the box.
 
-**(Optional)**: Edit `OPEN_ROUTER_API_KEY` if you wish to use the AI advisor feature. If not, the rest of the application will still work.
+**(Optional)**: Edit `OPEN_ROUTER_API_KEY` and `BRAVE_API_KEY` in `backend/.env` if you wish to use the AI advisor feature. If not, the rest of the application will still work.
 
 3. Run with Docker:
 
