@@ -210,6 +210,111 @@ async def get_llm_response(
     return messages
 
 
+async def _process_stream_line(
+    line: bytes,
+    full_content: str,
+    tool_calls_dict: Dict[int, ToolCall],
+) -> tuple[str, Dict[int, ToolCall], Optional[Dict[str, Any]], bool]:
+    """
+    Process a single line from the streaming response.
+    
+    Args:
+        line: Raw line from the stream
+        full_content: Accumulated content so far
+        tool_calls_dict: Dictionary of tool calls being built
+    
+    Returns:
+        Tuple of (updated_content, updated_tool_calls_dict, event_to_yield, should_break)
+    """
+    line_str = line.decode('utf-8').strip()
+    
+    # Skip empty lines and comments
+    if not line_str or line_str.startswith(':'):
+        return full_content, tool_calls_dict, None, False
+    
+    # Only process data lines
+    if not line_str.startswith('data: '):
+        return full_content, tool_calls_dict, None, False
+    
+    data_str = line_str[6:]
+    
+    # Check for end of stream
+    if data_str == '[DONE]':
+        return full_content, tool_calls_dict, None, True
+    
+    # Parse JSON chunk
+    try:
+        chunk = json.loads(data_str)
+    except json.JSONDecodeError:
+        return full_content, tool_calls_dict, None, False
+    
+    # Handle errors
+    if 'error' in chunk:
+        error_event = {
+            "type": "error",
+            "error": chunk['error'].get('message', 'Unknown error')
+        }
+        return full_content, tool_calls_dict, error_event, True
+    
+    # Get choices
+    choices = chunk.get('choices', [])
+    if not choices:
+        return full_content, tool_calls_dict, None, False
+    
+    delta = choices[0].get('delta', {})
+    finish_reason = choices[0].get('finish_reason')
+    
+    event_to_yield = None
+    
+    # Handle content delta
+    if 'content' in delta and delta['content']:
+        content_delta = delta['content']
+        full_content += content_delta
+        event_to_yield = {
+            "type": "content",
+            "content": content_delta
+        }
+    
+    # Handle tool calls delta
+    if 'tool_calls' in delta:
+        for tool_call_delta in delta['tool_calls']:
+            index = tool_call_delta.get('index', 0)
+            
+            # Initialize new tool call
+            if index not in tool_calls_dict:
+                tool_calls_dict[index] = {
+                    'id': tool_call_delta.get('id', ''),
+                    'type': 'function',
+                    'function': {
+                        'name': tool_call_delta.get('function', {}).get('name', ''),
+                        'arguments': ''
+                    }
+                }
+                
+                # Yield tool call start event
+                if tool_calls_dict[index]['function']['name']:
+                    event_to_yield = {
+                        "type": "tool_call_start",
+                        "tool_name": tool_calls_dict[index]['function']['name']
+                    }
+            
+            # Update tool call with delta
+            if 'function' in tool_call_delta:
+                function_delta = tool_call_delta['function']
+                if 'name' in function_delta:
+                    tool_calls_dict[index]['function']['name'] = function_delta['name']
+                if 'arguments' in function_delta:
+                    tool_calls_dict[index]['function']['arguments'] += function_delta['arguments']
+            
+            if 'id' in tool_call_delta:
+                tool_calls_dict[index]['id'] = tool_call_delta['id']
+    
+    # Check if streaming is complete
+    should_break = finish_reason is not None
+    
+    return full_content, tool_calls_dict, event_to_yield, should_break
+
+
 async def stream_llm_response(
     messages: List[Message],
     query_embedding: List[float],
@@ -267,79 +372,18 @@ async def stream_llm_response(
                     response.raise_for_status()
                     
                     async for line in response.content:
-                        line = line.decode('utf-8').strip()
+                        full_content, tool_calls_dict, event, should_break = await _process_stream_line(
+                            line, full_content, tool_calls_dict
+                        )
                         
-                        if not line or line.startswith(':'):
-                            continue
-                        
-                        if line.startswith('data: '):
-                            data_str = line[6:]
-                            
-                            if data_str == '[DONE]':
-                                break
-                            
-                            try:
-                                chunk = json.loads(data_str)
-                            except json.JSONDecodeError:
-                                continue
-                            
-                            if 'error' in chunk:
-                                yield {
-                                    "type": "error",
-                                    "error": chunk['error'].get('message', 'Unknown error')
-                                }
+                        if event:
+                            yield event
+                            # If it's an error event, stop processing
+                            if event.get("type") == "error":
                                 return
-                            
-                            choices = chunk.get('choices', [])
-                            if not choices:
-                                continue
-                            
-                            delta = choices[0].get('delta', {})
-                            finish_reason = choices[0].get('finish_reason')
-                            
-                            # Handle content delta
-                            if 'content' in delta and delta['content']:
-                                content_delta = delta['content']
-                                full_content += content_delta
-                                yield {
-                                    "type": "content",
-                                    "content": content_delta
-                                }
-                            
-                            # Handle tool calls delta
-                            if 'tool_calls' in delta:
-                                for tool_call_delta in delta['tool_calls']:
-                                    index = tool_call_delta.get('index', 0)
-                                    
-                                    if index not in tool_calls_dict:
-                                        tool_calls_dict[index] = {
-                                            'id': tool_call_delta.get('id', ''),
-                                            'type': 'function',
-                                            'function': {
-                                                'name': tool_call_delta.get('function', {}).get('name', ''),
-                                                'arguments': ''
-                                            }
-                                        }
-                                        
-                                        if tool_calls_dict[index]['function']['name']:
-                                            yield {
-                                                "type": "tool_call_start",
-                                                "tool_name": tool_calls_dict[index]['function']['name']
-                                            }
-                                    
-                                    if 'function' in tool_call_delta:
-                                        function_delta = tool_call_delta['function']
-                                        if 'name' in function_delta:
-                                            tool_calls_dict[index]['function']['name'] = function_delta['name']
-                                        if 'arguments' in function_delta:
-                                            tool_calls_dict[index]['function']['arguments'] += function_delta['arguments']
-                                    
-                                    if 'id' in tool_call_delta:
-                                        tool_calls_dict[index]['id'] = tool_call_delta['id']
-                            
-                            # Check if streaming is complete
-                            if finish_reason:
-                                break
+                        
+                        if should_break:
+                            break
             
             # If we have tool calls, execute them
             if tool_calls_dict:
