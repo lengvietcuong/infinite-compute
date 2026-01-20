@@ -93,6 +93,73 @@ const resetChat = async () => {
   }
 };
 
+const ensureAssistantMessage = (messageIndex, isStreamingValue = true) => {
+  if (messageIndex !== -1) return messageIndex;
+
+  isLoading.value = false;
+  const newIndex = messages.value.length;
+  messages.value.push({
+    role: "assistant",
+    content: "",
+    toolMessages: [],
+    isStreaming: isStreamingValue,
+  });
+  return newIndex;
+};
+
+const handleStreamEvent = (event, assistantMessageIndex) => {
+  const eventHandlers = {
+    chat_id: () => {
+      if (!chatId.value) {
+        chatId.value = event.chat_id;
+        localStorage.setItem("chatId", event.chat_id);
+      }
+      return assistantMessageIndex;
+    },
+    content: () => {
+      const index = ensureAssistantMessage(assistantMessageIndex);
+      messages.value[index].content += event.content;
+      scrollToBottom();
+      return index;
+    },
+    tool_call_start: () => {
+      const index = ensureAssistantMessage(assistantMessageIndex);
+      const toolMsg =
+        toolNameMap[event.tool_name]?.start || `Using tool: ${event.tool_name}`;
+      messages.value[index].toolMessages.push(toolMsg);
+      scrollToBottom();
+      return index;
+    },
+    tool_call_end: () => {
+      const toolMsg =
+        toolNameMap[event.tool_name]?.end ||
+        `Tool ${event.tool_name} completed`;
+      messages.value[assistantMessageIndex].toolMessages.push(toolMsg);
+      scrollToBottom();
+      return assistantMessageIndex;
+    },
+    done: () => {
+      if (assistantMessageIndex !== -1) {
+        messages.value[assistantMessageIndex].isStreaming = false;
+      }
+      isLoading.value = false;
+      scrollToBottom();
+      return assistantMessageIndex;
+    },
+    error: () => {
+      const index = ensureAssistantMessage(assistantMessageIndex, false);
+      messages.value[index].content = `Error: ${event.error}`;
+      messages.value[index].isStreaming = false;
+      isLoading.value = false;
+      scrollToBottom();
+      return index;
+    },
+  };
+
+  const handler = eventHandlers[event.type];
+  return handler ? handler() : assistantMessageIndex;
+};
+
 const sendMessage = async () => {
   if (!inputMessage.value.trim() || isLoading.value) return;
 
@@ -132,7 +199,6 @@ const sendMessage = async () => {
 
     while (true) {
       const { done, value } = await reader.read();
-
       if (done) break;
 
       buffer += decoder.decode(value, { stream: true });
@@ -140,77 +206,16 @@ const sendMessage = async () => {
       buffer = lines.pop() || "";
 
       for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          const data = line.slice(6);
+        if (!line.startsWith("data: ")) continue;
 
-          try {
-            const event = JSON.parse(data);
-
-            if (event.type === "chat_id" && !chatId.value) {
-              chatId.value = event.chat_id;
-              localStorage.setItem("chatId", event.chat_id);
-            } else if (event.type === "content") {
-              if (assistantMessageIndex === -1) {
-                isLoading.value = false;
-                assistantMessageIndex = messages.value.length;
-                messages.value.push({
-                  role: "assistant",
-                  content: "",
-                  toolMessages: [],
-                  isStreaming: true,
-                });
-              }
-              messages.value[assistantMessageIndex].content += event.content;
-              scrollToBottom();
-            } else if (event.type === "tool_call_start") {
-              if (assistantMessageIndex === -1) {
-                isLoading.value = false;
-                assistantMessageIndex = messages.value.length;
-                messages.value.push({
-                  role: "assistant",
-                  content: "",
-                  toolMessages: [],
-                  isStreaming: true,
-                });
-              }
-              const toolMsg =
-                toolNameMap[event.tool_name]?.start ||
-                `Using tool: ${event.tool_name}`;
-              messages.value[assistantMessageIndex].toolMessages.push(toolMsg);
-              scrollToBottom();
-            } else if (event.type === "tool_call_end") {
-              const toolMsg =
-                toolNameMap[event.tool_name]?.end ||
-                `Tool ${event.tool_name} completed`;
-              messages.value[assistantMessageIndex].toolMessages.push(toolMsg);
-              scrollToBottom();
-            } else if (event.type === "done") {
-              if (assistantMessageIndex !== -1) {
-                messages.value[assistantMessageIndex].isStreaming = false;
-              }
-              isLoading.value = false;
-              scrollToBottom();
-            } else if (event.type === "error") {
-              if (assistantMessageIndex === -1) {
-                isLoading.value = false;
-                assistantMessageIndex = messages.value.length;
-                messages.value.push({
-                  role: "assistant",
-                  content: "",
-                  toolMessages: [],
-                  isStreaming: false,
-                });
-              }
-              messages.value[
-                assistantMessageIndex
-              ].content = `Error: ${event.error}`;
-              messages.value[assistantMessageIndex].isStreaming = false;
-              isLoading.value = false;
-              scrollToBottom();
-            }
-          } catch (parseError) {
-            console.error("Failed to parse SSE data:", parseError);
-          }
+        try {
+          const event = JSON.parse(line.slice(6));
+          assistantMessageIndex = handleStreamEvent(
+            event,
+            assistantMessageIndex,
+          );
+        } catch (parseError) {
+          console.error("Failed to parse SSE data:", parseError);
         }
       }
     }
@@ -218,23 +223,14 @@ const sendMessage = async () => {
     if (assistantMessageIndex !== -1) {
       messages.value[assistantMessageIndex].isStreaming = false;
     }
-    isLoading.value = false;
   } catch (error) {
     console.error("Error sending message:", error);
-    if (assistantMessageIndex === -1) {
-      isLoading.value = false;
-      assistantMessageIndex = messages.value.length;
-      messages.value.push({
-        role: "assistant",
-        content: "",
-        toolMessages: [],
-        isStreaming: false,
-      });
-    }
+    assistantMessageIndex = ensureAssistantMessage(
+      assistantMessageIndex,
+      false,
+    );
     messages.value[assistantMessageIndex].content =
       "Sorry, something went wrong. Please try again.";
-    messages.value[assistantMessageIndex].isStreaming = false;
-    isLoading.value = false;
   } finally {
     isLoading.value = false;
     scrollToBottom();
@@ -466,7 +462,9 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-lg);
-  transition: transform 0.2s, opacity 0.2s;
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
   color: var(--primary);
 }
 
@@ -499,9 +497,15 @@ onMounted(() => {
   overflow: hidden;
   animation: slideUp 0.3s ease-out;
   border: 1px solid var(--border);
-  transition: width 0.3s ease-out, height 0.3s ease-out, top 0.3s ease-out,
-    left 0.3s ease-out, right 0.3s ease-out, bottom 0.3s ease-out,
-    transform 0.3s ease-out, position 0.3s ease-out;
+  transition:
+    width 0.3s ease-out,
+    height 0.3s ease-out,
+    top 0.3s ease-out,
+    left 0.3s ease-out,
+    right 0.3s ease-out,
+    bottom 0.3s ease-out,
+    transform 0.3s ease-out,
+    position 0.3s ease-out;
 }
 
 .chat-window.expanded {
@@ -567,7 +571,9 @@ onMounted(() => {
   padding: 4px;
   cursor: pointer;
   opacity: 0.6;
-  transition: opacity 0.2s, background 0.2s;
+  transition:
+    opacity 0.2s,
+    background 0.2s;
   border-radius: 0;
   color: var(--foreground);
   display: flex;
