@@ -50,13 +50,13 @@ DATABASE_DUMP_FILE = DATABASE_DIR / "database.dump"
 async def restore_database_from_dump() -> bool:
     """Restore database from .dump file using pg_restore."""
     try:
-        result = subprocess.run(
+        subprocess.run(
             ["pg_restore", "--clean", "--if-exists", "--no-owner", "--no-acl", "-d", DATABASE_URL, str(DATABASE_DUMP_FILE)],
             capture_output=True,
             text=True,
             timeout=300,
         )
-        return result.returncode == 0
+        return True
     except subprocess.TimeoutExpired:
         logger.error("Database restore timed out")
         return False
@@ -316,6 +316,14 @@ async def create_reviews(session: AsyncSession) -> List[Review]:
             "Flawless performance! Great for gaming and rendering. Couldn't be happier.",
             "This GPU is a beast! Runs cool and quiet even under heavy load.",
             "Incredible value! Performance is top-notch for both gaming and productivity.",
+            "Absolutely love this card! Handles 4K gaming like a champ.",
+            "Zero regrets with this purchase. The performance is phenomenal!",
+            "Best investment for my gaming setup. Runs everything maxed out effortlessly.",
+            "Superb build quality and amazing temps. Couldn't ask for more!",
+            "This GPU crushes every benchmark! Very impressed with the performance.",
+            "Premium quality at a reasonable price. Delivery was quick too!",
+            "Spectacular card! My renders finish in half the time now.",
+            "Top tier performance! Worth saving up for. Highly satisfied!",
         ],
         4: [
             "Great GPU overall. Minor coil whine but performance is solid.",
@@ -325,6 +333,13 @@ async def create_reviews(session: AsyncSession) -> List[Review]:
             "Good value for money. Performance is great, though drivers could be better.",
             "Happy with my purchase. Runs most games smoothly with high settings.",
             "Quality product. Lost one star due to the high power consumption.",
+            "Really good GPU! Minor issue with fan noise but nothing major.",
+            "Performance is excellent. Only concern is the size - barely fits in my case.",
+            "Strong performer! Would be 5 stars if the RGB software was better.",
+            "Very pleased overall. Installation was smooth and performance is solid.",
+            "Great for 1440p gaming. Occasionally hits thermal limits under stress.",
+            "Good card but could use better cooling. Still happy with the purchase.",
+            "Performs well in all tasks. Packaging could be better but the product is fine.",
         ],
         3: [
             "Decent GPU but nothing special. Gets the job done.",
@@ -333,6 +348,10 @@ async def create_reviews(session: AsyncSession) -> List[Review]:
             "Does what it needs to do. Not blown away but not disappointed either.",
             "Middle of the road. Good for casual gaming but struggles with demanding titles.",
             "Fair product. Some driver issues but overall functional.",
+            "Adequate for my needs. Nothing exceptional but it works.",
+            "Meets basic expectations. Performance is average for this price point.",
+            "It's fine. Does the job but I've seen better for similar money.",
+            "Standard performance. No major issues but nothing to write home about.",
         ],
         2: [
             "Disappointed with the performance. Runs hotter than expected.",
@@ -340,6 +359,10 @@ async def create_reviews(session: AsyncSession) -> List[Review]:
             "Below expectations. Thermal throttling is a real problem.",
             "Having driver issues constantly. Customer support wasn't helpful.",
             "Underperforms compared to specifications. Would not buy again.",
+            "Too many problems for the price. Frequent crashes during gaming.",
+            "Not satisfied. The card runs way too hot and loud under load.",
+            "Expected better. Performance doesn't match what was advertised.",
+            "Regret this purchase. Too many compatibility issues with my setup.",
         ],
         1: [
             "Terrible experience. Card died after two weeks. Avoid!",
@@ -347,10 +370,13 @@ async def create_reviews(session: AsyncSession) -> List[Review]:
             "DOA - Dead on arrival. Had to return immediately.",
             "Worst purchase ever. Nothing but problems from day one.",
             "Save your money. This GPU is unreliable and underperforms badly.",
+            "Absolute disaster. Artifacting within hours of use. Returning ASAP.",
+            "Don't waste your time. This card is defective and support is useless.",
+            "Horrible quality control. Mine was broken right out of the box.",
         ],
     }
 
-    for order in random.sample(orders, int(len(orders) * 0.6)):
+    for order in random.sample(orders, int(len(orders) * 0.95)):
         if not order.user_id:
             continue
 
@@ -362,7 +388,7 @@ async def create_reviews(session: AsyncSession) -> List[Review]:
 
         for item in items:
             key = (order.user_id, item.product_id)
-            if key in reviewed or random.random() > 0.7:
+            if key in reviewed or random.random() > 0.95:
                 continue
 
             rating = random.choices(

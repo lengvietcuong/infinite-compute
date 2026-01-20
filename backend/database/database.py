@@ -6,15 +6,16 @@ from config import DATABASE_URL
 
 
 # Convert postgres:// or postgresql:// to postgresql+asyncpg:// if needed
-if DATABASE_URL.startswith("postgresql://"):
-    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
-elif DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
-elif not DATABASE_URL.startswith("postgresql+asyncpg://"):
-    DATABASE_URL = f"postgresql+asyncpg://{DATABASE_URL}"
+database_url = DATABASE_URL
+if database_url.startswith("postgresql://"):
+    database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+elif database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql+asyncpg://", 1)
+elif not database_url.startswith("postgresql+asyncpg://"):
+    database_url = f"postgresql+asyncpg://{database_url}"
 
 engine = create_async_engine(
-    DATABASE_URL,
+    database_url,
     echo=False,
     poolclass=NullPool,
     future=True

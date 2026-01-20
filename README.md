@@ -10,6 +10,8 @@ InfiniteCompute is an e-commerce store for NVIDIA GPUs. Its main features includ
 - **Admin Dashboard**: Data analytics and management tools for staff and admins, with role-based access control
 - **Order Tracking, Reviews, Discounts, etc.**: Everything you expect from a modern e-commerce platform
 
+See it in action: https://infinitecompute.vercel.app/
+
 ## Installation
 
 1. Clone the repository:
@@ -24,12 +26,16 @@ cd infinite-compute
 
 2. Set up environment variables:
 
-Fill in your environment variables in the `.env` files for both the backend and frontend according to the `.env.example` templates.
+Copy the provided templates:
 
 ```bash
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
+
+The default environment variables will work for local development out of the box.
+
+**(Optional)**: Edit `OPEN_ROUTER_API_KEY` if you wish to use the AI advisor feature. If not, the rest of the application will still work.
 
 3. Run with Docker:
 
@@ -42,13 +48,13 @@ docker compose build
 Initialize the database (only needed on first run):
 
 ```bash
-docker compose up db -d && docker compose run --rm backend python -m database.initialize_database --env-file ./backend/.env
+docker compose up db -d && docker compose run --rm backend python -m database.initialize_database
 ```
 
 Start the full application:
 
 ```bash
-docker-compose --env-file ./backend/.env --env-file ./frontend/.env up
+docker compose up
 ```
 
 You can then access the application at:
