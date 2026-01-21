@@ -9,6 +9,7 @@ import Orders from "./Orders.vue";
 import Reviews from "./Reviews.vue";
 import Coupons from "./Coupons.vue";
 import Conversations from "./Conversations.vue";
+import News from "./News.vue";
 import Toast from "../../components/ui/Toast.vue";
 
 const { user } = useAuth();
@@ -20,13 +21,14 @@ const tabs = computed(() => {
       "Analytics",
       "Users",
       "Products",
+      "News",
       "Orders",
       "Reviews",
       "Coupons",
       "Conversations",
     ];
   }
-  return ["Products", "Orders", "Reviews", "Coupons", "Conversations"];
+  return ["Products", "News", "Orders", "Reviews", "Coupons", "Conversations"];
 });
 
 const activeTab = ref("Analytics");
@@ -52,6 +54,8 @@ const currentTabComponent = computed(() => {
       return Users;
     case "Products":
       return Products;
+    case "News":
+      return News;
     case "Orders":
       return Orders;
     case "Reviews":
@@ -203,6 +207,11 @@ const currentTabComponent = computed(() => {
 .nav-icon-products {
   -webkit-mask-image: url("/icons/packages.svg");
   mask-image: url("/icons/packages.svg");
+}
+
+.nav-icon-news {
+  -webkit-mask-image: url("/icons/news.svg");
+  mask-image: url("/icons/news.svg");
 }
 
 .nav-icon-orders {
