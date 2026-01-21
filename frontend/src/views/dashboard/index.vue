@@ -1,7 +1,8 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { useAuth } from "../../composables/useAuth";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
+import { useUrlState } from "../../composables/useUrlState";
 import Analytics from "./Analytics.vue";
 import Products from "./Products.vue";
 import Users from "./Users.vue";
@@ -14,6 +15,8 @@ import Toast from "../../components/ui/Toast.vue";
 
 const { user } = useAuth();
 const router = useRouter();
+const route = useRoute();
+const { updateQuery, getQueryParam } = useUrlState();
 
 const tabs = computed(() => {
   if (user.value?.role === "admin") {
@@ -31,7 +34,36 @@ const tabs = computed(() => {
   return ["Products", "News", "Orders", "Reviews", "Coupons", "Conversations"];
 });
 
-const activeTab = ref("Analytics");
+const getDefaultTab = () => {
+  const urlTab = getQueryParam('tab', '');
+  if (urlTab && tabs.value.includes(urlTab)) {
+    return urlTab;
+  }
+  return user.value?.role === "admin" ? "Analytics" : "Products";
+};
+
+const activeTab = ref(getDefaultTab());
+
+// Watch for URL changes (browser back/forward)
+watch(() => route.query.tab, (newTab) => {
+  if (newTab && tabs.value.includes(newTab)) {
+    activeTab.value = newTab;
+  } else if (!newTab) {
+    // If no tab in URL, set to default
+    const defaultTab = user.value?.role === "admin" ? "Analytics" : "Products";
+    activeTab.value = defaultTab;
+  }
+});
+
+// Function to switch tabs (called by user interaction)
+const switchTab = (tab) => {
+  activeTab.value = tab;
+  const defaultTab = user.value?.role === "admin" ? "Analytics" : "Products";
+  // Clear all query parameters when switching tabs, but preserve history
+  router.push({
+    query: tab !== defaultTab ? { tab } : {}
+  });
+};
 
 watch(
   user,
@@ -40,7 +72,7 @@ watch(
       newUser?.role !== "admin" &&
       (activeTab.value === "Analytics" || activeTab.value === "Users")
     ) {
-      activeTab.value = "Products";
+      switchTab("Products");
     }
   },
   { immediate: true }
@@ -80,7 +112,8 @@ const currentTabComponent = computed(() => {
           :class="`nav-icon-${activeTab.toLowerCase()}`"
         ></div>
         <select
-          v-model="activeTab"
+          :value="activeTab"
+          @change="switchTab($event.target.value)"
           class="nav-select"
           aria-label="Select dashboard section"
         >
@@ -114,7 +147,7 @@ const currentTabComponent = computed(() => {
           v-for="tab in tabs"
           :key="tab"
           href="#"
-          @click.prevent="activeTab = tab"
+          @click.prevent="switchTab(tab)"
           class="nav-item"
           :class="{ active: activeTab === tab }"
           :aria-current="activeTab === tab ? 'page' : undefined"

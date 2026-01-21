@@ -1,8 +1,9 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import MarkdownIt from "markdown-it";
 import { useAuth } from "../../composables/useAuth";
 import { useToast } from "../../composables/useToast";
+import { useUrlPagination } from "../../composables/useUrlState";
 import { API_BASE_URL } from "../../config/api";
 import Table from "../../components/ui/table/Table.vue";
 import TableHeader from "../../components/ui/table/TableHeader.vue";
@@ -28,11 +29,7 @@ const isDeleteModalOpen = ref(false);
 const isViewModalOpen = ref(false);
 const selectedConversation = ref(null);
 
-const searchQuery = ref("");
-const currentPage = ref(1);
-const pageSize = ref(10);
-const sortColumn = ref("");
-const sortDirection = ref("asc");
+const { currentPage, pageSize, searchQuery, sortColumn, sortDirection } = useUrlPagination(10);
 
 const fetchConversations = async () => {
   isLoading.value = true;
@@ -111,6 +108,12 @@ const totalPages = computed(
 const paginatedConversations = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
   return filteredConversations.value.slice(start, start + pageSize.value);
+});
+
+watch(filteredConversations, () => {
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = 1;
+  }
 });
 
 const handleSort = (column) => {

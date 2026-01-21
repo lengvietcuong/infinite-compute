@@ -1,7 +1,8 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useAuth } from "../../composables/useAuth";
 import { useToast } from "../../composables/useToast";
+import { useUrlPagination } from "../../composables/useUrlState";
 import { API_BASE_URL } from "../../config/api";
 import Table from "../../components/ui/table/Table.vue";
 import TableHeader from "../../components/ui/table/TableHeader.vue";
@@ -34,12 +35,7 @@ const formData = ref({
   tracking_number: "",
 });
 
-// Search, Sort, Pagination
-const searchQuery = ref("");
-const currentPage = ref(1);
-const pageSize = ref(10);
-const sortColumn = ref("");
-const sortDirection = ref("asc");
+const { currentPage, pageSize, searchQuery, sortColumn, sortDirection } = useUrlPagination(10);
 
 const canDelete = computed(() => user.value?.role === "admin");
 
@@ -85,7 +81,6 @@ const filteredOrders = computed(() => {
       let valA = a[sortColumn.value];
       let valB = b[sortColumn.value];
 
-      // Handle specific fields if needed
       if (sortColumn.value === "customer") {
         valA = a.customer_name || a.guest_email || "";
         valB = b.customer_name || b.guest_email || "";
@@ -96,7 +91,6 @@ const filteredOrders = computed(() => {
       return 0;
     });
   } else {
-    // Default sort by date desc
     result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   }
 
@@ -110,6 +104,12 @@ const totalPages = computed(
 const paginatedOrders = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
   return filteredOrders.value.slice(start, start + pageSize.value);
+});
+
+watch(filteredOrders, () => {
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = 1;
+  }
 });
 
 const handleSort = (column) => {
