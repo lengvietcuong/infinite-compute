@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, desc
+from sqlalchemy.orm import aliased
 from typing import List, Optional
 from database.database import get_db
 from database.models import Product, Review, User, OrderItem, Order, OrderStatus
@@ -29,42 +30,88 @@ async def list_products(
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
     
-    query = select(Product)
-    
-    # Apply filters
-    if search:
-        search_pattern = f"%{search}%"
-        query = query.where(
-            (Product.name.ilike(search_pattern)) |
-            (Product.description.ilike(search_pattern))
+    # For sorting by review count, we need to join with reviews
+    if sort_by == "most_reviews":
+        review_count_subquery = (
+            select(
+                Review.product_id,
+                func.count(Review.id).label('review_count')
+            )
+            .group_by(Review.product_id)
+            .subquery()
         )
-    
-    if architecture:
-        query = query.where(Product.architecture == architecture)
-    
-    if product_line:
-        query = query.where(Product.product_line == product_line)
-    
-    if min_price is not None:
-        query = query.where(Product.price >= min_price)
-    
-    if max_price is not None:
-        query = query.where(Product.price <= max_price)
-    
-    if in_stock is True:
-        query = query.where(Product.stock_quantity > 0)
-    
-    # Apply sorting
-    if sort_by == "price_asc":
-        query = query.order_by(Product.price.asc())
-    elif sort_by == "price_desc":
-        query = query.order_by(Product.price.desc())
+        
+        query = (
+            select(Product)
+            .outerjoin(review_count_subquery, Product.id == review_count_subquery.c.product_id)
+        )
+        
+        # Apply filters
+        if search:
+            search_pattern = f"%{search}%"
+            query = query.where(
+                (Product.name.ilike(search_pattern)) |
+                (Product.description.ilike(search_pattern))
+            )
+        
+        if architecture:
+            query = query.where(Product.architecture == architecture)
+        
+        if product_line:
+            query = query.where(Product.product_line == product_line)
+        
+        if min_price is not None:
+            query = query.where(Product.price >= min_price)
+        
+        if max_price is not None:
+            query = query.where(Product.price <= max_price)
+        
+        if in_stock is True:
+            query = query.where(Product.stock_quantity > 0)
+        
+        # Sort by review count (nulls last)
+        query = query.order_by(desc(func.coalesce(review_count_subquery.c.review_count, 0)))
+        query = query.offset(skip).limit(limit)
+        
+        result = await db.execute(query)
+        products = result.scalars().all()
     else:
-        query = query.order_by(Product.created_at.desc())
-    
-    query = query.offset(skip).limit(limit)
-    result = await db.execute(query)
-    products = result.scalars().all()
+        query = select(Product)
+        
+        # Apply filters
+        if search:
+            search_pattern = f"%{search}%"
+            query = query.where(
+                (Product.name.ilike(search_pattern)) |
+                (Product.description.ilike(search_pattern))
+            )
+        
+        if architecture:
+            query = query.where(Product.architecture == architecture)
+        
+        if product_line:
+            query = query.where(Product.product_line == product_line)
+        
+        if min_price is not None:
+            query = query.where(Product.price >= min_price)
+        
+        if max_price is not None:
+            query = query.where(Product.price <= max_price)
+        
+        if in_stock is True:
+            query = query.where(Product.stock_quantity > 0)
+        
+        # Apply sorting
+        if sort_by == "price_asc":
+            query = query.order_by(Product.price.asc())
+        elif sort_by == "price_desc":
+            query = query.order_by(Product.price.desc())
+        else:
+            query = query.order_by(Product.created_at.desc())
+        
+        query = query.offset(skip).limit(limit)
+        result = await db.execute(query)
+        products = result.scalars().all()
     
     # Add review statistics
     products_with_stats = []
@@ -84,10 +131,6 @@ async def list_products(
         product_dict['review_count'] = stats.review_count
         
         products_with_stats.append(ProductResponse(**product_dict))
-    
-    # Handle sorting by review count (requires in-memory sorting since it's computed)
-    if sort_by == "most_reviews":
-        products_with_stats.sort(key=lambda p: p.review_count or 0, reverse=True)
     
     return products_with_stats
 
