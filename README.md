@@ -18,40 +18,18 @@ See it in action: https://infinitecompute.vercel.app/
 
 ```bash
 git clone https://github.com/lengvietcuong/infinite-compute.git
-```
-
-```bash
 cd infinite-compute
 ```
 
-2. Set up environment variables:
+**(Optional)**: Edit `OPEN_ROUTER_API_KEY` and `BRAVE_API_KEY` in `docker-compose.yml` if you wish to use the AI advisor feature. If not, the rest of the application will still work.
 
-Copy the provided templates:
-
-```bash
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-```
-
-The default environment variables will work for local development out of the box.
-
-**(Optional)**: Edit `OPEN_ROUTER_API_KEY` and `BRAVE_API_KEY` in `backend/.env` if you wish to use the AI advisor feature. If not, the rest of the application will still work.
-
-3. Run with Docker:
-
-Build the Docker images:
-
-```bash
-docker compose build
-```
-
-Initialize the database (only needed on first run):
+2. Initialize the database (only needed on first run):
 
 ```bash
 docker compose up db -d && docker compose run --rm backend python -m database.initialize_database
 ```
 
-Start the full application:
+3. Start the full application:
 
 ```bash
 docker compose up
