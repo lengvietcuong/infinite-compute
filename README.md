@@ -21,7 +21,10 @@ git clone https://github.com/lengvietcuong/infinite-compute.git
 cd infinite-compute
 ```
 
-**(Optional)**: Edit `OPEN_ROUTER_API_KEY` and `BRAVE_API_KEY` in `docker-compose.yml` if you wish to use the AI advisor feature. If not, the rest of the application will still work.
+**(Optional)**: To use the AI advisor feature, uncomment and set the following API keys in `docker-compose.yml`. If not, the rest of the application will still work.
+
+- `OPEN_ROUTER_API_KEY`: Get one at https://openrouter.ai/settings/keys
+- `BRAVE_API_KEY`: Get one at https://brave.com/search/api/
 
 2. Start the application:
 
