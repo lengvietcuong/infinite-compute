@@ -23,17 +23,13 @@ cd infinite-compute
 
 **(Optional)**: Edit `OPEN_ROUTER_API_KEY` and `BRAVE_API_KEY` in `docker-compose.yml` if you wish to use the AI advisor feature. If not, the rest of the application will still work.
 
-2. Initialize the database (only needed on first run):
-
-```bash
-docker compose up db -d && docker compose run --rm backend python -m database.initialize_database
-```
-
-3. Start the full application:
+2. Start the application:
 
 ```bash
 docker compose up
 ```
+
+The database will be automatically seeded on first run.
 
 You can then access the application at:
 

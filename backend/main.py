@@ -1,9 +1,12 @@
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from config import CORS_ORIGINS
+from database.database import engine
 from routers import auth, users, products, news, orders, reviews, analytics, chat, coupons, conversations
 
 
@@ -11,11 +14,35 @@ logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
+logger = logging.getLogger(__name__)
+
+
+async def is_database_initialized() -> bool:
+    """Check if the database already has data."""
+    try:
+        async with engine.connect() as conn:
+            result = await conn.execute(text("SELECT COUNT(*) FROM products"))
+            return result.scalar() > 0
+    except Exception:
+        return False
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if not await is_database_initialized():
+        logger.info("Database not initialized, seeding data...")
+        from database.initialize_database import initialize_database
+        await initialize_database()
+    else:
+        logger.info("Database already initialized, skipping seed")
+    yield
+
 
 app = FastAPI(
     title="InfiniteCompute API",
     description="AI-powered e-commerce platform for NVIDIA GPUs",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 # CORS middleware
