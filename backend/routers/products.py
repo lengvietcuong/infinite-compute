@@ -113,25 +113,27 @@ async def list_products(
         result = await db.execute(query)
         products = result.scalars().all()
     
-    # Add review statistics
+    # Batch fetch review statistics for all products in one query
+    product_ids = [p.id for p in products]
+    review_stats_result = await db.execute(
+        select(
+            Review.product_id,
+            func.avg(Review.rating).label('avg_rating'),
+            func.count(Review.id).label('review_count')
+        )
+        .where(Review.product_id.in_(product_ids))
+        .group_by(Review.product_id)
+    )
+    stats_map = {row.product_id: row for row in review_stats_result.all()}
+
     products_with_stats = []
     for product in products:
         product_dict = ProductResponse.model_validate(product).model_dump()
-        
-        # Get average rating and review count
-        review_stats = await db.execute(
-            select(
-                func.avg(Review.rating).label('avg_rating'),
-                func.count(Review.id).label('review_count')
-            ).where(Review.product_id == product.id)
-        )
-        stats = review_stats.first()
-        
-        product_dict['average_rating'] = float(stats.avg_rating) if stats.avg_rating else None
-        product_dict['review_count'] = stats.review_count
-        
+        stats = stats_map.get(product.id)
+        product_dict['average_rating'] = float(stats.avg_rating) if stats and stats.avg_rating else None
+        product_dict['review_count'] = stats.review_count if stats else 0
         products_with_stats.append(ProductResponse(**product_dict))
-    
+
     return products_with_stats
 
 
@@ -200,40 +202,42 @@ async def get_top_selling_products(response: Response, limit: int = 10, db: Asyn
     
     result = await db.execute(query)
     products = result.scalars().all()
-    
+
     # If we don't have enough best sellers, fill with other products
     if len(products) < limit:
         existing_ids = [p.id for p in products]
         remaining = limit - len(products)
-        
+
         fallback_query = select(Product)
         if existing_ids:
             fallback_query = fallback_query.where(Product.id.not_in(existing_ids))
-            
+
         fallback_query = fallback_query.order_by(Product.created_at.desc()).limit(remaining)
         fallback_result = await db.execute(fallback_query)
         fallback_products = fallback_result.scalars().all()
         products.extend(fallback_products)
-    
-    # Add review statistics
+
+    # Batch fetch review statistics for all products in one query
+    product_ids = [p.id for p in products]
+    review_stats_result = await db.execute(
+        select(
+            Review.product_id,
+            func.avg(Review.rating).label('avg_rating'),
+            func.count(Review.id).label('review_count')
+        )
+        .where(Review.product_id.in_(product_ids))
+        .group_by(Review.product_id)
+    )
+    stats_map = {row.product_id: row for row in review_stats_result.all()}
+
     products_with_stats = []
     for product in products:
         product_dict = ProductResponse.model_validate(product).model_dump()
-        
-        # Get average rating and review count
-        review_stats = await db.execute(
-            select(
-                func.avg(Review.rating).label('avg_rating'),
-                func.count(Review.id).label('review_count')
-            ).where(Review.product_id == product.id)
-        )
-        stats = review_stats.first()
-        
-        product_dict['average_rating'] = float(stats.avg_rating) if stats.avg_rating else None
-        product_dict['review_count'] = stats.review_count
-        
+        stats = stats_map.get(product.id)
+        product_dict['average_rating'] = float(stats.avg_rating) if stats and stats.avg_rating else None
+        product_dict['review_count'] = stats.review_count if stats else 0
         products_with_stats.append(ProductResponse(**product_dict))
-    
+
     return products_with_stats
 
 
