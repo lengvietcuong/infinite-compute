@@ -1,13 +1,23 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { formatPrice, formatDate } from "../utils/format";
 import { API_BASE_URL } from "@/config/api";
 
+const route = useRoute();
 const identifier = ref("");
 const orders = ref([]);
 const loading = ref(false);
 const error = ref(null);
 const searched = ref(false);
+
+onMounted(() => {
+  const query = route.query.q;
+  if (query) {
+    identifier.value = query;
+    trackOrder();
+  }
+});
 
 const trackOrder = async () => {
   if (!identifier.value) return;

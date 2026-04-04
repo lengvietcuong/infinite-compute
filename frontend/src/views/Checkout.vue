@@ -27,6 +27,25 @@ const discountPercent = ref(0);
 const discountError = ref(null);
 const discountSuccess = ref(null);
 const isCheckingDiscount = ref(false);
+const copied = ref(false);
+
+const copyTrackingNumber = async () => {
+  try {
+    await navigator.clipboard.writeText(orderId.value);
+    copied.value = true;
+    setTimeout(() => (copied.value = false), 2000);
+  } catch {
+    // Fallback for older browsers
+    const textarea = document.createElement("textarea");
+    textarea.value = orderId.value;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+    copied.value = true;
+    setTimeout(() => (copied.value = false), 2000);
+  }
+};
 
 const discountAmount = computed(() => {
   return cartTotal.value * (discountPercent.value / 100);
@@ -579,12 +598,49 @@ const handleOverlayClick = () => {
         </div>
         <h2 class="h3 mb-3">Order Placed Successfully!</h2>
         <p class="text-muted mb-2">Thank you for your purchase.</p>
-        <p class="text-muted mb-4">
-          Your Tracking Number: <strong>{{ orderId }}</strong>
+        <p class="text-muted mb-4 d-flex align-items-center justify-content-center gap-2 flex-wrap">
+          <span>Your Tracking Number:</span>
+          <strong>{{ orderId }}</strong>
+          <button
+            class="btn-copy"
+            @click="copyTrackingNumber"
+            :title="copied ? 'Copied!' : 'Copy tracking number'"
+            type="button"
+          >
+            <svg
+              v-if="!copied"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <svg
+              v-else
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </button>
         </p>
         <div class="d-flex gap-2 justify-content-center">
           <router-link
-            to="/track-order"
+            :to="{ path: '/track-order', query: { q: orderId } }"
             class="btn btn-outline d-inline-flex align-items-center gap-2"
           >
             <svg
@@ -826,5 +882,23 @@ body.light-mode .section-icon {
   border: 1px solid color-mix(in srgb, var(--destructive), transparent 80%);
   padding: var(--spacing-sm);
   border-radius: var(--radius);
+}
+
+.btn-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--muted), transparent 50%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 6px;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  transition: all 0.2s;
+}
+
+.btn-copy:hover {
+  background: var(--muted);
+  color: var(--foreground);
 }
 </style>
