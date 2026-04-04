@@ -232,7 +232,7 @@ async def create_orders(
     other_products = products_sorted[len(top_products) :]
 
     for _ in range(random.randint(50, 100)):
-        days_ago = random.randint(0, 180)
+        days_ago = random.randint(0, 30)
         created_at = datetime.now(UTC) - timedelta(days=days_ago)
 
         is_guest = random.random() < 0.3
@@ -253,7 +253,7 @@ async def create_orders(
 
         status = (
             OrderStatus.DELIVERED
-            if days_ago > 30
+            if days_ago > 14
             else random.choice(
                 [OrderStatus.PAID, OrderStatus.SHIPPED, OrderStatus.DELIVERED]
             )
@@ -403,7 +403,7 @@ async def create_reviews(session: AsyncSession) -> List[Review]:
                     product_id=item.product_id,
                     rating=rating,
                     comment=comment,
-                    created_at=order.created_at + timedelta(days=random.randint(1, 30)),
+                    created_at=order.created_at + timedelta(days=random.randint(1, 7)),
                 )
             )
             reviewed.add(key)
