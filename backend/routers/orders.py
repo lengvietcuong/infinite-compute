@@ -20,6 +20,19 @@ def generate_tracking_number() -> str:
     return f"ORD-{random_part}"
 
 
+async def resolve_customer_name(db: AsyncSession, order: Order) -> str:
+    """Resolve the customer name for an order"""
+    customer_name = None
+    if order.user_id:
+        result = await db.execute(select(User.full_name).where(User.id == order.user_id))
+        customer_name = result.scalar_one_or_none()
+    if not customer_name and order.shipping_address and '\n' in order.shipping_address:
+        customer_name = order.shipping_address.split('\n')[0]
+    if not customer_name:
+        customer_name = order.guest_email or "Guest"
+    return customer_name
+
+
 async def build_order_response(db: AsyncSession, order: Order, customer_name: Optional[str] = None) -> OrderResponse:
     """Helper function to build OrderResponse with loaded items"""
     result = await db.execute(
@@ -304,8 +317,9 @@ async def update_order_status(
     order.status = status_data.status
     await db.commit()
     await db.refresh(order)
-    
-    return await build_order_response(db, order)
+
+    customer_name = await resolve_customer_name(db, order)
+    return await build_order_response(db, order, customer_name)
 
 
 @router.patch("/{order_id}", response_model=OrderResponse)
@@ -362,8 +376,9 @@ async def update_order(
     
     await db.commit()
     await db.refresh(order)
-    
-    return await build_order_response(db, order)
+
+    customer_name = await resolve_customer_name(db, order)
+    return await build_order_response(db, order, customer_name)
 
 
 @router.delete("/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
