@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, or_
+from sqlalchemy import select, and_
 from typing import List
 from database.database import get_db
 from database.models import Review, Product, User, Order, OrderItem, OrderStatus
@@ -11,7 +11,7 @@ router = APIRouter(prefix="/reviews", tags=["Reviews"])
 
 
 async def can_user_review_product(db: AsyncSession, user_id: int, product_id: int) -> bool:
-    """Check if user has a shipped or delivered order containing the product"""
+    """Check if user has a delivered order containing the product"""
     result = await db.execute(
         select(Order)
         .join(OrderItem, Order.id == OrderItem.order_id)
@@ -19,7 +19,7 @@ async def can_user_review_product(db: AsyncSession, user_id: int, product_id: in
             and_(
                 Order.user_id == user_id,
                 OrderItem.product_id == product_id,
-                or_(Order.status == OrderStatus.SHIPPED, Order.status == OrderStatus.DELIVERED)
+                Order.status == OrderStatus.DELIVERED
             )
         )
         .limit(1)
@@ -72,7 +72,7 @@ async def create_review(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Create a new review (must have shipped order with product)"""
+    """Create a new review (must have delivered order with product)"""
     # Check if product exists
     result = await db.execute(select(Product).where(Product.id == review_data.product_id))
     product = result.scalar_one_or_none()
@@ -100,13 +100,13 @@ async def create_review(
             detail="You have already reviewed this product"
         )
     
-    # Check if user can review (has shipped order with product)
+    # Check if user can review (has delivered order with product)
     can_review = await can_user_review_product(db, current_user.id, review_data.product_id)
     
     if not can_review:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only review products from your shipped or delivered orders"
+            detail="You can only review products from your delivered orders"
         )
     
     # Create review
@@ -244,7 +244,7 @@ async def check_review_eligibility(
     if existing_review:
         return {"can_review": False, "reason": "already_reviewed"}
 
-    # Check if user has a shipped order with this product
+    # Check if user has a delivered order with this product
     can_review = await can_user_review_product(db, current_user.id, product_id)
     
     if not can_review:
