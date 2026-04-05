@@ -129,13 +129,13 @@ async def create_order(
                 # I'll keep it active for simplicity or user re-use.
             # If invalid code, ignore or error? Usually ignore or warn.
         
+        # Registered customers get 10% off; coupon discount stacks on top
+        if current_user:
+            discount_percent += Decimal(10)
+
         if discount_percent > 0:
-            # Apply coupon discount
             factor = (Decimal(100) - discount_percent) / Decimal(100)
             price = price * factor
-        elif current_user:
-            # Apply auth user discount (10%)
-            price = price * Decimal('0.9')
         
         item_total = price * item.quantity
         total_amount += item_total

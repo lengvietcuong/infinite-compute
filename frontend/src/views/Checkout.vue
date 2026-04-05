@@ -47,8 +47,17 @@ const copyTrackingNumber = async () => {
   }
 };
 
+const memberDiscountPercent = 10;
+
+const totalDiscountPercent = computed(() => {
+  let total = 0;
+  if (isAuthenticated.value) total += memberDiscountPercent;
+  if (discountApplied.value) total += discountPercent.value;
+  return total;
+});
+
 const discountAmount = computed(() => {
-  return cartTotal.value * (discountPercent.value / 100);
+  return cartTotal.value * (totalDiscountPercent.value / 100);
 });
 
 const finalTotal = computed(() => {
@@ -331,14 +340,25 @@ const handleOverlayClick = () => {
               <span class="summary-value">${{ formatPrice(cartTotal) }}</span>
             </div>
             <div
+              v-if="isAuthenticated"
+              class="d-flex justify-content-between mb-2 text-success"
+            >
+              <span class="summary-label"
+                >Member Discount ({{ memberDiscountPercent }}%)</span
+              >
+              <span class="summary-value"
+                >-${{ formatPrice(cartTotal * memberDiscountPercent / 100) }}</span
+              >
+            </div>
+            <div
               v-if="discountApplied"
               class="d-flex justify-content-between mb-2 text-success"
             >
               <span class="summary-label"
-                >Discount ({{ discountPercent }}%)</span
+                >Coupon Discount ({{ discountPercent }}%)</span
               >
               <span class="summary-value"
-                >-${{ formatPrice(discountAmount) }}</span
+                >-${{ formatPrice(cartTotal * discountPercent / 100) }}</span
               >
             </div>
             <div class="d-flex justify-content-between mb-2">
