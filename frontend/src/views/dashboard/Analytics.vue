@@ -87,10 +87,37 @@ const formatAxisValue = (value) => {
   return value.toString();
 };
 
+const fillDateRange = (data) => {
+  if (timeframe.value === "today" || timeframe.value === "all") return data;
+
+  const days = { "7d": 7, "30d": 30, "90d": 90, "365d": 365 }[timeframe.value];
+  if (!days) return data;
+
+  const dataMap = new Map();
+  for (const item of data) {
+    const key = new Date(item.date).toISOString().split("T")[0];
+    dataMap.set(key, item);
+  }
+
+  const result = [];
+  const now = new Date();
+  for (let i = days; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().split("T")[0];
+    if (dataMap.has(key)) {
+      result.push(dataMap.get(key));
+    } else {
+      result.push({ date: key, revenue: 0, orders: 0 });
+    }
+  }
+  return result;
+};
+
 const chartOption = computed(() => {
   if (!analyticsData.value?.sales_performance) return null;
 
-  const data = analyticsData.value.sales_performance;
+  const data = fillDateRange(analyticsData.value.sales_performance);
   const labels = data.map((item) => {
     const date = new Date(item.date);
     return timeframe.value === "today"
