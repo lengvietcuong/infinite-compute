@@ -27,7 +27,7 @@ FIREWORKS_LLM_API_URL = "https://api.fireworks.ai/inference/v1/chat/completions"
 FIREWORKS_EMBEDDING_API_URL = "https://api.fireworks.ai/inference/v1/embeddings"
 REQUEST_TIMEOUT_SECONDS = 60
 
-LLM_NAME = "accounts/fireworks/models/glm-5p3-flash"
+LLM_NAME = "accounts/fireworks/models/minimax-m3p1-flash"
 EMBEDDING_MODEL_NAME = "accounts/fireworks/models/qwen3-embedding-8b"
 
 SYSTEM_PROMPT = """You are an advisor for customers of InfiniteCompute – An online store that sells NVIDIA GPUs.
