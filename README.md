@@ -23,7 +23,7 @@ cd infinite-compute
 
 **(Optional)**: To use the AI advisor feature, uncomment and set the following API keys in `docker-compose.yml`. If not, the rest of the application will still work.
 
-- `OPEN_ROUTER_API_KEY`: Get one at https://openrouter.ai/settings/keys
+- `FIREWORKS_AI_API_KEY`: Get one at https://fireworks.ai/ (comma-separate several keys to load balance)
 - `BRAVE_API_KEY`: Get one at https://brave.com/search/api/
 
 2. Start the application:

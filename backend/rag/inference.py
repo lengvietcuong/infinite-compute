@@ -1,3 +1,4 @@
+import random
 import asyncio
 import json
 import logging
@@ -6,9 +7,9 @@ from typing import Any, AsyncGenerator, Dict, List, Literal, Optional, TypedDict
 import aiohttp
 
 from config import (
-    OPEN_ROUTER_API_KEY,
-    OPEN_ROUTER_LLM_API_URL,
-    OPEN_ROUTER_EMBEDDING_API_URL,
+    FIREWORKS_API_KEYS,
+    FIREWORKS_LLM_API_URL,
+    FIREWORKS_EMBEDDING_API_URL,
     REQUEST_TIMEOUT_SECONDS,
     LLM_NAME,
     EMBEDDING_MODEL_NAME,
@@ -72,7 +73,7 @@ async def embed(
     semaphore: asyncio.Semaphore,
 ) -> Union[List[float], List[List[float]]]:
     """
-    Call the OpenRouter Embedding API to get vector embeddings for text(s).
+    Call the Fireworks Embedding API to get vector embeddings for text(s).
 
     Args:
         text (Union[str, List[str]]): A single text string or a list of text strings to be vectorized
@@ -85,7 +86,7 @@ async def embed(
             - If text is a list of strings: A list of embedding vectors, each with EMBEDDING_DIMENSIONS elements
     """
     headers = {
-        "Authorization": f"Bearer {OPEN_ROUTER_API_KEY}",
+        "Authorization": f"Bearer {random.choice(FIREWORKS_API_KEYS)}",
         "Content-Type": "application/json",
     }
     payload = {
@@ -96,7 +97,7 @@ async def embed(
     }
     async with semaphore:
         async with http_session.post(
-            OPEN_ROUTER_EMBEDDING_API_URL,
+            FIREWORKS_EMBEDDING_API_URL,
             headers=headers,
             json=payload,
             timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS),
@@ -132,7 +133,7 @@ async def _get_llm_response(
     semaphore: asyncio.Semaphore,
 ) -> Message:
     """
-    Call the OpenRouter API with a list of messages and return the assistant's message.
+    Call the Fireworks API with a list of messages and return the assistant's message.
 
     Args:
         messages (List[Message]): The conversation messages
@@ -143,7 +144,7 @@ async def _get_llm_response(
         Message: The assistant's message object
     """
     headers = {
-        "Authorization": f"Bearer {OPEN_ROUTER_API_KEY}",
+        "Authorization": f"Bearer {random.choice(FIREWORKS_API_KEYS)}",
         "Content-Type": "application/json",
     }
     payload = {
@@ -158,7 +159,7 @@ async def _get_llm_response(
 
     async with semaphore:
         async with http_session.post(
-            OPEN_ROUTER_LLM_API_URL,
+            FIREWORKS_LLM_API_URL,
             headers=headers,
             json=payload,
             timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS),
@@ -344,7 +345,7 @@ async def stream_llm_response(
     iteration = 0
     for iteration in range(1, MAX_ITERATIONS + 1):
         headers = {
-            "Authorization": f"Bearer {OPEN_ROUTER_API_KEY}",
+            "Authorization": f"Bearer {random.choice(FIREWORKS_API_KEYS)}",
             "Content-Type": "application/json",
         }
         payload = {
@@ -364,7 +365,7 @@ async def stream_llm_response(
         try:
             async with semaphore:
                 async with http_session.post(
-                    OPEN_ROUTER_LLM_API_URL,
+                    FIREWORKS_LLM_API_URL,
                     headers=headers,
                     json=payload,
                     timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS),

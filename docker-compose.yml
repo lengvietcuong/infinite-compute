@@ -24,7 +24,7 @@ services:
       SECRET_KEY: dev-secret-key
       CORS_ORIGINS: http://localhost:5173
       # Optional: set these to enable the AI advisor feature
-      # OPEN_ROUTER_API_KEY: your-open-router-api-key
+      # FIREWORKS_AI_API_KEY: your-fireworks-api-key
       # BRAVE_API_KEY: your-brave-api-key
     depends_on:
       db:

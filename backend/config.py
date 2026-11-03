@@ -17,14 +17,18 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 10080  # 1 week
 BRAVE_API_KEY = os.getenv("BRAVE_API_KEY")
 BRAVE_API_URL = "https://api.search.brave.com/res/v1/web/search"
 
-# OpenRouter AI
-OPEN_ROUTER_API_KEY = os.getenv("OPEN_ROUTER_API_KEY")
-OPEN_ROUTER_LLM_API_URL = "https://openrouter.ai/api/v1/chat/completions"
-OPEN_ROUTER_EMBEDDING_API_URL = "https://openrouter.ai/api/v1/embeddings"
+# Fireworks AI (comma-separated keys are load balanced at random)
+FIREWORKS_API_KEYS = [
+    key.strip()
+    for key in os.getenv("FIREWORKS_AI_API_KEY", "").split(",")
+    if key.strip()
+]
+FIREWORKS_LLM_API_URL = "https://api.fireworks.ai/inference/v1/chat/completions"
+FIREWORKS_EMBEDDING_API_URL = "https://api.fireworks.ai/inference/v1/embeddings"
 REQUEST_TIMEOUT_SECONDS = 60
 
-LLM_NAME = "google/gemini-3-flash-preview"
-EMBEDDING_MODEL_NAME = "qwen/qwen3-embedding-8b"
+LLM_NAME = "accounts/fireworks/models/glm-5p3-flash"
+EMBEDDING_MODEL_NAME = "accounts/fireworks/models/qwen3-embedding-8b"
 
 SYSTEM_PROMPT = """You are an advisor for customers of InfiniteCompute – An online store that sells NVIDIA GPUs.
 
